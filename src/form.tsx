@@ -96,9 +96,10 @@ export default function FormularioDomia() {
           'Prefer': 'return=representation',
         },
         body: JSON.stringify({
-          cliente_id: clienteId,
-          tipo: form.tipo,
-          descripcion: form.descripcion + (fotoUrl ? `\n\nFoto: ${fotoUrl}` : ''),
+  cliente_id: clienteId,
+  tipo: form.tipo,
+  descripcion: form.descripcion,
+  notas: fotoUrl ? `foto:${fotoUrl}` : '',
           origen: 'web',
           prioridad: 'Media',
           estado: 'Solicitud',
