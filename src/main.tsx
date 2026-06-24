@@ -2,7 +2,7 @@ import React from "react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
-import Formulario from "./Form";
+import Formulario from "./form";
 
 const path = window.location.pathname;
 
