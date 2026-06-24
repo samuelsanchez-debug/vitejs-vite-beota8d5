@@ -483,7 +483,7 @@ function NuevasDemandas({data,setData,onBack,toast,onVer}){
           const cl=data.clientes.find(c=>c.id===t.clienteId);
           const sg=sugerirColab(t.tipo,data.colaboradores,data.trabajos);
           return(
-            <div key={t.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+            <div key={t.id} onClick={()=>onVer(t.id)} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm cursor-pointer hover:border-[#1E3A5F] transition">
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div>
                   <div className="flex items-center gap-2 flex-wrap mb-0.5">
