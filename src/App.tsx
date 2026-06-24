@@ -1011,7 +1011,14 @@ function TrabajoModal({tid,data,setData,onClose,toast}){
             <div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Fecha / Hora</div><div>{fmt(t.fecha)} · {t.hora}</div></div>
           </div>
           <div className="bg-gray-50 rounded-xl p-3 text-sm text-gray-700">{t.descripcion}</div>
-          {t.notas&&<div className="bg-yellow-50 border border-yellow-100 rounded-xl p-3 text-xs text-gray-600">📝 {t.notas}</div>}
+          {t.notas&&t.notas.startsWith('foto:')?(
+  <div className="bg-gray-50 border border-gray-100 rounded-xl p-3">
+    <div className="text-[10px] font-bold text-gray-400 uppercase mb-2">📎 Archivos adjuntos</div>
+    <img src={t.notas.replace('foto:','')} alt="Foto del problema" className="w-full rounded-xl object-cover max-h-64"/>
+  </div>
+):t.notas?(
+  <div className="bg-yellow-50 border border-yellow-100 rounded-xl p-3 text-xs text-gray-600">📝 {t.notas}</div>
+):null}
           <div className="bg-gray-900 rounded-xl p-4 text-white">
             <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">Financiero</div>
             <div className="grid grid-cols-3 gap-3 text-center">
