@@ -3,7 +3,7 @@ import { useState } from "react";
 const TIPOS = ["Fontanería","Electricidad","Albañilería","Carpintería","Pintura","Cerrajería","Climatización","Mantenimiento","Limpieza","Otros"];
 const SUPABASE_URL = 'https://opijkazhbktiikdzbanb.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9waWprYXpoYmt0aWlrZHpiYW5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNDcyNjIsImV4cCI6MjA5NzcyMzI2Mn0.HmTXEO848sPMhi2NxNxvshLxntk1EDI6D4NCMAdUINI';
-const LOGO_URL = 'https://opijkazhbktiikdzbanb.supabase.co/storage/v1/object/public/fotos-demandas/DOMIA_SERVICES_PNG.png';
+const LOGO_URL = '/logo-domia.png';
 
 export default function FormularioDomia() {
   const [paso, setPaso] = useState(1);
