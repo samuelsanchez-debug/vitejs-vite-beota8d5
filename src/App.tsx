@@ -10,7 +10,7 @@ const supabase = createClient('https://opijkazhbktiikdzbanb.supabase.co', 'eyJhb
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ─── CONSTANTES ──────────────────────────────────────────────────────────────
-const TIPOS = ["Fontanería","Electricidad","Albañilería","Carpintería","Pintura","Cerrajería","Climatización","Mantenimiento","Otros"];
+const TIPOS = ["Fontanería","Electricidad","Albañilería","Carpintería","Pintura","Cerrajería","Climatización","Mantenimiento","Limpieza","Otros"];
 const PRIORIDADES = ["Alta","Media","Baja"];
 const DIAS = ["L","M","X","J","V","S","D"];
 const FLUJO = ["Solicitud","Presupuestando","Presupuesto enviado","Aceptado","En curso","Completado","Cancelado"];
