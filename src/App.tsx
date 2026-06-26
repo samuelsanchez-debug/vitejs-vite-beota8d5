@@ -5,7 +5,7 @@ const supabase = createClient('https://opijkazhbktiikdzbanb.supabase.co', 'eyJhb
 const TIPOS = ["Fontanería","Electricidad","Albañilería","Carpintería","Pintura","Cerrajería","Climatización","Mantenimiento","Limpieza","Otros"];
 const PRIORIDADES = ["Alta","Media","Baja"];
 const DIAS = ["L","M","X","J","V","S","D"];
-const FLUJO = ["Solicitud","Presupuestando","Presupuesto enviado","Aceptado","En curso","Completado","Cancelado"];
+const FLUJO = ["Solicitud","Presupuestando","Visita propuesta","Visita confirmada","Presupuesto recibido","Presupuesto enviado","Aceptado","En curso","Completado","Cancelado"];
 const ORIGENES = [
   {id:"web",label:"Web",icon:"🌐",color:"bg-blue-50 text-blue-700 border-blue-200"},
   {id:"instagram",label:"Instagram",icon:"📸",color:"bg-pink-50 text-pink-700 border-pink-200"},
