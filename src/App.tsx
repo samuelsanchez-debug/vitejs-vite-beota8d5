@@ -672,7 +672,10 @@ function TrabajoModal({tid,data,setData,onClose,toast}){
         <button onClick={()=>setModo("editar")} className="flex-1 bg-[#1E3A5F] hover:bg-[#152d4a] text-white py-2.5 rounded-xl text-sm font-bold transition">Editar</button>
         <button onClick={async()=>{if(!confirm("¿Eliminar?"))return;await dbDeleteTrabajo(t.id);setData(d=>({...d,trabajos:d.trabajos.filter(x=>x.id!==t.id)}));onClose();}} className="bg-red-50 hover:bg-red-100 text-red-500 px-4 py-2.5 rounded-xl text-sm transition">Eliminar</button>
       </div>
-    </div>:<FormTrabajo data={data} setData={setData} inicial={t} onClose={()=>{setModo("ver");onClose();}} toast={toast}/>}
+    </div>
+  ) : (
+    <FormTrabajo data={data} setData={setData} inicial={t} onClose={()=>{setModo("ver");onClose();}} toast={toast}/>
+  )}
   </Modal>;
 }
 
