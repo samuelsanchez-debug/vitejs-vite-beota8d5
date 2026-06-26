@@ -65,8 +65,22 @@ const sugerirColab = (tipo,colabs,trabajos)=>{
   )[0];
 };
 
+const BASE_URL = 'https://melodious-salamander-2a7f63.netlify.app';
+
 const buildWA=(colab,trabajo,cliente)=>{
-  const msg=`Hola ${colab.nombre.split(" ")[0]} 👋\n\nNueva solicitud de presupuesto para Domia:\n\n📋 *${trabajo.tipo}*\n👤 Cliente: ${cliente.nombre}\n📍 ${cliente.direccion}\n📅 ${fmt(trabajo.fecha)} a las ${trabajo.hora}\n📝 ${trabajo.descripcion}\n\n¿Puedes enviarme presupuesto? Gracias 🙏`;
+  const enlace = `${BASE_URL}/trabajo/${trabajo.id}`;
+  const msg=`Hola ${colab.nombre.split(" ")[0]} 👋\n\nTenemos un trabajo de *${trabajo.tipo}* y necesitamos que vayas a hacer la visita.\n\n📍 ${cliente.direccion}\n📅 ${fmt(trabajo.fecha)} · ${trabajo.hora}\n📝 ${trabajo.descripcion}\n\n👉 Confirma aquí si puedes ir:\n${enlace}\n\nGracias 🙏`;
+  return `https://wa.me/${colab.whatsapp}?text=${encodeURIComponent(msg)}`;
+};
+
+const buildWAVisitaCliente=(cliente,trabajo,colab)=>{
+  const nombre = cliente.nombre.split(" ")[0];
+  const msg=`Hola ${nombre} 👋\n\nSoy Samuel de *Domia Services*.\n\nPodemos enviarte a nuestro técnico el:\n📅 *${fmt(trabajo.fecha)} a las ${trabajo.hora}*\n\n¿Te viene bien? Responde *SÍ* o *NO* 😊\n\n📞 622 123 456 · Domia Services`;
+  return `https://wa.me/${cliente.telefono?.replace(/\s/g,'')}?text=${encodeURIComponent(msg)}`;
+};
+
+const buildWAConfirmacionColab=(colab,trabajo,cliente)=>{
+  const msg=`Hola ${colab.nombre.split(" ")[0]} 👋\n\n✅ El cliente ha confirmado la visita.\n\n📍 ${cliente.direccion}\n📅 *${fmt(trabajo.fecha)} a las ${trabajo.hora}*\n👤 ${cliente.nombre} · ${cliente.telefono}\n\nTras la visita, sube el presupuesto aquí:\n${BASE_URL}/trabajo/${trabajo.id}\n\nGracias 🙏`;
   return `https://wa.me/${colab.whatsapp}?text=${encodeURIComponent(msg)}`;
 };
 
