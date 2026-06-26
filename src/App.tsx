@@ -19,6 +19,9 @@ const ORIGENES = [
 const ESTADO_CFG = {
   "Solicitud":{bg:"bg-slate-100",text:"text-slate-600",dot:"bg-slate-400"},
   "Presupuestando":{bg:"bg-amber-100",text:"text-amber-700",dot:"bg-amber-400"},
+  "Visita propuesta":{bg:"bg-cyan-100",text:"text-cyan-700",dot:"bg-cyan-500"},
+  "Visita confirmada":{bg:"bg-teal-100",text:"text-teal-700",dot:"bg-teal-500"},
+  "Presupuesto recibido":{bg:"bg-purple-100",text:"text-purple-700",dot:"bg-purple-500"},
   "Presupuesto enviado":{bg:"bg-blue-100",text:"text-blue-700",dot:"bg-blue-500"},
   "Aceptado":{bg:"bg-violet-100",text:"text-violet-700",dot:"bg-violet-500"},
   "En curso":{bg:"bg-orange-100",text:"text-orange-700",dot:"bg-orange-500"},
