@@ -658,8 +658,13 @@ function TrabajoModal({tid,data,setData,onClose,toast}){
         </div>
         {getPresupColab(t)&&getPrecioCliente(t)&&<div className="mt-3 bg-gray-800 rounded-lg px-3 py-2 flex justify-between text-xs"><span className="text-gray-400">Beneficio</span><span className="text-emerald-400 font-black">+{getPrecioCliente(t)-getPresupColab(t)}€</span></div>}
       </div>
-      {co&&!["Completado","Cancelado"].includes(t.estado)&&<button onClick={()=>{window.open(buildWA(co,t,cl),"_blank");toast("📱 WhatsApp...");}} className="w-full bg-green-500 hover:bg-green-600 text-white py-2.5 rounded-xl font-bold text-sm transition">📱 WhatsApp a {co.nombre.split(" ")[0]}</button>}
-      <div>
+      <div className="space-y-2">
+  {co&&t.estado==="Presupuestando"&&<button onClick={()=>{window.open(buildWA(co,t,cl),"_blank");toast("📱 WhatsApp a colaborador...");}} className="w-full bg-green-500 hover:bg-green-600 text-white py-2.5 rounded-xl font-bold text-sm transition">📱 Pedir visita a {co.nombre.split(" ")[0]}</button>}
+  {t.estado==="Visita confirmada"&&cl?.telefono&&<button onClick={()=>{window.open(buildWAVisitaCliente(cl,t,co),"_blank");toast("📱 Propuesta enviada al cliente");}} className="w-full bg-cyan-500 hover:bg-cyan-600 text-white py-2.5 rounded-xl font-bold text-sm transition">📱 Proponer visita al cliente</button>}
+  {t.estado==="Visita confirmada"&&co&&<button onClick={async()=>{const hist=[...getHistorial(t),{ts:now(),txt:"Cliente confirmó la visita",tipo:"ok"}];await dbSaveTrabajo({...t,estado:"En curso",historial:hist});setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,estado:"En curso"}:x)}));window.open(buildWAConfirmacionColab(co,t,cl),"_blank");toast("✅ Confirmado — avisando a colaborador");onClose();}} className="w-full bg-teal-500 hover:bg-teal-600 text-white py-2.5 rounded-xl font-bold text-sm transition">✅ Cliente confirmó — avisar a {co.nombre.split(" ")[0]}</button>}
+  {t.estado==="Presupuesto recibido"&&<div className="bg-purple-50 border border-purple-200 rounded-xl p-3 text-sm text-purple-700 font-semibold text-center">📄 Presupuesto recibido — revísalo y genera el PDF de Domia</div>}
+  {co&&!["Solicitud","Presupuestando","Visita confirmada","Presupuesto recibido","Completado","Cancelado"].includes(t.estado)&&<button onClick={()=>{window.open(buildWA(co,t,cl),"_blank");toast("📱 WhatsApp...");}} className="w-full bg-green-500 hover:bg-green-600 text-white py-2.5 rounded-xl font-bold text-sm transition">📱 WhatsApp a {co.nombre.split(" ")[0]}</button>}
+</div>
         <div className="text-[10px] font-bold text-gray-400 uppercase mb-2">Historial</div>
         <div className="space-y-1.5 max-h-44 overflow-y-auto">{historial.map((h,i)=><div key={i} className="flex items-start gap-2 text-xs"><span className="text-base leading-none flex-shrink-0">{iconH(h.tipo)}</span><span className="text-gray-400 flex-shrink-0">{h.ts} ·</span><span className="text-gray-700">{h.txt}</span></div>)}</div>
       </div>
