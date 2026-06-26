@@ -631,7 +631,8 @@ function TrabajoModal({tid,data,setData,onClose,toast}){
   const iconH=tipo=>({entrada:"🟢",wa:"💬",presupuesto:"💶",cliente:"📤",ok:"✅",sistema:"·"}[tipo]||"·");
 
   return<Modal title={`${t.tipo} #${t.id}`} onClose={onClose} wide>
-    {modo==="ver"?<div className="space-y-4">
+    {modo==="ver"?(
+    <div className="space-y-4">
       <div className="flex flex-wrap gap-1.5"><Badge text={t.estado}/><OrigenTag id={t.origen}/><span className={`text-xs font-bold ${PRIO_CFG[t.prioridad]?.text}`}>{PRIO_CFG[t.prioridad]?.icon} {t.prioridad}</span></div>
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Cliente</div><div className="font-semibold">{cl?.nombre}</div><div className="text-xs text-gray-400">{cl?.telefono}</div></div>
@@ -639,16 +640,12 @@ function TrabajoModal({tid,data,setData,onClose,toast}){
         <div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Fecha / Hora</div><div>{fmt(t.fecha)} · {t.hora}</div></div>
       </div>
       <div className="bg-gray-50 rounded-xl p-3 text-sm text-gray-700">{t.descripcion}</div>
-
-      {/* Archivos adjuntos */}
       {fotoUrl&&<div className="bg-gray-50 border border-gray-100 rounded-xl p-3">
         <div className="text-[10px] font-bold text-gray-400 uppercase mb-2">📎 Archivos adjuntos</div>
         <img src={fotoUrl} alt="Foto del problema" className="w-full rounded-xl object-cover max-h-64 cursor-pointer" onClick={()=>window.open(fotoUrl,"_blank")}/>
         <div className="text-xs text-gray-400 mt-1 text-center">Toca para ver en tamaño completo</div>
       </div>}
-
       {!fotoUrl&&notas&&<div className="bg-yellow-50 border border-yellow-100 rounded-xl p-3 text-xs text-gray-600">📝 {notas}</div>}
-
       <div className="bg-gray-900 rounded-xl p-4 text-white">
         <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">Financiero</div>
         <div className="grid grid-cols-3 gap-3 text-center">
@@ -659,12 +656,13 @@ function TrabajoModal({tid,data,setData,onClose,toast}){
         {getPresupColab(t)&&getPrecioCliente(t)&&<div className="mt-3 bg-gray-800 rounded-lg px-3 py-2 flex justify-between text-xs"><span className="text-gray-400">Beneficio</span><span className="text-emerald-400 font-black">+{getPrecioCliente(t)-getPresupColab(t)}€</span></div>}
       </div>
       <div className="space-y-2">
-  {co&&t.estado==="Presupuestando"&&<button onClick={()=>{window.open(buildWA(co,t,cl),"_blank");toast("📱 WhatsApp a colaborador...");}} className="w-full bg-green-500 hover:bg-green-600 text-white py-2.5 rounded-xl font-bold text-sm transition">📱 Pedir visita a {co.nombre.split(" ")[0]}</button>}
-  {t.estado==="Visita confirmada"&&cl?.telefono&&<button onClick={()=>{window.open(buildWAVisitaCliente(cl,t,co),"_blank");toast("📱 Propuesta enviada al cliente");}} className="w-full bg-cyan-500 hover:bg-cyan-600 text-white py-2.5 rounded-xl font-bold text-sm transition">📱 Proponer visita al cliente</button>}
-  {t.estado==="Visita confirmada"&&co&&<button onClick={async()=>{const hist=[...getHistorial(t),{ts:now(),txt:"Cliente confirmó la visita",tipo:"ok"}];await dbSaveTrabajo({...t,estado:"En curso",historial:hist});setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,estado:"En curso"}:x)}));window.open(buildWAConfirmacionColab(co,t,cl),"_blank");toast("✅ Confirmado — avisando a colaborador");onClose();}} className="w-full bg-teal-500 hover:bg-teal-600 text-white py-2.5 rounded-xl font-bold text-sm transition">✅ Cliente confirmó — avisar a {co.nombre.split(" ")[0]}</button>}
-  {t.estado==="Presupuesto recibido"&&<div className="bg-purple-50 border border-purple-200 rounded-xl p-3 text-sm text-purple-700 font-semibold text-center">📄 Presupuesto recibido — revísalo y genera el PDF de Domia</div>}
-  {co&&!["Solicitud","Presupuestando","Visita confirmada","Presupuesto recibido","Completado","Cancelado"].includes(t.estado)&&<button onClick={()=>{window.open(buildWA(co,t,cl),"_blank");toast("📱 WhatsApp...");}} className="w-full bg-green-500 hover:bg-green-600 text-white py-2.5 rounded-xl font-bold text-sm transition">📱 WhatsApp a {co.nombre.split(" ")[0]}</button>}
-</div>
+        {co&&t.estado==="Presupuestando"&&<button onClick={()=>{window.open(buildWA(co,t,cl),"_blank");toast("📱 WhatsApp a colaborador...");}} className="w-full bg-green-500 hover:bg-green-600 text-white py-2.5 rounded-xl font-bold text-sm transition">📱 Pedir visita a {co.nombre.split(" ")[0]}</button>}
+        {t.estado==="Visita confirmada"&&cl?.telefono&&<button onClick={()=>{window.open(buildWAVisitaCliente(cl,t,co),"_blank");toast("📱 Propuesta enviada al cliente");}} className="w-full bg-cyan-500 hover:bg-cyan-600 text-white py-2.5 rounded-xl font-bold text-sm transition">📱 Proponer visita al cliente</button>}
+        {t.estado==="Visita confirmada"&&co&&<button onClick={async()=>{const hist=[...getHistorial(t),{ts:now(),txt:"Cliente confirmó la visita",tipo:"ok"}];await dbSaveTrabajo({...t,estado:"En curso",historial:hist});setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,estado:"En curso"}:x)}));window.open(buildWAConfirmacionColab(co,t,cl),"_blank");toast("✅ Confirmado — avisando a colaborador");onClose();}} className="w-full bg-teal-500 hover:bg-teal-600 text-white py-2.5 rounded-xl font-bold text-sm transition">✅ Cliente confirmó — avisar a {co.nombre.split(" ")[0]}</button>}
+        {t.estado==="Presupuesto recibido"&&<div className="bg-purple-50 border border-purple-200 rounded-xl p-3 text-sm text-purple-700 font-semibold text-center">📄 Presupuesto recibido — revísalo y genera el PDF de Domia</div>}
+        {co&&!["Solicitud","Presupuestando","Visita confirmada","Presupuesto recibido","Completado","Cancelado"].includes(t.estado)&&<button onClick={()=>{window.open(buildWA(co,t,cl),"_blank");toast("📱 WhatsApp...");}} className="w-full bg-green-500 hover:bg-green-600 text-white py-2.5 rounded-xl font-bold text-sm transition">📱 WhatsApp a {co.nombre.split(" ")[0]}</button>}
+      </div>
+      <div>
         <div className="text-[10px] font-bold text-gray-400 uppercase mb-2">Historial</div>
         <div className="space-y-1.5 max-h-44 overflow-y-auto">{historial.map((h,i)=><div key={i} className="flex items-start gap-2 text-xs"><span className="text-base leading-none flex-shrink-0">{iconH(h.tipo)}</span><span className="text-gray-400 flex-shrink-0">{h.ts} ·</span><span className="text-gray-700">{h.txt}</span></div>)}</div>
       </div>
@@ -673,12 +671,11 @@ function TrabajoModal({tid,data,setData,onClose,toast}){
         <button onClick={async()=>{if(!confirm("¿Eliminar?"))return;await dbDeleteTrabajo(t.id);setData(d=>({...d,trabajos:d.trabajos.filter(x=>x.id!==t.id)}));onClose();}} className="bg-red-50 hover:bg-red-100 text-red-500 px-4 py-2.5 rounded-xl text-sm transition">Eliminar</button>
       </div>
     </div>
-  ) : (
+    ):(
     <FormTrabajo data={data} setData={setData} inicial={t} onClose={()=>{setModo("ver");onClose();}} toast={toast}/>
-  )}
+    )}
   </Modal>;
 }
-
 // ══════════════════════════════════════════════════════════════════════════════
 // APP PRINCIPAL
 // ══════════════════════════════════════════════════════════════════════════════
