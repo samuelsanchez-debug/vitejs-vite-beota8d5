@@ -721,7 +721,36 @@ function PortalColaborador({id}:{id:string}){
   if(!trabajo)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-center"><div className="text-4xl mb-3">❌</div><div className="font-bold text-gray-700">Trabajo no encontrado</div></div></div>;
   if(estado==="ok")return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4"><div className="bg-white rounded-2xl p-8 text-center max-w-sm w-full shadow-sm border border-gray-100"><div className="text-6xl mb-4">✅</div><div className="text-xl font-black text-gray-800 mb-2">¡Confirmado!</div><div className="text-gray-500 text-sm">Hemos avisado a Domia. Nos ponemos en contacto contigo pronto.</div></div></div>;
   if(estado==="no")return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4"><div className="bg-white rounded-2xl p-8 text-center max-w-sm w-full shadow-sm border border-gray-100"><div className="text-6xl mb-4">👍</div><div className="text-xl font-black text-gray-800 mb-2">Entendido</div><div className="text-gray-500 text-sm">Gracias por avisarnos. Buscaremos otra disponibilidad.</div></div></div>;
-  return<div className="min-h-screen bg-[#F0F2F5]" style={{fontFamily:"'Inter',system-ui,sans-serif"}}>
+
+  const estadosAvanzados=["Visita confirmada","Presupuesto recibido","Presupuesto enviado","Aceptado","En curso","Completado"];
+  if(trabajo&&estadosAvanzados.includes(trabajo.estado)){
+    return<div className="min-h-screen bg-[#F0F2F5]" style={{fontFamily:"'Inter',system-ui,sans-serif"}}>
+      <div className="bg-[#1E3A5F] px-5 py-5 text-white">
+        <div className="text-[10px] text-blue-300 font-bold uppercase tracking-widest mb-1">Domia Services · Trabajo #{id}</div>
+        <div className="text-2xl font-black">{trabajo.tipo}</div>
+      </div>
+      <div className="px-4 py-5 max-w-lg mx-auto space-y-4">
+        <div className="bg-teal-50 border border-teal-200 rounded-2xl p-5 text-center">
+          <div className="text-4xl mb-2">✅</div>
+          <div className="font-black text-teal-800 text-lg mb-1">Visita confirmada</div>
+          <div className="text-teal-700 text-sm">📅 {fmt(trabajo.fecha)} · {trabajo.hora}</div>
+        </div>
+        <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+          <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">Descripción</div>
+          <div className="text-sm text-gray-700">{trabajo.descripcion}</div>
+        </div>
+        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-center">
+          <div className="text-2xl mb-2">📋</div>
+          <div className="font-bold text-blue-800 text-sm">Tras realizar la visita</div>
+          <div className="text-blue-600 text-xs mt-1">Envía tu presupuesto a Domia para que podamos enviárselo al cliente</div>
+          <a href={`https://wa.me/34661121413?text=${encodeURIComponent(`Hola Samuel 👋\n\nTe paso el presupuesto del trabajo #${id} · ${trabajo.tipo}\n\nImporte: ___ €\n\nDetalles: `)}`} target="_blank" className="mt-3 w-full bg-green-500 hover:bg-green-600 text-white text-sm font-bold py-3 rounded-xl transition block text-center">📱 Enviar presupuesto por WhatsApp</button></a>
+        </div>
+        <div className="text-center text-xs text-gray-400 pb-4">Domia Services · Solo tú tienes acceso a este enlace</div>
+      </div>
+    </div>;
+  }
+
+  return<div className="min-h-screen bg-[#F0F2F5]"
     <div className="bg-[#1E3A5F] px-5 py-5 text-white">
       <div className="text-[10px] text-blue-300 font-bold uppercase tracking-widest mb-1">Domia Services · Trabajo #{id}</div>
       <div className="text-2xl font-black">{trabajo.tipo}</div>
