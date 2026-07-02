@@ -339,6 +339,45 @@ function EstadoDemandas({data,setData,onBack,toast,onVer}){
         <Pill key={g.estado} label={`${g.estado} (${data.trabajos.filter(t=>t.estado===g.estado).length})`} active={fEstado===g.estado} onClick={()=>setFEstado(g.estado)}/>
       ))}
     </div>
+    {(()=>{
+      const urgentes=data.trabajos.filter(t=>{
+        if(t.estado==="Solicitud")return true;
+        if(t.estado==="Visita confirmada")return true;
+        if(t.estado==="Presupuesto recibido")return true;
+        return false;
+      });
+      if(urgentes.length===0)return null;
+      return<div className="bg-red-50 border-2 border-red-200 rounded-2xl p-4 mb-4">
+        <div className="font-black text-red-700 text-sm mb-3">🔔 Requiere tu atención ahora ({urgentes.length})</div>
+        <div className="space-y-2">{urgentes.map(t=>{
+          const cl=data.clientes.find(c=>c.id===getClienteId(t));
+          const co=data.colaboradores.find(c=>c.id===getColabId(t));
+          let accionTexto="";
+          let accionColor="bg-red-500";
+          if(t.estado==="Solicitud"){accionTexto="⚡ Asignar colaborador";accionColor="bg-red-500";}
+          if(t.estado==="Visita confirmada"){accionTexto="📱 Avisar al colaborador";accionColor="bg-teal-500";}
+          if(t.estado==="Presupuesto recibido"){accionTexto="📄 Revisar presupuesto";accionColor="bg-purple-500";}
+          return<div key={t.id} className="bg-white rounded-xl p-3 border border-red-100 flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <div className="font-bold text-gray-800 text-sm truncate">{t.tipo} — {cl?.nombre}</div>
+              <div className="text-xs text-gray-400">{co?`👷 ${co.nombre}`:"Sin colaborador"} · {fmt(t.fecha)}</div>
+            </div>
+            <button onClick={async()=>{
+              if(t.estado==="Solicitud"){onVer(t.id);return;}
+              if(t.estado==="Visita confirmada"&&co){
+                const hist=[...getHistorial(t),{ts:now(),txt:"Cliente confirmó — colaborador avisado",tipo:"ok"}];
+                await dbSaveTrabajo({...t,estado:"En curso",historial:hist});
+                setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,estado:"En curso"}:x)}));
+                window.open(buildWAConfirmacionColab(co,t,cl),"_blank");
+                toast("✅ Colaborador avisado");
+                return;
+              }
+              if(t.estado==="Presupuesto recibido"){onVer(t.id);return;}
+            }} className={`${accionColor} text-white text-xs font-bold px-3 py-2 rounded-xl whitespace-nowrap flex-shrink-0`}>{accionTexto}</button>
+          </div>;
+        })}</div>
+      </div>;
+    })()}
     <div className="space-y-5">
       {grupos.map(g=>{
         const its=items.filter(t=>t.estado===g.estado);
