@@ -723,7 +723,8 @@ function PortalColaborador({id}:{id:string}){
   if(!trabajo)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-center"><div className="text-4xl mb-3">❌</div><div className="font-bold text-gray-700">Trabajo no encontrado</div></div></div>;
   if(estado==="ok")return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4"><div className="bg-white rounded-2xl p-8 text-center max-w-sm w-full shadow-sm border border-gray-100"><div className="text-6xl mb-4">✅</div><div className="text-xl font-black text-gray-800 mb-2">¡Confirmado!</div><div className="text-gray-500 text-sm">Hemos avisado a Domia. Nos ponemos en contacto contigo pronto.</div></div></div>;
   if(estado==="no")return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4"><div className="bg-white rounded-2xl p-8 text-center max-w-sm w-full shadow-sm border border-gray-100"><div className="text-6xl mb-4">👍</div><div className="text-xl font-black text-gray-800 mb-2">Entendido</div><div className="text-gray-500 text-sm">Gracias por avisarnos. Buscaremos otra disponibilidad.</div></div></div>;
-
+</div>;
+  }
   const estadosAvanzados=["Visita confirmada","Presupuesto recibido","Presupuesto enviado","Aceptado","En curso","Completado"];
   if(trabajo&&estadosAvanzados.includes(trabajo.estado)){
     return<div className="min-h-screen bg-[#F0F2F5]" style={{fontFamily:"'Inter',system-ui,sans-serif"}}>
