@@ -1233,63 +1233,6 @@ function PortalColaborador({id}:{id:string}){
 // ══════════════════════════════════════════════════════════════════════════════
 // APP PRINCIPAL
 // ══════════════════════════════════════════════════════════════════════════════
-export default function App(){
-  const path=window.location.pathname;
-  const trabajoMatch=path.match(/^\/trabajo\/(\d+)$/);
-  if(trabajoMatch)return<PortalColaborador id={trabajoMatch[1]}/>;
-  const[data,setData]=useState({clientes:[],colaboradores:[],trabajos:[]});
-  const[cargando,setCargando]=useState(true);
-  const[sec,setSec]=useState("home");
-  const[tid,setTid]=useState(null);
-  const[showNuevo,setShowNuevo]=useState(false);
-  const[toastMsg,setToastMsg]=useState(null);
-  const T=msg=>setToastMsg(msg);
-
-  useEffect(()=>{
-    const cargar=async()=>{
-      const[c,col,t]=await Promise.all([
-        supabase.from('clientes').select('*').order('id'),
-        supabase.from('colaboradores').select('*').order('id'),
-        supabase.from('trabajos').select('*').order('id'),
-      ]);
-      setData({
-        clientes:c.data||[],
-        colaboradores:col.data||[],
-        trabajos:(t.data||[]).map(x=>({...x,clienteId:x.cliente_id,colaboradorId:x.colaborador_id,presupuestoColaborador:x.presupuesto_colaborador,precioCliente:x.precio_cliente})),
-      });
-      setCargando(false);
-    };
-    cargar();
-  },[]);
-
-  if(cargando)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-center"><div className="text-4xl mb-3">⚙️</div><div className="font-bold text-gray-700">Cargando Domia CRM...</div></div></div>;
-
-  const sinAsignar=data.trabajos.filter(t=>t.estado==="Solicitud").length;
-  const sinPrecio=data.trabajos.filter(t=>t.estado==="Presupuestando"&&!getPresupColab(t)).length;
-  const TITULO={home:"Inicio",nuevas:"Nuevas demandas",demandas:"Estado demandas",clientes:"Clientes",colaboradores:"Colaboradores"};
-
-  return<div className="min-h-screen flex flex-col" style={{background:"#F0F2F5",fontFamily:"'Inter',system-ui,sans-serif"}}>
-    <header className="bg-[#1E3A5F] text-white px-4 py-3 flex items-center gap-3 sticky top-0 z-40 shadow-lg">
-      {sec!=="home"&&<button onClick={()=>setSec("home")} className="w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 transition text-xl leading-none">‹</button>}
-      {sec==="home"&&<div className="w-8 h-8 bg-orange-500 rounded-xl flex items-center justify-center font-black text-sm flex-shrink-0">D</div>}
-      <div className="flex-1 min-w-0">
-        <div className="font-black text-sm leading-none">{TITULO[sec]||"Domia CRM"}</div>
-        {sec==="home"&&<div className="text-[10px] text-blue-300 mt-0.5">{sinAsignar>0?`⚡ ${sinAsignar} sin asignar · `:""}{sinPrecio>0?`💶 ${sinPrecio} sin precio · `:""}activos: {data.trabajos.filter(t=>["Aceptado","En curso"].includes(t.estado)).length}</div>}
-      </div>
-      <button onClick={()=>setShowNuevo(true)} className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition whitespace-nowrap">+ Nuevo</button>
-    </header>
-    <main className="flex-1 px-4 py-5 max-w-2xl mx-auto w-full pb-8">
-      {sec==="home"&&<Home data={data} setData={setData} go={setSec} setTid={setTid} toast={T}/>}
-      {sec==="nuevas"&&<NuevasDemandas data={data} setData={setData} onBack={()=>setSec("home")} toast={T} onVer={id=>{setTid(id);}}/>}
-      {sec==="demandas"&&<EstadoDemandas data={data} setData={setData} onBack={()=>setSec("home")} toast={T} onVer={id=>{setTid(id);}}/>}
-      {sec==="clientes"&&<Clientes data={data} setData={setData} onBack={()=>setSec("home")} toast={T}/>}
-      {sec==="colaboradores"&&<Colaboradores data={data} setData={setData} onBack={()=>setSec("home")} toast={T}/>}
-    </main>
-    {showNuevo&&<Modal title="Nueva solicitud" onClose={()=>setShowNuevo(false)} wide><FormTrabajo data={data} setData={setData} onClose={()=>setShowNuevo(false)} toast={T}/></Modal>}
-    {tid&&<TrabajoModal tid={tid} data={data} setData={setData} onClose={()=>setTid(null)} toast={T}/>}
-    {toastMsg&&<Toast msg={toastMsg} clear={()=>setToastMsg(null)}/>}
-  </div>;
-}
 
 // ══════════════════════════════════════════════════════════════════════════════
 // CLIENTES
