@@ -677,6 +677,85 @@ function TrabajoModal({tid,data,setData,onClose,toast}){
   </Modal>;
 }
 // ══════════════════════════════════════════════════════════════════════════════
+// PORTAL COLABORADOR
+// ══════════════════════════════════════════════════════════════════════════════
+function PortalColaborador({id}:{id:string}){
+  const[trabajo,setTrabajo]=useState<any>(null);
+  const[cliente,setCliente]=useState<any>(null);
+  const[estado,setEstado]=useState<"idle"|"ok"|"no"|"cargando">("idle");
+  const[cargando,setCargando]=useState(true);
+
+  useEffect(()=>{
+    const cargar=async()=>{
+      const{data:t}=await supabase.from('trabajos').select('*').eq('id',id).single();
+      if(t){
+        setTrabajo(t);
+        const{data:c}=await supabase.from('clientes').select('*').eq('id',t.cliente_id).single();
+        setCliente(c);
+      }
+      setCargando(false);
+    };
+    cargar();
+  },[id]);
+
+  const confirmar=async(puede:boolean)=>{
+    setEstado("cargando");
+    const nuevoEstado=puede?"Visita confirmada":"Solicitud";
+    const historial=JSON.parse(trabajo.historial||"[]");
+    historial.push({ts:now(),txt:puede?"Colaborador confirmó la visita":"Colaborador no puede ir",tipo:puede?"ok":"sistema"});
+    await supabase.from('trabajos').update({
+      estado:nuevoEstado,
+      colaborador_id:puede?trabajo.colaborador_id:null,
+      historial:JSON.stringify(historial),
+    }).eq('id',id);
+    if(puede){
+      const msg=`✅ Confirmado — Trabajo #${id} · ${trabajo.tipo}\n📍 ${cliente?.direccion}\n📅 ${fmt(trabajo.fecha)} · ${trabajo.hora}\nEl colaborador ha confirmado la visita.`;
+      window.open(`https://wa.me/34661121413?text=${encodeURIComponent(msg)}`,"_blank");
+    }
+    setEstado(puede?"ok":"no");
+  };
+
+  if(cargando)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-center"><div className="text-4xl mb-3">⚙️</div><div className="font-bold text-gray-700">Cargando...</div></div></div>;
+  if(!trabajo)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-center"><div className="text-4xl mb-3">❌</div><div className="font-bold text-gray-700">Trabajo no encontrado</div></div></div>;
+  if(estado==="ok")return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4"><div className="bg-white rounded-2xl p-8 text-center max-w-sm w-full shadow-sm border border-gray-100"><div className="text-6xl mb-4">✅</div><div className="text-xl font-black text-gray-800 mb-2">¡Confirmado!</div><div className="text-gray-500 text-sm">Hemos avisado a Domia. Nos ponemos en contacto contigo pronto.</div></div></div>;
+  if(estado==="no")return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4"><div className="bg-white rounded-2xl p-8 text-center max-w-sm w-full shadow-sm border border-gray-100"><div className="text-6xl mb-4">👍</div><div className="text-xl font-black text-gray-800 mb-2">Entendido</div><div className="text-gray-500 text-sm">Gracias por avisarnos. Buscaremos otra disponibilidad.</div></div></div>;
+
+  return<div className="min-h-screen bg-[#F0F2F5]" style={{fontFamily:"'Inter',system-ui,sans-serif"}}>
+    <div className="bg-[#1E3A5F] px-5 py-5 text-white">
+      <div className="text-[10px] text-blue-300 font-bold uppercase tracking-widest mb-1">Domia Services · Trabajo #{id}</div>
+      <div className="text-2xl font-black">{trabajo.tipo}</div>
+    </div>
+    <div className="px-4 py-5 max-w-lg mx-auto space-y-4">
+      <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm space-y-4">
+        <div className="flex items-start gap-3">
+          <span className="text-xl mt-0.5">📍</span>
+          <div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Dirección</div><div className="font-semibold text-gray-800">{cliente?.direccion||"—"}</div></div>
+        </div>
+        <div className="flex items-start gap-3">
+          <span className="text-xl mt-0.5">📅</span>
+          <div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Fecha y hora</div><div className="font-semibold text-gray-800 text-lg">{fmt(trabajo.fecha)} · {trabajo.hora}</div></div>
+        </div>
+        <div className="flex items-start gap-3">
+          <span className="text-xl mt-0.5">📝</span>
+          <div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Descripción</div><div className="text-gray-700 text-sm leading-relaxed">{trabajo.descripcion}</div></div>
+        </div>
+      </div>
+      <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">¿Puedes ir a esta visita?</div>
+        <div className="flex gap-3">
+          <button onClick={()=>confirmar(true)} disabled={estado==="cargando"} className="flex-1 bg-green-500 hover:bg-green-600 active:scale-95 text-white rounded-2xl py-5 flex flex-col items-center gap-2 font-bold text-base transition disabled:opacity-50">
+            <span className="text-3xl">✅</span>Sí, puedo ir
+          </button>
+          <button onClick={()=>confirmar(false)} disabled={estado==="cargando"} className="flex-1 bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-600 rounded-2xl py-5 flex flex-col items-center gap-2 font-bold text-base transition disabled:opacity-50">
+            <span className="text-3xl">❌</span>No puedo
+          </button>
+        </div>
+      </div>
+      <div className="text-center text-xs text-gray-400 pb-4">Solo tú tienes acceso a este enlace</div>
+    </div>
+  </div>;
+}
+// ══════════════════════════════════════════════════════════════════════════════
 // APP PRINCIPAL
 // ══════════════════════════════════════════════════════════════════════════════
 export default function App(){
