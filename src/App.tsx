@@ -624,7 +624,55 @@ function PortalCliente({id}:{id:string}){
     </div>
   </div>;
 }
+function SubirPresupuesto({id,trabajo,onSubido}:{id:string,trabajo:any,onSubido:(url:string)=>void}){
+  const[subiendo,setSubiendo]=useState(false);
+  const[importe,setImporte]=useState("");
+  const[notas,setNotas]=useState("");
+  const[archivo,setArchivo]=useState<File|null>(null);
 
+  const subir=async()=>{
+    if(!importe)return;
+    setSubiendo(true);
+    let fotoUrl="";
+    if(archivo){
+      const ext=archivo.name.split('.').pop();
+      const nombre=`presup_${id}_${Date.now()}.${ext}`;
+      const{data}=await supabase.storage.from('fotos-demandas').upload(nombre,archivo,{upsert:true});
+      if(data){
+        const{data:pub}=supabase.storage.from('fotos-demandas').getPublicUrl(nombre);
+        fotoUrl=pub.publicUrl;
+      }
+    }
+    const historial=JSON.parse(trabajo.historial||"[]");
+    historial.push({ts:new Date().toLocaleString("es-ES",{hour:"2-digit",minute:"2-digit",day:"2-digit",month:"2-digit"}),txt:`Presupuesto recibido: ${importe}€${notas?' — '+notas:''}`,tipo:"presupuesto"});
+    await supabase.from('trabajos').update({
+      estado:"Presupuesto recibido",
+      presupuesto_colaborador:+importe,
+      notas:fotoUrl?'presup:'+fotoUrl:(notas||''),
+      historial:JSON.stringify(historial),
+    }).eq('id',id);
+    onSubido(fotoUrl||"ok");
+    setSubiendo(false);
+  };
+
+  return<div className="space-y-3">
+    <div>
+      <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Tu importe (€) *</div>
+      <input type="number" value={importe} onChange={e=>setImporte(e.target.value)} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-lg font-bold focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]" placeholder="Ej: 150"/>
+    </div>
+    <div>
+      <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Notas (opcional)</div>
+      <textarea value={notas} onChange={e=>setNotas(e.target.value)} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F] resize-none" rows={2} placeholder="Detalles del trabajo, materiales..."/>
+    </div>
+    <div>
+      <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Foto del presupuesto (opcional)</div>
+      <input type="file" accept="image/*,application/pdf" onChange={e=>setArchivo(e.target.files?.[0]||null)} className="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-[#1E3A5F] file:text-white file:font-bold file:text-xs"/>
+    </div>
+    <button onClick={subir} disabled={subiendo||!importe} className="w-full bg-[#1E3A5F] hover:bg-[#152d4a] text-white py-3 rounded-xl font-bold text-sm transition disabled:opacity-50">
+      {subiendo?"Enviando...":"✅ Enviar presupuesto a Domia"}
+    </button>
+  </div>;
+}
 function PortalColaborador({id}:{id:string}){
   const[trabajo,setTrabajo]=useState<any>(null);
   const[cliente,setCliente]=useState<any>(null);
@@ -668,11 +716,17 @@ function PortalColaborador({id}:{id:string}){
           <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">Descripción</div>
           <div className="text-sm text-gray-700">{trabajo.descripcion}</div>
         </div>
-        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-center">
-          <div className="text-2xl mb-2">📋</div>
-          <div className="font-bold text-blue-800 text-sm">Tras realizar la visita</div>
-          <div className="text-blue-600 text-xs mt-1">Envía tu presupuesto a Domia para que podamos enviárselo al cliente</div>
-          <a href={'https://wa.me/34661121413?text='+encodeURIComponent('Hola Samuel 👋\n\nTe paso el presupuesto del trabajo #'+id+' · '+trabajo.tipo+'\n\nImporte: ___ €\n\nDetalles: ')} target="_blank" className="mt-3 w-full bg-green-500 hover:bg-green-600 text-white text-sm font-bold py-3 rounded-xl transition block text-center">📱 Enviar presupuesto por WhatsApp</a>
+        <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+          <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">Subir presupuesto</div>
+          {!trabajo.notas?.startsWith('presup:')?(
+            <SubirPresupuesto id={id} trabajo={trabajo} onSubido={url=>{setTrabajo({...trabajo,notas:'presup:'+url});}}/>
+          ):(
+            <div className="text-center">
+              <div className="text-4xl mb-2">✅</div>
+              <div className="font-bold text-emerald-700 text-sm">Presupuesto enviado</div>
+              <div className="text-xs text-gray-400 mt-1">Ya hemos recibido tu presupuesto</div>
+            </div>
+          )}
         </div>
         <div className="text-center text-xs text-gray-400 pb-4">Domia Services · Solo tú tienes acceso a este enlace</div>
       </div>
