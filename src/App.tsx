@@ -706,6 +706,8 @@ export default function App(){
   const path=window.location.pathname;
   const trabajoMatch=path.match(/^\/trabajo\/(\d+)$/);
   if(trabajoMatch)return<PortalColaborador id={trabajoMatch[1]}/>;
+  const clienteMatch=path.match(/^\/cliente\/(\d+)$/);
+if(clienteMatch)return<PortalCliente id={clienteMatch[1]}/>;
   const[data,setData]=useState({clientes:[],colaboradores:[],trabajos:[]});
   const[cargando,setCargando]=useState(true);
   const[sec,setSec]=useState("home");
