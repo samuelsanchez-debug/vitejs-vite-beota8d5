@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { createClient } from '@supabase/supabase-js';
 const supabase = createClient('https://opijkazhbktiikdzbanb.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9waWprYXpoYmt0aWlrZHpiYW5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNDcyNjIsImV4cCI6MjA5NzcyMzI2Mn0.HmTXEO848sPMhi2NxNxvshLxntk1EDI6D4NCMAdUINI');
 
@@ -37,7 +37,6 @@ const PRIO_CFG = {
 const fmt = d=>d?new Date(d+"T00:00:00").toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"}):"—";
 const hoy = ()=>new Date().toISOString().slice(0,10);
 const now = ()=>new Date().toLocaleString("es-ES",{hour:"2-digit",minute:"2-digit",day:"2-digit",month:"2-digit"});
-const nxtId = arr=>Math.max(0,...arr.map(x=>x.id))+1;
 const orCfg = id=>ORIGENES.find(o=>o.id===id)||ORIGENES[ORIGENES.length-1];
 const calc = (c,m)=>c?Math.round(c*(1+m/100)):null;
 const getClienteId = t => t.clienteId || t.cliente_id;
@@ -47,9 +46,7 @@ const getPrecioCliente = t => t.precioCliente || t.precio_cliente;
 const getNotas = t => t.notas || '';
 const getHistorial = t => {
   if (!t.historial) return [];
-  if (typeof t.historial === 'string') {
-    try { return JSON.parse(t.historial); } catch { return []; }
-  }
+  if (typeof t.historial === 'string') { try { return JSON.parse(t.historial); } catch { return []; } }
   return t.historial;
 };
 
@@ -65,13 +62,13 @@ const sugerirColab = (tipo,colabs,trabajos)=>{
 const BASE_URL = 'https://domia-crm-two.vercel.app';
 
 const buildWA=(colab,trabajo,cliente)=>{
-  const enlace = `${BASE_URL}/trabajo/${trabajo.id}`;
+  const enlace=`${BASE_URL}/trabajo/${trabajo.id}`;
   const msg=`Hola ${colab.nombre.split(" ")[0]} 👋\n\nTenemos un trabajo de *${trabajo.tipo}* y necesitamos que vayas a hacer la visita.\n\n📍 ${cliente.direccion}\n📅 ${fmt(trabajo.fecha)} · ${trabajo.hora}\n📝 ${trabajo.descripcion}\n\n👉 Confirma aquí si puedes ir:\n${enlace}\n\nGracias 🙏`;
   return `https://wa.me/${colab.whatsapp}?text=${encodeURIComponent(msg)}`;
 };
 const buildWAVisitaCliente=(cliente,trabajo,colab)=>{
-  const nombre = cliente.nombre.split(" ")[0];
-  const enlace = `${BASE_URL}/cliente/${trabajo.id}`;
+  const nombre=cliente.nombre.split(" ")[0];
+  const enlace=`${BASE_URL}/cliente/${trabajo.id}`;
   const msg=`Hola ${nombre} 😊\n\nSoy Samuel de *Domia Services*.\n\nTe escribo porque hemos organizado una visita de nuestro técnico para revisar el trabajo de *${trabajo.tipo}*.\n\n📅 *${fmt(trabajo.fecha)} a las ${trabajo.hora}*\n\n👇 Confirma aquí si te viene bien (solo un clic):\n${enlace}\n\nSi necesitas cambiar la fecha, también puedes indicarlo ahí. Cualquier duda estamos en el 622 123 456 🙏\n\n— Samuel · Domia Services`;
   return `https://wa.me/${cliente.telefono?.replace(/\s/g,'')}?text=${encodeURIComponent(msg)}`;
 };
@@ -80,55 +77,27 @@ const buildWAConfirmacionColab=(colab,trabajo,cliente)=>{
   return `https://wa.me/${colab.whatsapp}?text=${encodeURIComponent(msg)}`;
 };
 
-const dbSaveCliente = async(cliente) => {
-  const {data,error} = await supabase.from('clientes').upsert(cliente).select();
-  return data?.[0];
-};
+const dbSaveCliente = async(cliente) => { const {data} = await supabase.from('clientes').upsert(cliente).select(); return data?.[0]; };
 const dbSaveTrabajo = async(trabajo) => {
   const row = {
     cliente_id: trabajo.clienteId||trabajo.cliente_id,
     colaborador_id: trabajo.colaboradorId||trabajo.colaborador_id||null,
-    tipo: trabajo.tipo,
-    descripcion: trabajo.descripcion,
-    origen: trabajo.origen,
-    prioridad: trabajo.prioridad,
-    estado: trabajo.estado,
-    fecha: trabajo.fecha,
-    hora: trabajo.hora,
+    tipo: trabajo.tipo, descripcion: trabajo.descripcion, origen: trabajo.origen,
+    prioridad: trabajo.prioridad, estado: trabajo.estado, fecha: trabajo.fecha, hora: trabajo.hora,
     presupuesto_colaborador: trabajo.presupuestoColaborador||trabajo.presupuesto_colaborador||null,
     margen: trabajo.margen||30,
     precio_cliente: trabajo.precioCliente||trabajo.precio_cliente||null,
     notas: trabajo.notas||'',
     historial: JSON.stringify(trabajo.historial||[]),
   };
-  if (trabajo.id) {
-    const {data} = await supabase.from('trabajos').update(row).eq('id',trabajo.id).select();
-    return data?.[0];
-  } else {
-    const {data} = await supabase.from('trabajos').insert(row).select();
-    return data?.[0];
-  }
+  if (trabajo.id) { const {data} = await supabase.from('trabajos').update(row).eq('id',trabajo.id).select(); return data?.[0]; }
+  else { const {data} = await supabase.from('trabajos').insert(row).select(); return data?.[0]; }
 };
 const dbDeleteTrabajo = async(id) => await supabase.from('trabajos').delete().eq('id',id);
 const dbSaveColab = async(colab) => {
-  const row = {
-    nombre: colab.nombre,
-    especialidades: colab.especialidades,
-    telefono: colab.telefono,
-    whatsapp: colab.whatsapp,
-    activo: colab.activo,
-    zona: colab.zona,
-    disponibilidad: colab.disponibilidad,
-    valoracion: colab.valoracion||5,
-    trabajos_completados: colab.trabajosCompletados||colab.trabajos_completados||0,
-  };
-  if (colab.id) {
-    const {data} = await supabase.from('colaboradores').update(row).eq('id',colab.id).select();
-    return data?.[0];
-  } else {
-    const {data} = await supabase.from('colaboradores').insert(row).select();
-    return data?.[0];
-  }
+  const row = { nombre:colab.nombre, especialidades:colab.especialidades, telefono:colab.telefono, whatsapp:colab.whatsapp, activo:colab.activo, zona:colab.zona, disponibilidad:colab.disponibilidad, valoracion:colab.valoracion||5, trabajos_completados:colab.trabajosCompletados||colab.trabajos_completados||0 };
+  if (colab.id) { const {data} = await supabase.from('colaboradores').update(row).eq('id',colab.id).select(); return data?.[0]; }
+  else { const {data} = await supabase.from('colaboradores').insert(row).select(); return data?.[0]; }
 };
 
 const S="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1E3A5F] transition";
@@ -321,6 +290,7 @@ function EstadoDemandas({data,setData,onBack,toast,onVer}){
   if(busca.trim()){const q=busca.toLowerCase();items=items.filter(t=>{const cl=data.clientes.find(c=>c.id===getClienteId(t));return t.descripcion?.toLowerCase().includes(q)||cl?.nombre.toLowerCase().includes(q)||t.tipo?.toLowerCase().includes(q);});}
   const total=data.trabajos.filter(t=>t.estado!=="Cancelado").length||1;
   const grupos=fEstado==="Todos"?GRUPOS:GRUPOS.filter(g=>g.estado===fEstado);
+  const urgentes=data.trabajos.filter(t=>["Solicitud","Visita confirmada","Presupuesto recibido"].includes(t.estado));
   return<div>
     <Back title="Pipeline de demandas" onBack={onBack}/>
     <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm mb-4">
@@ -332,6 +302,25 @@ function EstadoDemandas({data,setData,onBack,toast,onVer}){
         ))}
       </div>
     </div>
+    {urgentes.length>0&&<div className="bg-red-50 border-2 border-red-200 rounded-2xl p-4 mb-4">
+      <div className="font-black text-red-700 text-sm mb-3">🔔 Requiere tu atención ahora ({urgentes.length})</div>
+      <div className="space-y-2">{urgentes.map(t=>{
+        const cl=data.clientes.find(c=>c.id===getClienteId(t));
+        const co=data.colaboradores.find(c=>c.id===getColabId(t));
+        let accionTexto="";let accionColor="bg-red-500";
+        if(t.estado==="Solicitud"){accionTexto="⚡ Asignar colaborador";accionColor="bg-red-500";}
+        if(t.estado==="Visita confirmada"){accionTexto="✅ Avisar al colaborador";accionColor="bg-teal-500";}
+        if(t.estado==="Presupuesto recibido"){accionTexto="📄 Revisar presupuesto";accionColor="bg-purple-500";}
+        return<div key={t.id} className="bg-white rounded-xl p-3 border border-red-100 flex items-center justify-between gap-2">
+          <div className="min-w-0"><div className="font-bold text-gray-800 text-sm truncate">{t.tipo} — {cl?.nombre}</div><div className="text-xs text-gray-400">{co?`👷 ${co.nombre}`:"Sin colaborador"} · {fmt(t.fecha)}</div></div>
+          <button onClick={async()=>{
+            if(t.estado==="Solicitud"){onVer(t.id);return;}
+            if(t.estado==="Visita confirmada"&&co){const hist=[...getHistorial(t),{ts:now(),txt:"Cliente confirmó — colaborador avisado",tipo:"ok"}];await dbSaveTrabajo({...t,estado:"En curso",historial:hist});setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,estado:"En curso"}:x)}));window.open(buildWAConfirmacionColab(co,t,cl),"_blank");toast("✅ Colaborador avisado");return;}
+            if(t.estado==="Presupuesto recibido"){onVer(t.id);return;}
+          }} className={`${accionColor} text-white text-xs font-bold px-3 py-2 rounded-xl whitespace-nowrap flex-shrink-0`}>{accionTexto}</button>
+        </div>;
+      })}</div>
+    </div>}
     <input className={S+" mb-3"} placeholder="🔍 Buscar cliente, tipo..." value={busca} onChange={e=>setBusca(e.target.value)}/>
     <div className="flex gap-1.5 flex-wrap mb-4">
       <Pill label="Todos" active={fEstado==="Todos"} onClick={()=>setFEstado("Todos")}/>
@@ -339,45 +328,6 @@ function EstadoDemandas({data,setData,onBack,toast,onVer}){
         <Pill key={g.estado} label={`${g.estado} (${data.trabajos.filter(t=>t.estado===g.estado).length})`} active={fEstado===g.estado} onClick={()=>setFEstado(g.estado)}/>
       ))}
     </div>
-    {(()=>{
-      const urgentes=data.trabajos.filter(t=>{
-        if(t.estado==="Solicitud")return true;
-        if(t.estado==="Visita confirmada")return true;
-        if(t.estado==="Presupuesto recibido")return true;
-        return false;
-      });
-      if(urgentes.length===0)return null;
-      return<div className="bg-red-50 border-2 border-red-200 rounded-2xl p-4 mb-4">
-        <div className="font-black text-red-700 text-sm mb-3">🔔 Requiere tu atención ahora ({urgentes.length})</div>
-        <div className="space-y-2">{urgentes.map(t=>{
-          const cl=data.clientes.find(c=>c.id===getClienteId(t));
-          const co=data.colaboradores.find(c=>c.id===getColabId(t));
-          let accionTexto="";
-          let accionColor="bg-red-500";
-          if(t.estado==="Solicitud"){accionTexto="⚡ Asignar colaborador";accionColor="bg-red-500";}
-          if(t.estado==="Visita confirmada"){accionTexto="📱 Avisar al colaborador";accionColor="bg-teal-500";}
-          if(t.estado==="Presupuesto recibido"){accionTexto="📄 Revisar presupuesto";accionColor="bg-purple-500";}
-          return<div key={t.id} className="bg-white rounded-xl p-3 border border-red-100 flex items-center justify-between gap-2">
-            <div className="min-w-0">
-              <div className="font-bold text-gray-800 text-sm truncate">{t.tipo} — {cl?.nombre}</div>
-              <div className="text-xs text-gray-400">{co?`👷 ${co.nombre}`:"Sin colaborador"} · {fmt(t.fecha)}</div>
-            </div>
-            <button onClick={async()=>{
-              if(t.estado==="Solicitud"){onVer(t.id);return;}
-              if(t.estado==="Visita confirmada"&&co){
-                const hist=[...getHistorial(t),{ts:now(),txt:"Cliente confirmó — colaborador avisado",tipo:"ok"}];
-                await dbSaveTrabajo({...t,estado:"En curso",historial:hist});
-                setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,estado:"En curso"}:x)}));
-                window.open(buildWAConfirmacionColab(co,t,cl),"_blank");
-                toast("✅ Colaborador avisado");
-                return;
-              }
-              if(t.estado==="Presupuesto recibido"){onVer(t.id);return;}
-            }} className={`${accionColor} text-white text-xs font-bold px-3 py-2 rounded-xl whitespace-nowrap flex-shrink-0`}>{accionTexto}</button>
-          </div>;
-        })}</div>
-      </div>;
-    })()}
     <div className="space-y-5">
       {grupos.map(g=>{
         const its=items.filter(t=>t.estado===g.estado);
@@ -395,8 +345,8 @@ function EstadoDemandas({data,setData,onBack,toast,onVer}){
             const accion=accionLabel(t,co,cl);
             const idx=FLUJO.indexOf(t.estado);
             const tieneConfirmacion=getHistorial(t).some(h=>h.tipo==="ok");
-return<div key={t.id} className={`border rounded-2xl p-4 shadow-sm ${g.color} relative`}>
-  {tieneConfirmacion&&<span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full border-2 border-white flex items-center justify-center"><span className="text-white text-[9px] font-black">!</span></span>}
+            return<div key={t.id} className={`border rounded-2xl p-4 shadow-sm relative ${g.color}`}>
+              {tieneConfirmacion&&<span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full border-2 border-white flex items-center justify-center"><span className="text-white text-[9px] font-black">!</span></span>}
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
@@ -616,15 +566,12 @@ function TrabajoModal({tid,data,setData,onClose,toast}){
     )}
   </Modal>;
 }
-// ══════════════════════════════════════════════════════════════════════════════
-// PORTAL CLIENTE
-// ══════════════════════════════════════════════════════════════════════════════
+
 function PortalCliente({id}:{id:string}){
   const[trabajo,setTrabajo]=useState<any>(null);
   const[estado,setEstado]=useState<"idle"|"ok"|"no"|"cargando">("idle");
   const[cargando,setCargando]=useState(true);
   const[comentario,setComentario]=useState("");
-
   useEffect(()=>{
     const cargar=async()=>{
       const{data:t}=await supabase.from('trabajos').select('*').eq('id',id).single();
@@ -633,27 +580,21 @@ function PortalCliente({id}:{id:string}){
     };
     cargar();
   },[id]);
-
   const confirmar=async(confirma:boolean)=>{
     setEstado("cargando");
     const historial=JSON.parse(trabajo.historial||"[]");
-    historial.push({ts:now(),txt:confirma?`Cliente confirmó la visita${comentario?` — "${comentario}"`:""}`:`Cliente rechazó la visita${comentario?` — "${comentario}"`:""}`,tipo:confirma?"ok":"sistema"});
-    const nuevoEstado=confirma?"Visita confirmada":"Solicitud";
+    historial.push({ts:now(),txt:confirma?`Cliente confirmó la visita${comentario?' — "'+comentario+'"':''}`:`Cliente rechazó la visita${comentario?' — "'+comentario+'"':''}`,tipo:confirma?"ok":"sistema"});
     await supabase.from('trabajos').update({
-      estado:nuevoEstado,
+      estado:confirma?"Visita confirmada":"Solicitud",
       historial:JSON.stringify(historial),
       notas:comentario?`cliente: ${comentario}`:trabajo.notas,
     }).eq('id',id);
     setEstado(confirma?"ok":"no");
   };
-
   if(cargando)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-center"><div className="text-4xl mb-3">⚙️</div><div className="font-bold text-gray-700">Cargando...</div></div></div>;
   if(!trabajo)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-center"><div className="text-4xl mb-3">❌</div><div className="font-bold text-gray-700">Enlace no válido</div></div></div>;
   if(estado==="ok")return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4"><div className="bg-white rounded-2xl p-8 text-center max-w-sm w-full shadow-sm border border-gray-100"><div className="text-6xl mb-4">✅</div><div className="text-xl font-black text-gray-800 mb-2">¡Perfecto!</div><div className="text-gray-500 text-sm">Hemos confirmado tu visita. Nos vemos pronto 😊</div><div className="mt-4 text-xs text-gray-400">Domia Services · 622 123 456</div></div></div>;
   if(estado==="no")return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4"><div className="bg-white rounded-2xl p-8 text-center max-w-sm w-full shadow-sm border border-gray-100"><div className="text-6xl mb-4">📞</div><div className="text-xl font-black text-gray-800 mb-2">Entendido</div><div className="text-gray-500 text-sm">Te llamaremos para buscar otra fecha que te venga mejor.</div><div className="mt-4 text-xs text-gray-400">Domia Services · 622 123 456</div></div></div>;
-const estadosAvanzados=["Visita confirmada","Presupuesto recibido","Presupuesto enviado","Aceptado","En curso","Completado"];
-  if(trabajo&&estadosAvanzados.includes(trabajo.estado)){
-    return<div className="min-h-screen bg-[#F0F2F5]" style={{fontFamily:"'Inter',system-ui,sans-serif"}}>
   return<div className="min-h-screen bg-[#F0F2F5]" style={{fontFamily:"'Inter',system-ui,sans-serif"}}>
     <div className="bg-[#1E3A5F] px-5 py-6 text-white text-center">
       <div className="text-[10px] text-blue-300 font-bold uppercase tracking-widest mb-2">Domia Services</div>
@@ -667,36 +608,23 @@ const estadosAvanzados=["Visita confirmada","Presupuesto recibido","Presupuesto 
         <div className="text-2xl font-black text-[#1E3A5F]">{fmt(trabajo.fecha)}</div>
         <div className="text-xl font-bold text-gray-600 mt-1">{trabajo.hora}</div>
       </div>
-
       <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
         <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">Descripción del servicio</div>
         <div className="text-sm text-gray-700 leading-relaxed">{trabajo.descripcion}</div>
       </div>
-
       <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
         <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">¿Quieres dejar algún comentario? (opcional)</div>
-        <textarea
-          className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1E3A5F] transition resize-none"
-          rows={3}
-          placeholder="Ej: mejor por la mañana, código del portal es 1234..."
-          value={comentario}
-          onChange={e=>setComentario(e.target.value)}
-        />
+        <textarea className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1E3A5F] transition resize-none" rows={3} placeholder="Ej: mejor por la mañana, código del portal es 1234..." value={comentario} onChange={e=>setComentario(e.target.value)}/>
       </div>
-
       <div className="space-y-3">
-        <button onClick={()=>confirmar(true)} disabled={estado==="cargando"} className="w-full bg-green-500 hover:bg-green-600 active:scale-95 text-white rounded-2xl py-5 flex flex-col items-center gap-2 font-bold text-lg transition disabled:opacity-50">
-          <span className="text-3xl">✅</span>Sí, me viene bien
-        </button>
-        <button onClick={()=>confirmar(false)} disabled={estado==="cargando"} className="w-full bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-600 rounded-2xl py-4 flex flex-col items-center gap-2 font-bold text-base transition disabled:opacity-50">
-          <span className="text-2xl">📞</span>No, prefiero otra fecha
-        </button>
+        <button onClick={()=>confirmar(true)} disabled={estado==="cargando"} className="w-full bg-green-500 hover:bg-green-600 active:scale-95 text-white rounded-2xl py-5 flex flex-col items-center gap-2 font-bold text-lg transition disabled:opacity-50"><span className="text-3xl">✅</span>Sí, me viene bien</button>
+        <button onClick={()=>confirmar(false)} disabled={estado==="cargando"} className="w-full bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-600 rounded-2xl py-4 flex flex-col items-center gap-2 font-bold text-base transition disabled:opacity-50"><span className="text-2xl">📞</span>No, prefiero otra fecha</button>
       </div>
-
       <div className="text-center text-xs text-gray-400 pb-4">Domia Services · 622 123 456</div>
     </div>
   </div>;
 }
+
 function PortalColaborador({id}:{id:string}){
   const[trabajo,setTrabajo]=useState<any>(null);
   const[cliente,setCliente]=useState<any>(null);
@@ -716,17 +644,15 @@ function PortalColaborador({id}:{id:string}){
     const historial=JSON.parse(trabajo.historial||"[]");
     historial.push({ts:now(),txt:puede?"Colaborador confirmó la visita":"Colaborador no puede ir",tipo:puede?"ok":"sistema"});
     await supabase.from('trabajos').update({estado:nuevoEstado,colaborador_id:puede?trabajo.colaborador_id:null,historial:JSON.stringify(historial)}).eq('id',id);
-    if(puede){const msg=`✅ Confirmado — Trabajo #${id} · ${trabajo.tipo}\n📍 ${cliente?.direccion}\n📅 ${fmt(trabajo.fecha)} · ${trabajo.hora}\nEl colaborador ha confirmado la visita.`;window.open(`https://wa.me/34661121413?text=${encodeURIComponent(msg)}`,"_blank");}
+    if(puede){const msg='✅ Confirmado — Trabajo #'+id+' · '+trabajo.tipo+'\n📍 '+(cliente?.direccion)+'\n📅 '+fmt(trabajo.fecha)+' · '+trabajo.hora+'\nEl colaborador ha confirmado la visita.';window.open('https://wa.me/34661121413?text='+encodeURIComponent(msg),'_blank');}
     setEstado(puede?"ok":"no");
   };
   if(cargando)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-center"><div className="text-4xl mb-3">⚙️</div><div className="font-bold text-gray-700">Cargando...</div></div></div>;
   if(!trabajo)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-center"><div className="text-4xl mb-3">❌</div><div className="font-bold text-gray-700">Trabajo no encontrado</div></div></div>;
   if(estado==="ok")return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4"><div className="bg-white rounded-2xl p-8 text-center max-w-sm w-full shadow-sm border border-gray-100"><div className="text-6xl mb-4">✅</div><div className="text-xl font-black text-gray-800 mb-2">¡Confirmado!</div><div className="text-gray-500 text-sm">Hemos avisado a Domia. Nos ponemos en contacto contigo pronto.</div></div></div>;
   if(estado==="no")return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4"><div className="bg-white rounded-2xl p-8 text-center max-w-sm w-full shadow-sm border border-gray-100"><div className="text-6xl mb-4">👍</div><div className="text-xl font-black text-gray-800 mb-2">Entendido</div><div className="text-gray-500 text-sm">Gracias por avisarnos. Buscaremos otra disponibilidad.</div></div></div>;
-</div>;
-  }
   const estadosAvanzados=["Visita confirmada","Presupuesto recibido","Presupuesto enviado","Aceptado","En curso","Completado"];
-  if(trabajo&&estadosAvanzados.includes(trabajo.estado)){
+  if(estadosAvanzados.includes(trabajo.estado)){
     return<div className="min-h-screen bg-[#F0F2F5]" style={{fontFamily:"'Inter',system-ui,sans-serif"}}>
       <div className="bg-[#1E3A5F] px-5 py-5 text-white">
         <div className="text-[10px] text-blue-300 font-bold uppercase tracking-widest mb-1">Domia Services · Trabajo #{id}</div>
@@ -746,14 +672,13 @@ function PortalColaborador({id}:{id:string}){
           <div className="text-2xl mb-2">📋</div>
           <div className="font-bold text-blue-800 text-sm">Tras realizar la visita</div>
           <div className="text-blue-600 text-xs mt-1">Envía tu presupuesto a Domia para que podamos enviárselo al cliente</div>
-          <a href={`https://wa.me/34661121413?text=${encodeURIComponent('Hola Samuel 👋\n\nTe paso el presupuesto del trabajo #'+id+' · '+trabajo.tipo+'\n\nImporte: ___ €\n\nDetalles: ')}`} target="_blank" className="mt-3 w-full bg-green-500 hover:bg-green-600 text-white text-sm font-bold py-3 rounded-xl transition block text-center">📱 Enviar presupuesto por WhatsApp</a>
+          <a href={'https://wa.me/34661121413?text='+encodeURIComponent('Hola Samuel 👋\n\nTe paso el presupuesto del trabajo #'+id+' · '+trabajo.tipo+'\n\nImporte: ___ €\n\nDetalles: ')} target="_blank" className="mt-3 w-full bg-green-500 hover:bg-green-600 text-white text-sm font-bold py-3 rounded-xl transition block text-center">📱 Enviar presupuesto por WhatsApp</a>
         </div>
         <div className="text-center text-xs text-gray-400 pb-4">Domia Services · Solo tú tienes acceso a este enlace</div>
       </div>
     </div>;
   }
-
-  return<div className="min-h-screen bg-[#F0F2F5]"
+  return<div className="min-h-screen bg-[#F0F2F5]" style={{fontFamily:"'Inter',system-ui,sans-serif"}}>
     <div className="bg-[#1E3A5F] px-5 py-5 text-white">
       <div className="text-[10px] text-blue-300 font-bold uppercase tracking-widest mb-1">Domia Services · Trabajo #{id}</div>
       <div className="text-2xl font-black">{trabajo.tipo}</div>
@@ -781,7 +706,7 @@ export default function App(){
   const trabajoMatch=path.match(/^\/trabajo\/(\d+)$/);
   if(trabajoMatch)return<PortalColaborador id={trabajoMatch[1]}/>;
   const clienteMatch=path.match(/^\/cliente\/(\d+)$/);
-if(clienteMatch)return<PortalCliente id={clienteMatch[1]}/>;
+  if(clienteMatch)return<PortalCliente id={clienteMatch[1]}/>;
   const[data,setData]=useState({clientes:[],colaboradores:[],trabajos:[]});
   const[cargando,setCargando]=useState(true);
   const[sec,setSec]=useState("home");
