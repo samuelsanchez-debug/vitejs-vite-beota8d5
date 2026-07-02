@@ -355,10 +355,9 @@ function EstadoDemandas({data,setData,onBack,toast,onVer}){
             const co=data.colaboradores.find(c=>c.id===getColabId(t));
             const accion=accionLabel(t,co,cl);
             const idx=FLUJO.indexOf(t.estado);
-            const histReciente=getHistorial(t).filter(h=>h.tipo==="ok"&&h.ts).slice(-1)[0];
-const esNuevo=histReciente&&(Date.now()-new Date(histReciente.ts.split(", ").reverse().join(" ")).getTime())<86400000;
+            const tieneConfirmacion=getHistorial(t).some(h=>h.tipo==="ok");
 return<div key={t.id} className={`border rounded-2xl p-4 shadow-sm ${g.color} relative`}>
-  {esNuevo&&<span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 rounded-full border-2 border-white flex items-center justify-center"><span className="text-white text-[8px] font-black">!</span></span>}
+  {tieneConfirmacion&&<span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full border-2 border-white flex items-center justify-center"><span className="text-white text-[9px] font-black">!</span></span>}
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
