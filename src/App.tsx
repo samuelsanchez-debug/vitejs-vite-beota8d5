@@ -574,7 +574,85 @@ function TrabajoModal({tid,data,setData,onClose,toast}){
     )}
   </Modal>;
 }
+// ══════════════════════════════════════════════════════════════════════════════
+// PORTAL CLIENTE
+// ══════════════════════════════════════════════════════════════════════════════
+function PortalCliente({id}:{id:string}){
+  const[trabajo,setTrabajo]=useState<any>(null);
+  const[estado,setEstado]=useState<"idle"|"ok"|"no"|"cargando">("idle");
+  const[cargando,setCargando]=useState(true);
+  const[comentario,setComentario]=useState("");
 
+  useEffect(()=>{
+    const cargar=async()=>{
+      const{data:t}=await supabase.from('trabajos').select('*').eq('id',id).single();
+      if(t)setTrabajo(t);
+      setCargando(false);
+    };
+    cargar();
+  },[id]);
+
+  const confirmar=async(confirma:boolean)=>{
+    setEstado("cargando");
+    const historial=JSON.parse(trabajo.historial||"[]");
+    historial.push({ts:now(),txt:confirma?`Cliente confirmó la visita${comentario?` — "${comentario}"`:""}`:`Cliente rechazó la visita${comentario?` — "${comentario}"`:""}`,tipo:confirma?"ok":"sistema"});
+    const nuevoEstado=confirma?"Visita confirmada":"Solicitud";
+    await supabase.from('trabajos').update({
+      estado:nuevoEstado,
+      historial:JSON.stringify(historial),
+      notas:comentario?`cliente: ${comentario}`:trabajo.notas,
+    }).eq('id',id);
+    setEstado(confirma?"ok":"no");
+  };
+
+  if(cargando)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-center"><div className="text-4xl mb-3">⚙️</div><div className="font-bold text-gray-700">Cargando...</div></div></div>;
+  if(!trabajo)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-center"><div className="text-4xl mb-3">❌</div><div className="font-bold text-gray-700">Enlace no válido</div></div></div>;
+  if(estado==="ok")return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4"><div className="bg-white rounded-2xl p-8 text-center max-w-sm w-full shadow-sm border border-gray-100"><div className="text-6xl mb-4">✅</div><div className="text-xl font-black text-gray-800 mb-2">¡Perfecto!</div><div className="text-gray-500 text-sm">Hemos confirmado tu visita. Nos vemos pronto 😊</div><div className="mt-4 text-xs text-gray-400">Domia Services · 622 123 456</div></div></div>;
+  if(estado==="no")return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4"><div className="bg-white rounded-2xl p-8 text-center max-w-sm w-full shadow-sm border border-gray-100"><div className="text-6xl mb-4">📞</div><div className="text-xl font-black text-gray-800 mb-2">Entendido</div><div className="text-gray-500 text-sm">Te llamaremos para buscar otra fecha que te venga mejor.</div><div className="mt-4 text-xs text-gray-400">Domia Services · 622 123 456</div></div></div>;
+
+  return<div className="min-h-screen bg-[#F0F2F5]" style={{fontFamily:"'Inter',system-ui,sans-serif"}}>
+    <div className="bg-[#1E3A5F] px-5 py-6 text-white text-center">
+      <div className="text-[10px] text-blue-300 font-bold uppercase tracking-widest mb-2">Domia Services</div>
+      <div className="text-2xl font-black mb-1">Visita programada</div>
+      <div className="text-blue-200 text-sm">{trabajo.tipo}</div>
+    </div>
+    <div className="px-4 py-5 max-w-lg mx-auto space-y-4">
+      <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm text-center">
+        <div className="text-4xl mb-3">📅</div>
+        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Fecha y hora de la visita</div>
+        <div className="text-2xl font-black text-[#1E3A5F]">{fmt(trabajo.fecha)}</div>
+        <div className="text-xl font-bold text-gray-600 mt-1">{trabajo.hora}</div>
+      </div>
+
+      <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">Descripción del servicio</div>
+        <div className="text-sm text-gray-700 leading-relaxed">{trabajo.descripcion}</div>
+      </div>
+
+      <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">¿Quieres dejar algún comentario? (opcional)</div>
+        <textarea
+          className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1E3A5F] transition resize-none"
+          rows={3}
+          placeholder="Ej: mejor por la mañana, código del portal es 1234..."
+          value={comentario}
+          onChange={e=>setComentario(e.target.value)}
+        />
+      </div>
+
+      <div className="space-y-3">
+        <button onClick={()=>confirmar(true)} disabled={estado==="cargando"} className="w-full bg-green-500 hover:bg-green-600 active:scale-95 text-white rounded-2xl py-5 flex flex-col items-center gap-2 font-bold text-lg transition disabled:opacity-50">
+          <span className="text-3xl">✅</span>Sí, me viene bien
+        </button>
+        <button onClick={()=>confirmar(false)} disabled={estado==="cargando"} className="w-full bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-600 rounded-2xl py-4 flex flex-col items-center gap-2 font-bold text-base transition disabled:opacity-50">
+          <span className="text-2xl">📞</span>No, prefiero otra fecha
+        </button>
+      </div>
+
+      <div className="text-center text-xs text-gray-400 pb-4">Domia Services · 622 123 456</div>
+    </div>
+  </div>;
+}
 function PortalColaborador({id}:{id:string}){
   const[trabajo,setTrabajo]=useState<any>(null);
   const[cliente,setCliente]=useState<any>(null);
