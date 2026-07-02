@@ -743,7 +743,7 @@ function PortalColaborador({id}:{id:string}){
           <div className="text-2xl mb-2">📋</div>
           <div className="font-bold text-blue-800 text-sm">Tras realizar la visita</div>
           <div className="text-blue-600 text-xs mt-1">Envía tu presupuesto a Domia para que podamos enviárselo al cliente</div>
-          <a href={`https://wa.me/34661121413?text=${encodeURIComponent(`Hola Samuel 👋\n\nTe paso el presupuesto del trabajo #${id} · ${trabajo.tipo}\n\nImporte: ___ €\n\nDetalles: `)}`} target="_blank" className="mt-3 w-full bg-green-500 hover:bg-green-600 text-white text-sm font-bold py-3 rounded-xl transition block text-center">📱 Enviar presupuesto por WhatsApp</button></a>
+          <a href={`https://wa.me/34661121413?text=${encodeURIComponent('Hola Samuel 👋\n\nTe paso el presupuesto del trabajo #'+id+' · '+trabajo.tipo+'\n\nImporte: ___ €\n\nDetalles: ')}`} target="_blank" className="mt-3 w-full bg-green-500 hover:bg-green-600 text-white text-sm font-bold py-3 rounded-xl transition block text-center">📱 Enviar presupuesto por WhatsApp</a>
         </div>
         <div className="text-center text-xs text-gray-400 pb-4">Domia Services · Solo tú tienes acceso a este enlace</div>
       </div>
