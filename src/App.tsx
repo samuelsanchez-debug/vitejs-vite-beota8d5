@@ -216,8 +216,8 @@ function Home({data,setData,go,setTid,toast}){
       <div className="space-y-2">{proximas.map(t=>{const cl=data.clientes.find(c=>c.id===getClienteId(t));const co=data.colaboradores.find(c=>c.id===getColabId(t));return<div key={t.id} onClick={()=>setTid(t.id)} className="bg-white border border-gray-100 rounded-xl px-4 py-3 shadow-sm flex items-center gap-3 cursor-pointer hover:border-[#1E3A5F] transition"><div className="text-center min-w-[36px]"><div className="text-xl font-black text-[#1E3A5F] leading-none">{new Date(t.fecha+"T00:00:00").getDate()}</div><div className="text-[9px] text-gray-400 uppercase">{new Date(t.fecha+"T00:00:00").toLocaleDateString("es-ES",{month:"short"})}</div></div><div className="flex-1 min-w-0"><div className="font-semibold text-sm text-gray-800 truncate">{t.tipo} — {cl?.nombre}</div><div className="text-xs text-gray-400">{t.hora} · {co?.nombre||"Sin asignar"}</div></div><Badge text={t.estado}/></div>;})}
       </div>
     </div>}
-    {porOrigen.length>0&&<div>
-      <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Origen de demandas</div>
+{porOrigen.length>0&&<div>
+    <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Origen de demandas</div>
       <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
         {porOrigen.map((o,i)=><div key={o.id} className={`flex items-center gap-3 px-4 py-3${i<porOrigen.length-1?" border-b border-gray-50":""}`}>
           <span className="text-lg">{o.icon}</span>
