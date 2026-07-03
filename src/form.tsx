@@ -151,7 +151,7 @@ export default function FormularioDomia() {
         <div className="text-5xl mb-4">⚠️</div>
         <h2 className="text-xl font-black text-gray-800 mb-2">Ha ocurrido un error</h2>
         <p className="text-gray-500 mb-6">Por favor llámanos directamente.</p>
-        <a href="tel:622123456" className="bg-[#1E3A5F] text-white font-bold px-6 py-3 rounded-xl inline-block hover:bg-[#152d4a] transition">📞 685 917 059</a>
+        <a href="tel:685917059" className="bg-[#1E3A5F] text-white font-bold px-6 py-3 rounded-xl inline-block hover:bg-[#152d4a] transition">📞 685 917 059</a>
         <button onClick={() => setPaso(1)} className="block mx-auto mt-3 text-sm text-gray-400 hover:text-gray-600">Intentar de nuevo</button>
       </div>
     </div>
