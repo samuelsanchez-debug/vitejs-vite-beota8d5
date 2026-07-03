@@ -887,7 +887,7 @@ function PortalColaborador({id}:{id:string}){
           <button onClick={()=>setEstado("disponibilidad")} disabled={estado==="cargando"} className="flex-1 bg-green-500 hover:bg-green-600 active:scale-95 text-white rounded-2xl py-4 flex flex-col items-center gap-2 font-bold text-base transition disabled:opacity-50">
             <span className="text-3xl">✅</span>Sí, puedo
           </button>
-          <button onClick={()=>confirmar(false)} disabled={estado==="cargando"} className="flex-1 bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-600 rounded-2xl py-4 flex flex-col items-center gap-2 font-bold text-base transition disabled:opacity-50">
+          <button onClick={()=>setEstado("nopuedo")} disabled={estado==="cargando"} className="flex-1 bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-600 rounded-2xl py-4 flex flex-col items-center gap-2 font-bold text-base transition disabled:opacity-50">
             <span className="text-3xl">❌</span>No puedo
           </button>
         </div>
