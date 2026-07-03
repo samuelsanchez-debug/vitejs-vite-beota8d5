@@ -522,7 +522,7 @@ const[partidas,setPartidas]=useState([{desc:t.descripcion||"",importe:0}]);  con
   const delPartida=(i)=>setPartidas(p=>p.filter((_,idx)=>idx!==i));
   const generarPDF=()=>{
     const fecha=new Date().toLocaleDateString("es-ES",{day:"numeric",month:"long",year:"numeric"});
-    const lineas=partidas.filter(p=>p.desc).map(p=>`<tr><td style="padding:8px;border-bottom:1px solid #eee;">${p.desc}</td><td style="padding:8px;border-bottom:1px solid #eee;text-align:right;">${p.importe?p.importe+'€':''}</td></tr>`).join('');
+const lineas=partidas.filter(p=>p.desc).map(p=>`<tr><td style="padding:8px;border-bottom:1px solid #eee;">${p.desc}</td></tr>`).join('');
     const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><style>
       body{font-family:Arial,sans-serif;margin:40px;color:#1E3A5F;}
       .logo{text-align:center;margin-bottom:30px;}
