@@ -283,7 +283,7 @@ export default function FormularioDomia() {
 
         <div className="text-center mt-5 text-blue-200 text-xs space-y-1">
           <p>📍 Elche · 📞 685 917 059 · 🌐 domiaservices.es</p>
-          <p>Lunes a Sábado · 8:00 - 20:00</p>
+        
         </div>
       </div>
     </div>
