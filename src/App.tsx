@@ -513,7 +513,91 @@ function Colaboradores({data,setData,onBack,toast}){
     <div className="space-y-2">{ts.map(t=>{const cl=data.clientes.find(c=>c.id===getClienteId(t));return<div key={t.id} className="bg-white border border-gray-100 rounded-xl p-3 shadow-sm flex items-center gap-2"><div className="flex-1 min-w-0"><div className="font-semibold text-sm text-gray-800">{t.tipo}</div><div className="text-xs text-gray-500 truncate">{cl?.nombre} · {fmt(t.fecha)}</div></div><div className="flex items-center gap-2">{getPresupColab(t)&&<span className="text-xs font-bold text-red-500">{getPresupColab(t)}€</span>}<Badge text={t.estado}/></div></div>;})}</div>
   </div>;
 }
-
+function EditorPresupuesto({t,cl,co,data,setData,onClose,toast}){
+  const[partidas,setPartidas]=useState([{desc:t.descripcion||"",importe:getPresupColab(t)||0}]);
+  const[margen,setMargen]=useState(t.margen||30);
+  const totalColab=partidas.reduce((s,p)=>s+(+p.importe||0),0);
+  const totalCliente=Math.round(totalColab*(1+margen/100));
+  const addPartida=()=>setPartidas(p=>[...p,{desc:"",importe:0}]);
+  const updPartida=(i,k,v)=>setPartidas(p=>p.map((x,idx)=>idx===i?{...x,[k]:v}:x));
+  const delPartida=(i)=>setPartidas(p=>p.filter((_,idx)=>idx!==i));
+  const generarPDF=()=>{
+    const fecha=new Date().toLocaleDateString("es-ES",{day:"numeric",month:"long",year:"numeric"});
+    const lineas=partidas.filter(p=>p.desc).map(p=>`<tr><td style="padding:8px;border-bottom:1px solid #eee;">${p.desc}</td><td style="padding:8px;border-bottom:1px solid #eee;text-align:right;">${p.importe?p.importe+'€':''}</td></tr>`).join('');
+    const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+      body{font-family:Arial,sans-serif;margin:40px;color:#1E3A5F;}
+      .logo{text-align:center;margin-bottom:30px;}
+      .titulo{font-size:28px;text-align:center;color:#1E3A5F;letter-spacing:3px;margin:30px 0;text-transform:uppercase;}
+      .info{text-align:right;margin-bottom:30px;font-size:14px;}
+      table{width:100%;border-collapse:collapse;margin:20px 0;}
+      th{background:#1E3A5F;color:white;padding:10px;text-align:left;font-size:13px;}
+      th:last-child{text-align:right;}
+      .total-box{margin:30px 0;padding:20px;border:2px solid #1E3A5F;text-align:right;}
+      .total-box .label{font-size:14px;color:#666;}
+      .total-box .importe{font-size:28px;font-weight:bold;color:#1E3A5F;}
+      .pago{margin:20px 0;font-size:13px;}
+      .pago li{margin:5px 0;}
+      .footer{margin-top:60px;border-top:1px solid #ccc;padding-top:15px;text-align:center;font-size:12px;color:#999;}
+      @media print{body{margin:20px;}}
+    </style></head><body>
+      <div class="logo">
+        <img src="https://opijkazhbktiikdzbanb.supabase.co/storage/v1/object/public/fotos-demandas/logo-domia.png" style="max-width:200px;" onerror="this.style.display='none'"/>
+        <div style="font-size:10px;color:#999;margin-top:5px;">685 917 059 · Elche, Alicante</div>
+      </div>
+      <div class="titulo">${t.tipo}</div>
+      <div class="info">Cliente: ${cl?.nombre}<br>${fecha}</div>
+      <table>
+        <tr><th>Descripción</th><th>Importe</th></tr>
+        ${lineas}
+      </table>
+      <div class="total-box">
+        <div class="label">TOTAL sin IVA</div>
+        <div class="importe">${totalCliente}€</div>
+      </div>
+      <div class="pago"><strong>Forma de pago:</strong><ul>
+        <li>Entrega inicial del 50% antes de empezar el trabajo.</li>
+        <li>Entrega de un 25% a mitad del trabajo.</li>
+        <li>Entrega final del 25% restante al finalizar.</li>
+      </ul></div>
+      <p style="font-size:12px;color:#666;">Este presupuesto tiene una validez de 30 días. Todo trabajo no especificado será presupuestado a parte.</p>
+      <div class="footer">DOMIA SERVICES · 685 917 059 · Elche, Alicante</div>
+    </body></html>`;
+    const w=window.open('','_blank');
+    if(w){w.document.write(html);w.document.close();setTimeout(()=>w.print(),500);}
+  };
+  const notas=getNotas(t);
+  const fotoUrl=notas.startsWith('presup:')?notas.replace('presup:',''):null;
+  return<div className="space-y-4">
+    {fotoUrl&&<div className="bg-purple-50 border border-purple-200 rounded-xl p-3">
+      <div className="text-xs font-bold text-purple-700 mb-2">📄 Presupuesto del colaborador</div>
+      <a href={fotoUrl} target="_blank" className="text-purple-600 text-sm font-semibold hover:underline">Ver PDF del colaborador →</a>
+    </div>}
+    <div className="bg-gray-900 rounded-xl p-3 text-white">
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-[10px] font-bold text-gray-400 uppercase">Tu margen %</div>
+        <input type="number" value={margen} onChange={e=>setMargen(+e.target.value||30)} className="w-20 bg-gray-800 border border-gray-700 rounded-lg px-2 py-1 text-sm text-white text-right focus:outline-none"/>
+      </div>
+      <div className="grid grid-cols-3 gap-2 text-center mt-2">
+        <div><div className="text-lg font-black text-red-400">{totalColab}€</div><div className="text-[10px] text-gray-400">Colab.</div></div>
+        <div><div className="text-lg font-black text-blue-400">{margen}%</div><div className="text-[10px] text-gray-400">Margen</div></div>
+        <div><div className="text-lg font-black text-emerald-400">{totalCliente}€</div><div className="text-[10px] text-gray-400">Cliente</div></div>
+      </div>
+    </div>
+    <div>
+      <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Partidas del presupuesto</div>
+      <div className="space-y-2">
+        {partidas.map((p,i)=><div key={i} className="flex gap-2 items-center">
+          <input value={p.desc} onChange={e=>updPartida(i,"desc",e.target.value)} className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]" placeholder="Descripción de la partida"/>
+          <input type="number" value={p.importe||""} onChange={e=>updPartida(i,"importe",e.target.value)} className="w-20 border border-gray-200 rounded-xl px-2 py-2 text-sm text-right focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]" placeholder="€"/>
+          <button onClick={()=>delPartida(i)} className="text-red-400 hover:text-red-600 text-lg font-bold px-1">×</button>
+        </div>)}
+      </div>
+      <button onClick={addPartida} className="mt-2 w-full border-2 border-dashed border-gray-200 text-gray-400 py-2 rounded-xl text-sm hover:border-[#1E3A5F] hover:text-[#1E3A5F] transition">+ Añadir partida</button>
+    </div>
+    <button onClick={generarPDF} className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-bold text-sm transition">📄 Generar PDF Domia ({totalCliente}€)</button>
+    <button onClick={onClose} className="w-full border border-gray-200 text-gray-500 py-2.5 rounded-xl text-sm">Cancelar</button>
+  </div>;
+}
 function TrabajoModal({tid,data,setData,onClose,toast}){
   const t=data.trabajos.find(x=>x.id===tid||x.id===+tid);
   const[modo,setModo]=useState("ver");
