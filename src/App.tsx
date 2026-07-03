@@ -600,7 +600,7 @@ function EditorPresupuesto({t,cl,co,data,setData,onClose,toast}){
 }
 function TrabajoModal({tid,data,setData,onClose,toast}){
   const t=data.trabajos.find(x=>x.id===tid||x.id===+tid);
-  const[modo,setModo]=useState("ver");
+const[modo,setModo]=useState<"ver"|"editar"|"presupuesto">("ver");
   if(!t)return null;
   const cl=data.clientes.find(c=>c.id===getClienteId(t));
   const co=data.colaboradores.find(c=>c.id===getColabId(t));
