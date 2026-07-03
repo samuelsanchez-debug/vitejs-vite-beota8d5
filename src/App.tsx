@@ -174,61 +174,65 @@ function Home({data,setData,go,setTid,toast}){
   const costes=data.trabajos.filter(t=>t.estado==="Completado").reduce((s,t)=>s+(getPresupColab(t)||0),0);
   const sinAsignar=data.trabajos.filter(t=>t.estado==="Solicitud");
   const proximas=[...data.trabajos].filter(t=>["Aceptado","En curso"].includes(t.estado)&&t.fecha>=hoy()).sort((a,b)=>a.fecha.localeCompare(b.fecha)).slice(0,4);
-  const porOrigen=ORIGENES.map(o=>({...o,n:data.trabajos.filter(t=>t.origen===o.id).length,ing:data.trabajos.filter(t=>t.origen===o.id&&t.estado==="Completado").reduce((s,t)=>s+(getPrecioCliente(t)||0),0)})).filter(o=>o.n>0).sort((a,b)=>b.n-a.n);
-  return<div className="space-y-5">
-    <div className="bg-[#1E3A5F] rounded-2xl p-5 text-white">
-      <div className="text-[10px] text-blue-300 font-bold uppercase tracking-widest mb-4">Resumen financiero</div>
-      <div className="grid grid-cols-3 gap-4 mb-4">
-        <div><div className="text-2xl font-black">{ingresos}€</div><div className="text-[10px] text-blue-300 mt-0.5">Facturado</div></div>
-        <div><div className="text-2xl font-black text-red-400">{costes}€</div><div className="text-[10px] text-blue-300 mt-0.5">Pagado colabs</div></div>
-        <div><div className="text-2xl font-black text-emerald-400">{ingresos-costes}€</div><div className="text-[10px] text-blue-300 mt-0.5">Beneficio</div></div>
+
+  return<div className="space-y-4">
+    <div className="grid grid-cols-3 gap-3">
+      <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+        <div className="text-[11px] text-gray-400 font-medium mb-1 flex items-center gap-1">💰 Facturado</div>
+        <div className="text-xl font-bold text-gray-800">{ingresos}€</div>
       </div>
-      <div className="grid grid-cols-3 gap-2 pt-4 border-t border-blue-800">
-        <div className="text-center"><div className="text-xl font-black">{nuevas}</div><div className="text-[10px] text-blue-300">Nuevas</div></div>
-        <div className="text-center"><div className="text-xl font-black">{activos}</div><div className="text-[10px] text-blue-300">Activos</div></div>
-        <div className="text-center"><div className="text-xl font-black">{cerrados}</div><div className="text-[10px] text-blue-300">Cerrados</div></div>
+      <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+        <div className="text-[11px] text-gray-400 font-medium mb-1 flex items-center gap-1">👷 Pagado</div>
+        <div className="text-xl font-bold text-red-500">{costes}€</div>
+      </div>
+      <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+        <div className="text-[11px] text-gray-400 font-medium mb-1 flex items-center gap-1">📈 Beneficio</div>
+        <div className="text-xl font-bold text-emerald-600">{ingresos-costes}€</div>
       </div>
     </div>
+
+    <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm grid grid-cols-3 gap-2 text-center">
+      <div><div className="text-2xl font-bold text-gray-800">{nuevas}</div><div className="text-[11px] text-gray-400 mt-0.5">Nuevas</div></div>
+      <div className="border-x border-gray-100"><div className="text-2xl font-bold text-gray-800">{activos}</div><div className="text-[11px] text-gray-400 mt-0.5">Activos</div></div>
+      <div><div className="text-2xl font-bold text-gray-800">{cerrados}</div><div className="text-[11px] text-gray-400 mt-0.5">Cerrados</div></div>
+    </div>
+
     <div className="grid grid-cols-2 gap-3">
-      {[{s:"nuevas",icon:"📥",label:"Nuevas demandas",desc:"Sin gestionar",badge:nuevas,bc:"bg-red-500"},{s:"demandas",icon:"📋",label:"Pipeline",desc:"Todos los estados",badge:activos,bc:"bg-orange-500"},{s:"clientes",icon:"👥",label:"Clientes",desc:"Base de datos",badge:0,bc:""},{s:"colaboradores",icon:"👷",label:"Colaboradores",desc:"Equipo y filtros",badge:0,bc:""}].map(m=>(
-        <button key={m.s} onClick={()=>go(m.s)} className="bg-white border border-gray-100 rounded-2xl p-4 text-left shadow-sm hover:border-[#1E3A5F] hover:shadow-md active:scale-95 transition relative">
-          {m.badge>0&&<span className={`absolute top-3 right-3 ${m.bc} text-white text-[10px] font-black min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center`}>{m.badge}</span>}
-          <div className="text-3xl mb-2">{m.icon}</div>
-          <div className="font-bold text-gray-800 text-sm">{m.label}</div>
+      {[
+        {s:"nuevas",icon:"📥",label:"Nuevas demandas",desc:"Sin gestionar",badge:nuevas},
+        {s:"demandas",icon:"📋",label:"Pipeline",desc:"Todos los estados",badge:activos},
+        {s:"clientes",icon:"👤",label:"Clientes",desc:"Base de datos",badge:0},
+        {s:"colaboradores",icon:"🔧",label:"Colaboradores",desc:"Equipo",badge:0},
+      ].map(m=>(
+        <button key={m.s} onClick={()=>go(m.s)} className="bg-white border border-gray-100 rounded-2xl p-4 text-left shadow-sm hover:border-gray-300 hover:shadow-md active:scale-95 transition relative">
+          {m.badge>0&&<span className="absolute top-3 right-3 bg-amber-500 text-white text-[10px] font-bold min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center">{m.badge}</span>}
+          <div className="text-2xl mb-2">{m.icon}</div>
+          <div className="font-semibold text-gray-800 text-sm">{m.label}</div>
           <div className="text-[11px] text-gray-400 mt-0.5">{m.desc}</div>
         </button>
       ))}
     </div>
-    {nuevas>0&&<div className="bg-red-50 border border-red-200 rounded-2xl p-4">
-      <div className="font-bold text-red-700 text-sm mb-1">⚡ {nuevas} demanda{nuevas>1?"s":""} esperando asignación</div>
+
+    {nuevas>0&&<div className="bg-white border border-amber-200 rounded-2xl p-4 shadow-sm">
+      <div className="font-semibold text-amber-700 text-sm mb-2 flex items-center gap-2">⚡ {nuevas} demanda{nuevas>1?"s":""} sin asignar</div>
       {sinAsignar.slice(0,2).map(t=>{
         const cl=data.clientes.find(c=>c.id===getClienteId(t));
         const sg=sugerirColab(t.tipo,data.colaboradores,data.trabajos);
-        return<div key={t.id} className="flex items-center justify-between gap-2 mt-2 bg-white rounded-xl px-3 py-2 border border-red-100">
-          <div><div className="text-sm font-semibold text-gray-800">{t.tipo} — {cl?.nombre}</div>{sg&&<div className="text-[11px] text-orange-600">💡 {sg.nombre}</div>}</div>
-          {sg&&<button onClick={async()=>{const waUrl=buildWA(sg,t,cl);const updated={...t,colaboradorId:sg.id,estado:"Presupuestando",historial:[...getHistorial(t),{ts:now(),txt:`Asignado a ${sg.nombre}`,tipo:"sistema"},{ts:now(),txt:"Presupuesto solicitado WA",tipo:"wa"}]};await dbSaveTrabajo(updated);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,colaboradorId:sg.id,colaborador_id:sg.id,estado:"Presupuestando"}:x)}));toast("📱 Abriendo WhatsApp...");setTimeout(()=>window.open(waUrl,"_blank"),400);}} className="bg-orange-500 hover:bg-orange-600 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition whitespace-nowrap">Asignar WA</button>}
+        return<div key={t.id} className="flex items-center justify-between gap-2 mt-2 bg-gray-50 rounded-xl px-3 py-2 border border-gray-100">
+          <div><div className="text-sm font-medium text-gray-800">{t.tipo} — {cl?.nombre}</div>{sg&&<div className="text-[11px] text-gray-500 mt-0.5">Sugerido: {sg.nombre}</div>}</div>
+          {sg&&<button onClick={async()=>{const waUrl=buildWA(sg,t,cl);const updated={...t,colaboradorId:sg.id,estado:"Presupuestando",historial:[...getHistorial(t),{ts:now(),txt:`Asignado a ${sg.nombre}`,tipo:"sistema"},{ts:now(),txt:"Presupuesto solicitado WA",tipo:"wa"}]};await dbSaveTrabajo(updated);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,colaboradorId:sg.id,colaborador_id:sg.id,estado:"Presupuestando"}:x)}));toast("Abriendo WhatsApp...");setTimeout(()=>window.open(waUrl,"_blank"),400);}} className="bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg transition whitespace-nowrap">Asignar</button>}
         </div>;
       })}
-      <button onClick={()=>go("nuevas")} className="mt-2 text-xs text-red-600 font-semibold">Ver todas →</button>
+      <button onClick={()=>go("nuevas")} className="mt-2 text-xs text-amber-600 font-medium">Ver todas →</button>
     </div>}
-    {proximas.length>0&&<div>
-      <div className="flex items-center justify-between mb-2"><div className="text-xs font-bold text-gray-400 uppercase tracking-widest">Próximas visitas</div><button onClick={()=>go("demandas")} className="text-xs text-[#1E3A5F] font-semibold">Ver todo →</button></div>
-      <div className="space-y-2">{proximas.map(t=>{const cl=data.clientes.find(c=>c.id===getClienteId(t));const co=data.colaboradores.find(c=>c.id===getColabId(t));return<div key={t.id} onClick={()=>setTid(t.id)} className="bg-white border border-gray-100 rounded-xl px-4 py-3 shadow-sm flex items-center gap-3 cursor-pointer hover:border-[#1E3A5F] transition"><div className="text-center min-w-[36px]"><div className="text-xl font-black text-[#1E3A5F] leading-none">{new Date(t.fecha+"T00:00:00").getDate()}</div><div className="text-[9px] text-gray-400 uppercase">{new Date(t.fecha+"T00:00:00").toLocaleDateString("es-ES",{month:"short"})}</div></div><div className="flex-1 min-w-0"><div className="font-semibold text-sm text-gray-800 truncate">{t.tipo} — {cl?.nombre}</div><div className="text-xs text-gray-400">{t.hora} · {co?.nombre||"Sin asignar"}</div></div><Badge text={t.estado}/></div>;})}
-      </div>
-    </div>}
-{porOrigen.length>0&&<div>
-    <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Origen de demandas</div>
-      <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
-        {porOrigen.map((o,i)=><div key={o.id} className={`flex items-center gap-3 px-4 py-3${i<porOrigen.length-1?" border-b border-gray-50":""}`}>
-          <span className="text-lg">{o.icon}</span>
-          <div className="flex-1 min-w-0"><div className="text-sm font-semibold text-gray-800">{o.label}</div><div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden mt-1"><div className="h-full bg-[#1E3A5F] rounded-full" style={{width:`${(o.n/data.trabajos.length)*100}%`}}/></div></div>
-          <div className="text-right"><div className="text-sm font-bold text-gray-700">{o.n}</div>{o.ing>0&&<div className="text-[10px] text-emerald-600 font-semibold">{o.ing}€</div>}</div>
-        </div>)}
+
+    {proximas.length>0&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+      <div className="flex items-center justify-between mb-3"><div className="text-xs font-semibold text-gray-500 uppercase tracking-widest">Próximas visitas</div><button onClick={()=>go("demandas")} className="text-xs text-gray-400 hover:text-gray-600">Ver todo →</button></div>
+      <div className="space-y-2">{proximas.map(t=>{const cl=data.clientes.find(c=>c.id===getClienteId(t));const co=data.colaboradores.find(c=>c.id===getColabId(t));return<div key={t.id} onClick={()=>setTid(t.id)} className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 rounded-xl px-2 py-2 transition"><div className="text-center min-w-[36px]"><div className="text-lg font-bold text-[#1E3A5F] leading-none">{new Date(t.fecha+"T00:00:00").getDate()}</div><div className="text-[9px] text-gray-400 uppercase">{new Date(t.fecha+"T00:00:00").toLocaleDateString("es-ES",{month:"short"})}</div></div><div className="flex-1 min-w-0"><div className="font-medium text-sm text-gray-800 truncate">{t.tipo} — {cl?.nombre}</div><div className="text-xs text-gray-400">{t.hora} · {co?.nombre||"Sin asignar"}</div></div><Badge text={t.estado}/></div>;})}
       </div>
     </div>}
   </div>;
 }
-
 function NuevasDemandas({data,setData,onBack,toast,onVer}){
   const nuevas=data.trabajos.filter(t=>t.estado==="Solicitud");
   return<div>
