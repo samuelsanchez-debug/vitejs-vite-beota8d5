@@ -523,49 +523,88 @@ const[partidas,setPartidas]=useState([{desc:t.descripcion||"",importe:0}]);  con
   const addPartida=()=>setPartidas(p=>[...p,{desc:"",importe:0}]);
   const updPartida=(i,k,v)=>setPartidas(p=>p.map((x,idx)=>idx===i?{...x,[k]:v}:x));
   const delPartida=(i)=>setPartidas(p=>p.filter((_,idx)=>idx!==i));
-  const generarPDF=()=>{
+  const[generando,setGenerando]=useState(false);
+  const[pdfUrl,setPdfUrl]=useState<string|null>(null);
+
+  const generarPDF=async()=>{
+    setGenerando(true);
     const fecha=new Date().toLocaleDateString("es-ES",{day:"numeric",month:"long",year:"numeric"});
-const lineas=partidas.filter(p=>p.desc).map(p=>`<tr><td style="padding:8px;border-bottom:1px solid #eee;">${p.desc}</td></tr>`).join('');
-    const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><style>
-      body{font-family:Arial,sans-serif;margin:40px;color:#1E3A5F;}
-      .logo{text-align:center;margin-bottom:30px;}
-      .titulo{font-size:28px;text-align:center;color:#1E3A5F;letter-spacing:3px;margin:30px 0;text-transform:uppercase;}
-      .info{text-align:right;margin-bottom:30px;font-size:14px;}
-      table{width:100%;border-collapse:collapse;margin:20px 0;}
-      th{background:#1E3A5F;color:white;padding:10px;text-align:left;font-size:13px;}
-      th:last-child{text-align:right;}
-      .total-box{margin:30px 0;padding:20px;border:2px solid #1E3A5F;text-align:right;}
-      .total-box .label{font-size:14px;color:#666;}
-      .total-box .importe{font-size:28px;font-weight:bold;color:#1E3A5F;}
-      .pago{margin:20px 0;font-size:13px;}
-      .pago li{margin:5px 0;}
-      .footer{margin-top:60px;border-top:1px solid #ccc;padding-top:15px;text-align:center;font-size:12px;color:#999;}
-      @media print{body{margin:20px;}}
-    </style></head><body>
-      <div class="logo">
-        <img src="https://opijkazhbktiikdzbanb.supabase.co/storage/v1/object/public/fotos-demandas/logo-domia.png" style="max-width:200px;" onerror="this.style.display='none'"/>
-        <div style="font-size:10px;color:#999;margin-top:5px;">685 917 059 · Elche, Alicante</div>
-      </div>
-<div class="titulo">Presupuesto</div>
-      <div class="info">Cliente: ${cl?.nombre}<br>${fecha}</div>
-      <table>
-        <tr><th>Descripción</th></tr>
-        ${lineas}
-      </table>
-      <div class="total-box">
-        <div class="label">TOTAL sin IVA</div>
-        <div class="importe">${totalCliente}€</div>
-      </div>
-      <div class="pago"><strong>Forma de pago:</strong><ul>
-        <li>Entrega inicial del 50% antes de empezar el trabajo.</li>
-        <li>Entrega de un 25% a mitad del trabajo.</li>
-        <li>Entrega final del 25% restante al finalizar.</li>
-      </ul></div>
-      <p style="font-size:12px;color:#666;">Este presupuesto tiene una validez de 30 días. Todo trabajo no especificado será presupuestado a parte.</p>
-      <div class="footer">DOMIA SERVICES · 685 917 059 · Elche, Alicante</div>
-    </body></html>`;
-    const w=window.open('','_blank');
-    if(w){w.document.write(html);w.document.close();setTimeout(()=>w.print(),500);}
+    const doc=new jsPDF();
+    const azul="#1E3A5F";
+
+    doc.setFontSize(24);
+    doc.setTextColor(30,58,95);
+    doc.text("DOMIA SERVICES",105,25,{align:"center"});
+    doc.setFontSize(9);
+    doc.setTextColor(150,150,150);
+    doc.text("685 917 059 · Elche, Alicante",105,32,{align:"center"});
+
+    doc.setFontSize(20);
+    doc.setTextColor(30,58,95);
+    doc.text("PRESUPUESTO",105,50,{align:"center"});
+
+    doc.setFontSize(10);
+    doc.setTextColor(80,80,80);
+    doc.text(`Cliente: ${cl?.nombre||""}`,195,62,{align:"right"});
+    doc.text(fecha,195,68,{align:"right"});
+
+    doc.setFillColor(30,58,95);
+    doc.rect(15,78,180,8,"F");
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(10);
+    doc.text("Descripción",18,83.5);
+
+    let y=94;
+    doc.setTextColor(60,60,60);
+    partidas.filter(p=>p.desc).forEach(p=>{
+      const lineas=doc.splitTextToSize(p.desc,170);
+      doc.text(lineas,18,y);
+      y+=lineas.length*6+4;
+      doc.setDrawColor(230,230,230);
+      doc.line(15,y-3,195,y-3);
+    });
+
+    y+=8;
+    doc.setDrawColor(30,58,95);
+    doc.setLineWidth(0.8);
+    doc.rect(115,y,80,22);
+    doc.setFontSize(9);
+    doc.setTextColor(120,120,120);
+    doc.text("TOTAL sin IVA",190,y+7,{align:"right"});
+    doc.setFontSize(18);
+    doc.setTextColor(30,58,95);
+    doc.text(`${totalCliente}€`,190,y+17,{align:"right"});
+
+    y+=34;
+    doc.setFontSize(10);
+    doc.setTextColor(60,60,60);
+    doc.text("Forma de pago:",15,y);
+    doc.setFontSize(9);
+    doc.setTextColor(100,100,100);
+    doc.text("• Entrega inicial del 50% antes de empezar el trabajo.",18,y+7);
+    doc.text("• Entrega de un 25% a mitad del trabajo.",18,y+13);
+    doc.text("• Entrega final del 25% restante al finalizar.",18,y+19);
+
+    y+=30;
+    doc.setFontSize(8);
+    doc.setTextColor(150,150,150);
+    const cond=doc.splitTextToSize("Este presupuesto tiene una validez de 30 días. Todo trabajo no especificado será presupuestado a parte.",175);
+    doc.text(cond,15,y);
+
+    doc.setFontSize(8);
+    doc.setTextColor(150,150,150);
+    doc.text("DOMIA SERVICES · 685 917 059 · Elche, Alicante",105,285,{align:"center"});
+
+    const blob=doc.output("blob");
+    const nombre=`domia_presupuesto_${t.id}_${Date.now()}.pdf`;
+    const{data:up}=await supabase.storage.from('fotos-demandas').upload(nombre,blob,{contentType:'application/pdf',upsert:true});
+    if(up){
+      const{data:pub}=supabase.storage.from('fotos-demandas').getPublicUrl(nombre);
+      setPdfUrl(pub.publicUrl);
+      toast("✅ PDF generado y guardado");
+    }
+    doc.save(nombre);
+    setGenerando(false);
   };
   const notas=getNotas(t);
   const fotoUrl=notas.startsWith('presup:')?notas.replace('presup:',''):null;
