@@ -879,7 +879,6 @@ function PortalColaborador({id}:{id:string}){
     <div className="px-4 py-5 max-w-lg mx-auto space-y-4">
       <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm space-y-4">
         <div className="flex items-start gap-3"><span className="text-xl mt-0.5">📍</span><div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Dirección</div><div className="font-semibold text-gray-800">{cliente?.direccion||"—"}</div></div></div>
-        <div className="flex items-start gap-3"><span className="text-xl mt-0.5">📅</span><div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Fecha y hora</div><div className="font-semibold text-gray-800 text-lg">{fmt(trabajo.fecha)} · {trabajo.hora}</div></div></div>
         <div className="flex items-start gap-3"><span className="text-xl mt-0.5">📝</span><div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Descripción</div><div className="text-gray-700 text-sm leading-relaxed">{trabajo.descripcion}</div></div></div>
       </div>
       <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
