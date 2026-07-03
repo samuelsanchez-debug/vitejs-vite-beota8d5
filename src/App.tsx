@@ -347,7 +347,7 @@ function EstadoDemandas({data,setData,onBack,toast,onVer}){
   let items=[...data.trabajos];
   if(busca.trim()){const q=busca.toLowerCase();items=items.filter(t=>{const cl=data.clientes.find(c=>c.id===getClienteId(t));return t.descripcion?.toLowerCase().includes(q)||cl?.nombre.toLowerCase().includes(q)||t.tipo?.toLowerCase().includes(q);});}
 
-  const atencion=items.filter(t=>["Solicitud","Visita confirmada","Presupuesto recibido"].includes(t.estado));
+  const atencion=items.filter(t=>["Solicitud","Colaborador disponible","Cliente confirmó","Presupuesto recibido"].includes(t.estado));
   const esperandoColab=items.filter(t=>t.estado==="Presupuestando");
   const esperandoCliente=items.filter(t=>["Visita propuesta","Presupuesto enviado"].includes(t.estado));
   const activos=items.filter(t=>["Aceptado","En curso"].includes(t.estado));
