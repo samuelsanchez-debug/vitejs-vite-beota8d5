@@ -820,6 +820,20 @@ function PortalColaborador({id}:{id:string}){
     if(puede){const msg='✅ Confirmado — Trabajo #'+id+' · '+trabajo.tipo+'\n📍 '+(cliente?.direccion)+'\n📅 '+fmt(trabajo.fecha)+' · '+trabajo.hora+'\nEl colaborador ha confirmado la visita.';window.open('https://wa.me/34661121413?text='+encodeURIComponent(msg),'_blank');}
     setEstado(puede?"ok":"no");
   };
+  const confirmarConDisponibilidad=async(slots:string[])=>{
+    setEstado("cargando");
+    const historial=JSON.parse(trabajo.historial||"[]");
+    historial.push({ts:now(),txt:`Colaborador disponible. Horarios sugeridos: ${slots.join(", ")}`,tipo:"ok"});
+    await supabase.from('trabajos').update({
+      estado:"Visita confirmada",
+      colaborador_id:trabajo.colaborador_id,
+      historial:JSON.stringify(historial),
+      notas:trabajo.notas?trabajo.notas+` | disponibilidad: ${slots.join(", ")}`:`disponibilidad: ${slots.join(", ")}`,
+    }).eq('id',id);
+    const msg=`✅ Trabajo #${id} · ${trabajo.tipo}\nEl colaborador puede encargarse.\n\nDisponibilidad sugerida:\n${slots.map(s=>`• ${s}`).join("\n")}`;
+    window.open(`https://wa.me/34661121413?text=${encodeURIComponent(msg)}`,"_blank");
+    setEstado("ok");
+  };
   if(cargando)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-center"><div className="text-4xl mb-3">⚙️</div><div className="font-bold text-gray-700">Cargando...</div></div></div>;
   if(!trabajo)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-center"><div className="text-4xl mb-3">❌</div><div className="font-bold text-gray-700">Trabajo no encontrado</div></div></div>;
   if(estado==="ok")return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4"><div className="bg-white rounded-2xl p-8 text-center max-w-sm w-full shadow-sm border border-gray-100"><div className="text-6xl mb-4">✅</div><div className="text-xl font-black text-gray-800 mb-2">¡Confirmado!</div><div className="text-gray-500 text-sm">Hemos avisado a Domia. Nos ponemos en contacto contigo pronto.</div></div></div>;
