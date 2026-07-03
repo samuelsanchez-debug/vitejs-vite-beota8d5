@@ -708,7 +708,7 @@ function PortalCliente({id}:{id:string}){
     const historial=JSON.parse(trabajo.historial||"[]");
     historial.push({ts:now(),txt:confirma?`Cliente confirmó la visita${comentario?' — "'+comentario+'"':''}`:`Cliente rechazó la visita${comentario?' — "'+comentario+'"':''}`,tipo:confirma?"ok":"sistema"});
     await supabase.from('trabajos').update({
-      estado:confirma?"Visita confirmada":"Solicitud",
+estado:confirma?"Cliente confirmó":"Visita propuesta",
       historial:JSON.stringify(historial),
       notas:comentario?`cliente: ${comentario}`:trabajo.notas,
     }).eq('id',id);
