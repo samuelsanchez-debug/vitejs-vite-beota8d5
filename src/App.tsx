@@ -883,11 +883,19 @@ function PortalColaborador({id}:{id:string}){
         <div className="flex items-start gap-3"><span className="text-xl mt-0.5">📝</span><div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Descripción</div><div className="text-gray-700 text-sm leading-relaxed">{trabajo.descripcion}</div></div></div>
       </div>
       <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">¿Puedes ir a esta visita?</div>
-        <div className="flex gap-3">
-          <button onClick={()=>confirmar(true)} disabled={estado==="cargando"} className="flex-1 bg-green-500 hover:bg-green-600 active:scale-95 text-white rounded-2xl py-5 flex flex-col items-center gap-2 font-bold text-base transition disabled:opacity-50"><span className="text-3xl">✅</span>Sí, puedo ir</button>
-          <button onClick={()=>confirmar(false)} disabled={estado==="cargando"} className="flex-1 bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-600 rounded-2xl py-5 flex flex-col items-center gap-2 font-bold text-base transition disabled:opacity-50"><span className="text-3xl">❌</span>No puedo</button>
+        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">¿Puedes encargarte de este trabajo?</div>
+        <div className="flex gap-3 mb-4">
+          <button onClick={()=>setEstado("disponibilidad")} disabled={estado==="cargando"} className="flex-1 bg-green-500 hover:bg-green-600 active:scale-95 text-white rounded-2xl py-4 flex flex-col items-center gap-2 font-bold text-base transition disabled:opacity-50">
+            <span className="text-3xl">✅</span>Sí, puedo
+          </button>
+          <button onClick={()=>confirmar(false)} disabled={estado==="cargando"} className="flex-1 bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-600 rounded-2xl py-4 flex flex-col items-center gap-2 font-bold text-base transition disabled:opacity-50">
+            <span className="text-3xl">❌</span>No puedo
+          </button>
         </div>
+        {estado==="disponibilidad"&&<div className="border-t border-gray-100 pt-4">
+          <div className="text-[10px] text-gray-400 font-bold uppercase mb-2">Indica tu disponibilidad</div>
+          <DisponibilidadSelector onConfirmar={(slots)=>confirmarConDisponibilidad(slots)}/>
+        </div>}
       </div>
       <div className="text-center text-xs text-gray-400 pb-4">Solo tú tienes acceso a este enlace</div>
     </div>
