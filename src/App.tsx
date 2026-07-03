@@ -635,8 +635,8 @@ const[modo,setModo]=useState<"ver"|"editar"|"presupuesto">("ver");
         {t.estado==="Visita confirmada"&&cl?.telefono&&<button onClick={()=>{window.open(buildWAVisitaCliente(cl,t,co),"_blank");toast("📱 Propuesta enviada al cliente");}} className="w-full bg-cyan-500 hover:bg-cyan-600 text-white py-2.5 rounded-xl font-bold text-sm transition">📱 Proponer visita al cliente</button>}
         {t.estado==="Visita confirmada"&&co&&<button onClick={async()=>{const hist=[...getHistorial(t),{ts:now(),txt:"Cliente confirmó la visita",tipo:"ok"}];await dbSaveTrabajo({...t,estado:"En curso",historial:hist});setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,estado:"En curso"}:x)}));window.open(buildWAConfirmacionColab(co,t,cl),"_blank");toast("✅ Confirmado — avisando a colaborador");onClose();}} className="w-full bg-teal-500 hover:bg-teal-600 text-white py-2.5 rounded-xl font-bold text-sm transition">✅ Cliente confirmó — avisar a {co.nombre.split(" ")[0]}</button>}
 {(t.estado==="Presupuesto recibido"||t.estado==="Visita confirmada"||t.estado==="En curso")&&<button onClick={()=>setModo("presupuesto")} className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-xl font-bold text-sm transition">📄 Generar presupuesto Domia</button>}
-        {t.estado==="Visita confirmada"&&<label className="w-full cursor-pointer">
-          <div className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 rounded-xl font-bold text-sm transition text-center">📎 Subir presupuesto colaborador</div>
+{!["Completado","Cancelado"].includes(t.estado)&&<label className="w-full cursor-pointer">
+       <div className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 rounded-xl font-bold text-sm transition text-center">📎 Subir presupuesto colaborador</div>
           <input type="file" accept="image/*,application/pdf" className="hidden" onChange={async(e)=>{
             const archivo=e.target.files?.[0];
             if(!archivo)return;
