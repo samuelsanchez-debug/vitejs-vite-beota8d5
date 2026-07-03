@@ -909,7 +909,7 @@ function PortalColaborador({id}:{id:string}){
     </div>
   </div>;
 }
-
+export default function App(){
   const path=window.location.pathname;
   const trabajoMatch=path.match(/^\/trabajo\/(\d+)$/);
   if(trabajoMatch)return<PortalColaborador id={trabajoMatch[1]}/>;
