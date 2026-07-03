@@ -267,121 +267,119 @@ function NuevasDemandas({data,setData,onBack,toast,onVer}){
   </div>;
 }
 
-function EstadoDemandas({data,setData,onBack,toast,onVer}){
-  const[fEstado,setFEstado]=useState("Todos");
-  const[busca,setBusca]=useState("");
-  const GRUPOS=[
-    {estado:"Solicitud",color:"border-red-200 bg-red-50",dot:"bg-red-500",label:"⚡ Sin asignar — acción urgente"},
-    {estado:"Presupuestando",color:"border-amber-200 bg-amber-50",dot:"bg-amber-400",label:"⏳ Esperando confirmación colaborador"},
-    {estado:"Visita propuesta",color:"border-cyan-200 bg-cyan-50",dot:"bg-cyan-500",label:"📅 Visita propuesta al cliente"},
-    {estado:"Visita confirmada",color:"border-teal-200 bg-teal-50",dot:"bg-teal-500",label:"✅ Visita confirmada — actuar"},
-    {estado:"Presupuesto recibido",color:"border-purple-200 bg-purple-50",dot:"bg-purple-500",label:"📄 Presupuesto recibido — generar PDF"},
-    {estado:"Presupuesto enviado",color:"border-blue-200 bg-blue-50",dot:"bg-blue-500",label:"📤 Presupuesto enviado — esperando cliente"},
-    {estado:"Aceptado",color:"border-violet-200 bg-violet-50",dot:"bg-violet-500",label:"🤝 Aceptado — programar trabajo"},
-    {estado:"En curso",color:"border-orange-200 bg-orange-50",dot:"bg-orange-500",label:"🔧 En curso"},
-    {estado:"Completado",color:"border-emerald-200 bg-emerald-50",dot:"bg-emerald-500",label:"✅ Completados"},
-    {estado:"Cancelado",color:"border-gray-200 bg-gray-50",dot:"bg-gray-300",label:"❌ Cancelados"},
-  ];
-  const accionLabel=(t,co,cl)=>{
-    if(t.estado==="Solicitud")return{txt:"Asignar colaborador →",cls:"bg-red-500 text-white"};
-    if(t.estado==="Presupuestando"&&co)return{txt:`📱 Reenviar WA a ${co.nombre.split(" ")[0]}`,cls:"bg-amber-500 text-white"};
-    if(t.estado==="Visita confirmada"&&cl)return{txt:"📱 Proponer visita al cliente",cls:"bg-teal-500 text-white"};
-    if(t.estado==="Presupuesto recibido")return{txt:"📄 Revisar y generar PDF",cls:"bg-purple-500 text-white"};
-    if(t.estado==="Aceptado")return{txt:"→ Marcar En curso",cls:"bg-violet-500 text-white"};
-    return null;
+function TarjetaTrabajo({t,data,setData,toast,onVer,alertColor}){
+  const[abierta,setAbierta]=useState(false);
+  const cl=data.clientes.find(c=>c.id===getClienteId(t));
+  const co=data.colaboradores.find(c=>c.id===getColabId(t));
+  const notas=getNotas(t);
+  const disponibilidad=notas.includes('disponibilidad:')?notas.split('disponibilidad:')[1]?.split('|')[0]?.trim():null;
+  const presupUrl=notas.startsWith('presup:')?notas.replace('presup:',''):null;
+  const cfg=ESTADO_CFG[t.estado]||{bg:"bg-gray-100",text:"text-gray-500",dot:"bg-gray-300"};
+
+  const avanzar=async(nuevoEstado,txtHistorial)=>{
+    const hist=[...getHistorial(t),{ts:now(),txt:txtHistorial,tipo:"sistema"}];
+    const saved=await dbSaveTrabajo({...t,estado:nuevoEstado,historial:hist});
+    if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast(`→ ${nuevoEstado}`);}
   };
-  let items=[...data.trabajos];
-  if(busca.trim()){const q=busca.toLowerCase();items=items.filter(t=>{const cl=data.clientes.find(c=>c.id===getClienteId(t));return t.descripcion?.toLowerCase().includes(q)||cl?.nombre.toLowerCase().includes(q)||t.tipo?.toLowerCase().includes(q);});}
-  const total=data.trabajos.filter(t=>t.estado!=="Cancelado").length||1;
-  const grupos=fEstado==="Todos"?GRUPOS:GRUPOS.filter(g=>g.estado===fEstado);
-  const urgentes=data.trabajos.filter(t=>["Solicitud","Visita confirmada","Presupuesto recibido"].includes(t.estado));
-  return<div>
-    <Back title="Pipeline de demandas" onBack={onBack}/>
-    <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm mb-4">
-      <div className="flex gap-0.5 h-3 rounded-full overflow-hidden mb-3">
-        {[{e:"Solicitud",bg:"bg-red-400"},{e:"Presupuestando",bg:"bg-amber-400"},{e:"Visita confirmada",bg:"bg-teal-400"},{e:"Presupuesto recibido",bg:"bg-purple-500"},{e:"En curso",bg:"bg-orange-500"},{e:"Completado",bg:"bg-emerald-500"}].map(({e,bg})=>{const n=data.trabajos.filter(t=>t.estado===e).length;return<div key={e} className={`${bg} transition-all`} style={{width:`${(n/total)*100}%`,minWidth:n>0?"6px":"0"}}/>;})}</div>
-      <div className="grid grid-cols-3 gap-2 text-center">
-        {[{e:"Solicitud",l:"Nuevas",c:"text-red-600"},{e:"En curso",l:"En curso",c:"text-orange-600"},{e:"Completado",l:"Cerrados",c:"text-emerald-600"}].map(({e,l,c})=>(
-          <div key={e}><div className={`font-black text-lg ${c}`}>{data.trabajos.filter(t=>t.estado===e).length}</div><div className="text-[10px] text-gray-400">{l}</div></div>
-        ))}
+
+  return<div className={`bg-white border rounded-2xl overflow-hidden shadow-sm ${alertColor||"border-gray-100"}`}>
+    <div onClick={()=>setAbierta(!abierta)} className="px-4 py-3.5 cursor-pointer flex justify-between items-center hover:bg-gray-50 transition">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5 flex-wrap mb-1">
+          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${cfg.bg} ${cfg.text}`}><span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`}/>{t.estado}</span>
+          <span className={`text-[10px] font-bold ${PRIO_CFG[t.prioridad]?.text}`}>{PRIO_CFG[t.prioridad]?.icon}</span>
+        </div>
+        <div className="text-sm font-semibold text-gray-800">{t.tipo} — {cl?.nombre}</div>
+        <div className="text-[11px] text-gray-400 mt-0.5">{co?co.nombre:"Sin colaborador"} · {fmt(t.fecha)}</div>
       </div>
+      <span className={`text-gray-300 text-lg transition-transform flex-shrink-0 ml-2 ${abierta?"rotate-180":""}`}>▾</span>
     </div>
-    {urgentes.length>0&&<div className="bg-red-50 border-2 border-red-200 rounded-2xl p-4 mb-4">
-      <div className="font-black text-red-700 text-sm mb-3">🔔 Requiere tu atención ahora ({urgentes.length})</div>
-      <div className="space-y-2">{urgentes.map(t=>{
-        const cl=data.clientes.find(c=>c.id===getClienteId(t));
-        const co=data.colaboradores.find(c=>c.id===getColabId(t));
-        let accionTexto="";let accionColor="bg-red-500";
-        if(t.estado==="Solicitud"){accionTexto="⚡ Asignar colaborador";accionColor="bg-red-500";}
-        if(t.estado==="Visita confirmada"){accionTexto="✅ Avisar al colaborador";accionColor="bg-teal-500";}
-        if(t.estado==="Presupuesto recibido"){accionTexto="📄 Revisar presupuesto";accionColor="bg-purple-500";}
-        return<div key={t.id} className="bg-white rounded-xl p-3 border border-red-100 flex items-center justify-between gap-2">
-          <div className="min-w-0"><div className="font-bold text-gray-800 text-sm truncate">{t.tipo} — {cl?.nombre}</div><div className="text-xs text-gray-400">{co?`👷 ${co.nombre}`:"Sin colaborador"} · {fmt(t.fecha)}</div></div>
-          <button onClick={async()=>{
-            if(t.estado==="Solicitud"){onVer(t.id);return;}
-            if(t.estado==="Visita confirmada"&&co){const hist=[...getHistorial(t),{ts:now(),txt:"Cliente confirmó — colaborador avisado",tipo:"ok"}];await dbSaveTrabajo({...t,estado:"En curso",historial:hist});setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,estado:"En curso"}:x)}));window.open(buildWAConfirmacionColab(co,t,cl),"_blank");toast("✅ Colaborador avisado");return;}
-            if(t.estado==="Presupuesto recibido"){onVer(t.id);return;}
-          }} className={`${accionColor} text-white text-xs font-bold px-3 py-2 rounded-xl whitespace-nowrap flex-shrink-0`}>{accionTexto}</button>
-        </div>;
-      })}</div>
+
+    {abierta&&<div className="border-t border-gray-100">
+      <div className="px-4 py-3 grid grid-cols-2 gap-3 border-b border-gray-50">
+        <div><div className="text-[10px] text-gray-400 uppercase font-bold mb-0.5">Cliente</div><div className="text-sm font-medium text-gray-800">{cl?.nombre}</div><div className="text-[11px] text-gray-500">{cl?.telefono}</div></div>
+        <div><div className="text-[10px] text-gray-400 uppercase font-bold mb-0.5">Colaborador</div><div className="text-sm font-medium text-gray-800">{co?.nombre||"Sin asignar"}</div><div className="text-[11px] text-gray-500">{co?.telefono}</div></div>
+        <div className="col-span-2"><div className="text-[10px] text-gray-400 uppercase font-bold mb-0.5">Dirección</div><div className="text-sm text-gray-700">{cl?.direccion||"—"}</div></div>
+        <div className="col-span-2"><div className="text-[10px] text-gray-400 uppercase font-bold mb-0.5">Descripción</div><div className="text-sm text-gray-700 leading-relaxed">{t.descripcion}</div></div>
+      </div>
+
+      {disponibilidad&&<div className="px-4 py-3 bg-teal-50 border-b border-gray-50">
+        <div className="text-[10px] text-teal-700 uppercase font-bold mb-1">📅 Disponibilidad del colaborador</div>
+        <div className="text-sm text-teal-800">{disponibilidad}</div>
+      </div>}
+
+      {presupUrl&&<div className="px-4 py-3 bg-purple-50 border-b border-gray-50">
+        <a href={presupUrl} target="_blank" className="text-sm text-purple-700 font-semibold hover:underline">📄 Ver presupuesto del colaborador →</a>
+      </div>}
+
+      <div className="px-4 py-3 bg-gray-900">
+        <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">Financiero</div>
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <div><div className="text-base font-bold text-red-400">{getPresupColab(t)?`${getPresupColab(t)}€`:"—"}</div><div className="text-[10px] text-gray-400">Colab.</div></div>
+          <div><div className="text-base font-bold text-blue-400">{t.margen||30}%</div><div className="text-[10px] text-gray-400">Margen</div></div>
+          <div><div className="text-base font-bold text-emerald-400">{getPrecioCliente(t)?`${getPrecioCliente(t)}€`:"—"}</div><div className="text-[10px] text-gray-400">Cliente</div></div>
+        </div>
+      </div>
+
+      <div className="px-4 py-3 space-y-2">
+        <div className="text-[10px] text-gray-400 uppercase font-bold mb-1">Acciones</div>
+        {t.estado==="Solicitud"&&<button onClick={()=>onVer(t.id)} className="w-full bg-[#1E3A5F] text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-[#152d4a]">👷 Asignar colaborador</button>}
+        {t.estado==="Presupuestando"&&co&&<>
+          <button onClick={()=>{window.open(buildWA(co,t,cl),"_blank");toast("📱 WhatsApp...");}} className="w-full bg-green-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-green-600">📱 Reenviar WhatsApp a {co.nombre.split(" ")[0]}</button>
+        </>}
+        {t.estado==="Visita confirmada"&&<>
+          {cl?.telefono&&<button onClick={()=>{window.open(buildWAVisitaCliente(cl,t,co),"_blank");toast("📱 Propuesta enviada");}} className="w-full bg-cyan-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-cyan-600">📱 Proponer fecha al cliente</button>}
+          {co&&<button onClick={async()=>{await avanzar("En curso","Cliente confirmó — colaborador avisado");window.open(buildWAConfirmacionColab(co,t,cl),"_blank");}} className="w-full bg-teal-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-teal-600">✅ Cliente confirmó — avisar colaborador</button>}
+        </>}
+        {t.estado==="Presupuesto recibido"&&<button onClick={()=>onVer(t.id)} className="w-full bg-purple-600 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-purple-700">📄 Revisar y generar PDF Domia</button>}
+        {t.estado==="Presupuesto enviado"&&<button onClick={()=>avanzar("Aceptado","Cliente aceptó el presupuesto")} className="w-full bg-violet-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-violet-600">🤝 Cliente aceptó</button>}
+        {t.estado==="Aceptado"&&<button onClick={()=>avanzar("En curso","Trabajo iniciado")} className="w-full bg-orange-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-orange-600">🔧 Marcar en curso</button>}
+        {t.estado==="En curso"&&<button onClick={()=>avanzar("Completado","Trabajo completado")} className="w-full bg-emerald-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-emerald-600">✅ Marcar completado</button>}
+        <button onClick={()=>onVer(t.id)} className="w-full bg-white border border-gray-200 text-gray-600 py-2.5 rounded-xl text-sm font-semibold transition hover:border-gray-400">✏️ Ver ficha completa / Editar</button>
+      </div>
     </div>}
-    <input className={S+" mb-3"} placeholder="🔍 Buscar cliente, tipo..." value={busca} onChange={e=>setBusca(e.target.value)}/>
-    <div className="flex gap-1.5 flex-wrap mb-4">
-      <Pill label="Todos" active={fEstado==="Todos"} onClick={()=>setFEstado("Todos")}/>
-      {GRUPOS.filter(g=>data.trabajos.some(t=>t.estado===g.estado)).map(g=>(
-        <Pill key={g.estado} label={`${g.estado} (${data.trabajos.filter(t=>t.estado===g.estado).length})`} active={fEstado===g.estado} onClick={()=>setFEstado(g.estado)}/>
-      ))}
-    </div>
-    <div className="space-y-5">
-      {grupos.map(g=>{
-        const its=items.filter(t=>t.estado===g.estado);
-        if(its.length===0&&fEstado==="Todos")return null;
-        return<div key={g.estado}>
-          <div className="flex items-center gap-2 mb-2">
-            <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${g.dot}`}/>
-            <span className="text-xs font-bold text-gray-600 uppercase tracking-widest">{g.label}</span>
-            <span className="ml-auto text-xs font-black text-gray-400">{its.length}</span>
-          </div>
-          {its.length===0&&<div className="bg-white border border-gray-100 rounded-xl px-4 py-3 text-xs text-gray-300 text-center">Sin demandas en este estado</div>}
-          <div className="space-y-2">{its.map(t=>{
-            const cl=data.clientes.find(c=>c.id===getClienteId(t));
-            const co=data.colaboradores.find(c=>c.id===getColabId(t));
-            const accion=accionLabel(t,co,cl);
-            const idx=FLUJO.indexOf(t.estado);
-            const tieneConfirmacion=getHistorial(t).some(h=>h.tipo==="ok");
-            return<div key={t.id} className={`border rounded-2xl p-4 shadow-sm relative ${g.color}`}>
-              {tieneConfirmacion&&<span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full border-2 border-white flex items-center justify-center"><span className="text-white text-[9px] font-black">!</span></span>}
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
-                    <span className="font-black text-gray-800 text-sm">{t.tipo}</span>
-                    <OrigenTag id={t.origen}/>
-                    <span className={`text-[10px] font-bold ${PRIO_CFG[t.prioridad]?.text}`}>{PRIO_CFG[t.prioridad]?.icon}</span>
-                  </div>
-                  <div className="text-sm font-semibold text-gray-700">{cl?.nombre}</div>
-                  <div className="text-xs text-gray-500 truncate mt-0.5">{t.descripcion}</div>
-                  <div className="text-xs text-gray-400 mt-1">{co?`👷 ${co.nombre}`:"⚠️ Sin colaborador"} · {fmt(t.fecha)} {t.hora}</div>
-                </div>
-                {getPrecioCliente(t)&&<div className="text-sm font-black text-emerald-700 flex-shrink-0">{getPrecioCliente(t)}€</div>}
-              </div>
-              <div className="flex gap-2 mt-3">
-                <button onClick={()=>onVer(t.id)} className="flex-1 bg-white border border-gray-200 text-gray-600 text-xs font-semibold py-2 rounded-xl hover:border-[#1E3A5F] hover:text-[#1E3A5F] transition">Ver detalle</button>
-                {accion&&<button onClick={async()=>{
-                  if(t.estado==="Solicitud"){onVer(t.id);return;}
-                  if(t.estado==="Presupuestando"&&co){window.open(buildWA(co,t,cl),"_blank");toast("📱 WhatsApp...");return;}
-                  if(t.estado==="Visita confirmada"&&cl){window.open(buildWAVisitaCliente(cl,t,co),"_blank");toast("📱 Propuesta enviada");return;}
-                  if(t.estado==="Presupuesto recibido"){onVer(t.id);return;}
-                  if(!["Completado","Cancelado"].includes(t.estado)){const next=FLUJO[idx+1];const updated={...t,estado:next,historial:[...getHistorial(t),{ts:now(),txt:`Estado → ${next}`,tipo:"sistema"}]};await dbSaveTrabajo(updated);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,estado:next}:x)}));toast(`→ ${next}`);}
-                }} className={`px-3 py-2 rounded-xl text-xs font-bold transition ${accion.cls}`}>{accion.txt}</button>}
-              </div>
-            </div>;
-          })}</div>
-        </div>;
-      })}
-    </div>
   </div>;
 }
 
+function EstadoDemandas({data,setData,onBack,toast,onVer}){
+  const[busca,setBusca]=useState("");
+  let items=[...data.trabajos];
+  if(busca.trim()){const q=busca.toLowerCase();items=items.filter(t=>{const cl=data.clientes.find(c=>c.id===getClienteId(t));return t.descripcion?.toLowerCase().includes(q)||cl?.nombre.toLowerCase().includes(q)||t.tipo?.toLowerCase().includes(q);});}
+
+  const atencion=items.filter(t=>["Solicitud","Visita confirmada","Presupuesto recibido"].includes(t.estado));
+  const esperandoColab=items.filter(t=>t.estado==="Presupuestando");
+  const esperandoCliente=items.filter(t=>["Visita propuesta","Presupuesto enviado"].includes(t.estado));
+  const activos=items.filter(t=>["Aceptado","En curso"].includes(t.estado));
+  const completados=items.filter(t=>t.estado==="Completado");
+  const cancelados=items.filter(t=>t.estado==="Cancelado");
+
+  const Seccion=({titulo,items:its,color})=>its.length===0?null:<div className="mb-4">
+    <div className="flex items-center gap-2 mb-2">
+      <span className={`w-2 h-2 rounded-full ${color}`}/>
+      <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">{titulo}</span>
+      <span className="ml-auto text-[11px] font-bold text-gray-400">{its.length}</span>
+    </div>
+    <div className="space-y-2">{its.map(t=><TarjetaTrabajo key={t.id} t={t} data={data} setData={setData} toast={toast} onVer={onVer}/>)}</div>
+  </div>;
+
+  return<div>
+    <Back title="Pipeline" onBack={onBack}/>
+    <input className={S+" mb-4"} placeholder="🔍 Buscar cliente, tipo..." value={busca} onChange={e=>setBusca(e.target.value)}/>
+
+    {atencion.length>0&&<div className="bg-red-50 border-2 border-red-200 rounded-2xl p-3 mb-4">
+      <div className="font-bold text-red-700 text-sm mb-2 flex items-center gap-2">🔔 Requiere tu atención ({atencion.length})</div>
+      <div className="space-y-2">{atencion.map(t=><TarjetaTrabajo key={t.id} t={t} data={data} setData={setData} toast={toast} onVer={onVer} alertColor="border-red-200"/>)}</div>
+    </div>}
+
+    <Seccion titulo="Esperando colaborador" items={esperandoColab} color="bg-amber-400"/>
+    <Seccion titulo="Esperando cliente" items={esperandoCliente} color="bg-cyan-500"/>
+    <Seccion titulo="Activos" items={activos} color="bg-orange-500"/>
+    <Seccion titulo="Completados" items={completados} color="bg-emerald-500"/>
+    <Seccion titulo="Cancelados" items={cancelados} color="bg-gray-300"/>
+
+    {items.length===0&&<div className="text-center py-16 text-gray-400 text-sm">Sin demandas</div>}
+  </div>;
+}
 function Clientes({data,setData,onBack,toast}){
   const[cid,setCid]=useState(null);
   const[editando,setEditando]=useState(false);
