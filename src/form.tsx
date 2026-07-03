@@ -176,7 +176,7 @@ export default function FormularioDomia() {
           <div className="bg-white rounded-2xl p-4 inline-block shadow-lg mb-3">
             <img src={LOGO_URL} alt="Domia Services" className="w-40 h-auto object-contain"/>
           </div>
-          <p className="text-blue-200 text-sm">Solicita tu servicio — te respondemos en menos de 2 horas</p>
+          <p className="text-blue-200 text-sm">Solicita tu servicio p>
           <div className="flex items-center justify-center gap-4 mt-2 text-blue-300 text-xs">
             <span>✓ Presupuesto sin compromiso</span>
             <span>✓ Profesionales cualificados</span>
