@@ -551,46 +551,7 @@ function TrabajoModal({tid,data,setData,onClose,toast}){
         {co&&t.estado==="Presupuestando"&&<button onClick={()=>{window.open(buildWA(co,t,cl),"_blank");toast("📱 WhatsApp a colaborador...");}} className="w-full bg-green-500 hover:bg-green-600 text-white py-2.5 rounded-xl font-bold text-sm transition">📱 Pedir visita a {co.nombre.split(" ")[0]}</button>}
         {t.estado==="Visita confirmada"&&cl?.telefono&&<button onClick={()=>{window.open(buildWAVisitaCliente(cl,t,co),"_blank");toast("📱 Propuesta enviada al cliente");}} className="w-full bg-cyan-500 hover:bg-cyan-600 text-white py-2.5 rounded-xl font-bold text-sm transition">📱 Proponer visita al cliente</button>}
         {t.estado==="Visita confirmada"&&co&&<button onClick={async()=>{const hist=[...getHistorial(t),{ts:now(),txt:"Cliente confirmó la visita",tipo:"ok"}];await dbSaveTrabajo({...t,estado:"En curso",historial:hist});setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,estado:"En curso"}:x)}));window.open(buildWAConfirmacionColab(co,t,cl),"_blank");toast("✅ Confirmado — avisando a colaborador");onClose();}} className="w-full bg-teal-500 hover:bg-teal-600 text-white py-2.5 rounded-xl font-bold text-sm transition">✅ Cliente confirmó — avisar a {co.nombre.split(" ")[0]}</button>}
-{t.estado==="Presupuesto recibido"&&<button onClick={()=>{
-          const precio=getPrecioCliente(t)||Math.round((getPresupColab(t)||0)*(1+(t.margen||30)/100));
-          const fecha=new Date().toLocaleDateString("es-ES",{day:"numeric",month:"long",year:"numeric"});
-          const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><style>
-            body{font-family:Arial,sans-serif;margin:40px;color:#1E3A5F;}
-            .logo{text-align:center;margin-bottom:30px;}
-            .logo img{max-width:200px;}
-            .titulo{font-size:28px;text-align:center;color:#1E3A5F;letter-spacing:3px;margin:30px 0;text-transform:uppercase;}
-            .info{text-align:right;margin-bottom:40px;font-size:14px;}
-            .seccion{margin:20px 0;}
-            .seccion h3{font-size:14px;text-transform:uppercase;letter-spacing:2px;border-bottom:1px solid #ccc;padding-bottom:5px;margin-bottom:10px;}
-            .descripcion{font-size:14px;line-height:1.8;white-space:pre-wrap;}
-            .total-box{margin:40px 0;padding:20px;border:2px solid #1E3A5F;text-align:right;}
-            .total-box .label{font-size:14px;color:#666;}
-            .total-box .importe{font-size:28px;font-weight:bold;color:#1E3A5F;}
-            .condiciones{margin:30px 0;font-size:12px;color:#666;line-height:1.6;}
-            .pago{margin:20px 0;font-size:13px;}
-            .pago li{margin:5px 0;}
-            .footer{margin-top:60px;border-top:1px solid #ccc;padding-top:15px;text-align:center;font-size:12px;color:#999;}
-            @media print{body{margin:20px;}}
-          </style></head><body>
-            <div class="logo"><img src="https://opijkazhbktiikdzbanb.supabase.co/storage/v1/object/public/fotos-demandas/logo-domia.png" onerror="this.style.display='none'"/><div style="font-size:10px;color:#999;margin-top:5px;">685 917 059 · Elche, Alicante</div></div>
-            <div class="titulo">${t.tipo}</div>
-            <div class="info">Cliente: ${cl?.nombre}<br>${fecha}</div>
-            <div class="seccion"><h3>Descripción del trabajo</h3><div class="descripcion">${t.descripcion}</div></div>
-            <div class="total-box"><div class="label">TOTAL sin IVA</div><div class="importe">${precio}€</div></div>
-            <div class="condiciones">
-              <p>Este presupuesto tiene una validez de 30 días desde la fecha de emisión.</p>
-              <p>Todo trabajo no especificado en este presupuesto será presupuestado y cobrado a parte.</p>
-            </div>
-            <div class="pago"><strong>Forma de pago:</strong><ul>
-              <li>Entrega inicial del 50% antes de empezar el trabajo.</li>
-              <li>Entrega de un 25% a mitad del trabajo.</li>
-              <li>Entrega final del 25% restante al finalizar.</li>
-            </ul></div>
-            <div class="footer">DOMIA SERVICES · 685 917 059 · Elche, Alicante</div>
-          </body></html>`;
-          const w=window.open('','_blank');
-          if(w){w.document.write(html);w.document.close();setTimeout(()=>w.print(),500);}
-        }} className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-xl font-bold text-sm transition">📄 Generar presupuesto Domia</button>}        {co&&!["Solicitud","Presupuestando","Visita confirmada","Presupuesto recibido","Completado","Cancelado"].includes(t.estado)&&<button onClick={()=>{window.open(buildWA(co,t,cl),"_blank");toast("📱 WhatsApp...");}} className="w-full bg-green-500 hover:bg-green-600 text-white py-2.5 rounded-xl font-bold text-sm transition">📱 WhatsApp a {co.nombre.split(" ")[0]}</button>}
+{t.estado==="Presupuesto recibido"&&<button onClick={()=>setModo("presupuesto")} className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-xl font-bold text-sm transition">📄 Generar presupuesto Domia</button>}
       </div>
       <div>
         <div className="text-[10px] font-bold text-gray-400 uppercase mb-2">Historial</div>
