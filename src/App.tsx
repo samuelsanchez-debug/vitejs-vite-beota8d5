@@ -563,8 +563,10 @@ function TrabajoModal({tid,data,setData,onClose,toast}){
       </div>
     </div>
     ):(
+    ):modo==="presupuesto"?(
+    <EditorPresupuesto t={t} cl={cl} co={co} data={data} setData={setData} onClose={()=>setModo("ver")} toast={toast}/>
+    ):(
     <FormTrabajo data={data} setData={setData} inicial={t} onClose={()=>{setModo("ver");onClose();}} toast={toast}/>
-    )}
   </Modal>;
 }
 
