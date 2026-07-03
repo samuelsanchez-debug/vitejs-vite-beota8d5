@@ -63,7 +63,7 @@ const BASE_URL = 'https://domia-crm-two.vercel.app';
 
 const buildWA=(colab,trabajo,cliente)=>{
   const enlace=`${BASE_URL}/trabajo/${trabajo.id}`;
-  const msg=`Hola ${colab.nombre.split(" ")[0]} 👋\n\nTenemos un trabajo de *${trabajo.tipo}* y necesitamos que vayas a hacer la visita.\n\n📍 ${cliente.direccion}\n📅 ${fmt(trabajo.fecha)} · ${trabajo.hora}\n📝 ${trabajo.descripcion}\n\n👉 Confirma aquí si puedes ir:\n${enlace}\n\nGracias 🙏`;
+  const msg=`Hola ${colab.nombre.split(" ")[0]} 👋\n\nTenemos un trabajo de *${trabajo.tipo}* en ${cliente.direccion}.\n\n📝 ${trabajo.descripcion}\n\n¿Puedes encargarte? Indícanos tu disponibilidad aquí:\n👉 ${enlace}\n\nGracias 🙏`;
   return `https://wa.me/${colab.whatsapp}?text=${encodeURIComponent(msg)}`;
 };
 const buildWAVisitaCliente=(cliente,trabajo,colab)=>{
