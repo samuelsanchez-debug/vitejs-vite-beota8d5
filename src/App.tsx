@@ -328,10 +328,8 @@ function TarjetaTrabajo({t,data,setData,toast,onVer,alertColor}){
         {t.estado==="Presupuestando"&&co&&<>
           <button onClick={()=>{window.open(buildWA(co,t,cl),"_blank");toast("📱 WhatsApp...");}} className="w-full bg-green-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-green-600">📱 Reenviar WhatsApp a {co.nombre.split(" ")[0]}</button>
         </>}
-        {t.estado==="Visita confirmada"&&<>
-          {cl?.telefono&&<button onClick={()=>{window.open(buildWAVisitaCliente(cl,t,co),"_blank");toast("📱 Propuesta enviada");}} className="w-full bg-cyan-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-cyan-600">📱 Proponer fecha al cliente</button>}
-          {co&&<button onClick={async()=>{await avanzar("En curso","Cliente confirmó — colaborador avisado");window.open(buildWAConfirmacionColab(co,t,cl),"_blank");}} className="w-full bg-teal-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-teal-600">✅ Cliente confirmó — avisar colaborador</button>}
-        </>}
+       {t.estado==="Visita confirmada"&&cl?.telefono&&<button onClick={async()=>{window.open(buildWAVisitaCliente(cl,t,co),"_blank");await avanzar("Visita propuesta","Fecha propuesta al cliente por WhatsApp");}} className="w-full bg-cyan-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-cyan-600">📱 Proponer fecha al cliente</button>}
+        {t.estado==="Visita propuesta"&&co&&<button onClick={async()=>{await avanzar("En curso","Cliente confirmó — colaborador avisado");window.open(buildWAConfirmacionColab(co,t,cl),"_blank");}} className="w-full bg-teal-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-teal-600">✅ Cliente confirmó — avisar colaborador</button>}
         {t.estado==="Presupuesto recibido"&&<button onClick={()=>onVer(t.id)} className="w-full bg-purple-600 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-purple-700">📄 Revisar y generar PDF Domia</button>}
         {t.estado==="Presupuesto enviado"&&<button onClick={()=>avanzar("Aceptado","Cliente aceptó el presupuesto")} className="w-full bg-violet-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-violet-600">🤝 Cliente aceptó</button>}
         {t.estado==="Aceptado"&&<button onClick={()=>avanzar("En curso","Trabajo iniciado")} className="w-full bg-orange-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-orange-600">🔧 Marcar en curso</button>}
