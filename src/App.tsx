@@ -135,7 +135,8 @@ function FormTrabajo({data,setData,inicial,onClose,toast}){
     const o=orCfg(f.origen);
     const precio=precioAuto||f.precioCliente||null;
     const historial=esNuevo?[{ts:now(),txt:`Solicitud recibida por ${o.label}`,tipo:"entrada"},...(colab?[{ts:now(),txt:`Asignado a ${colab.nombre}`,tipo:"sistema"},{ts:now(),txt:"Presupuesto solicitado por WhatsApp",tipo:"wa"}]:[])]:[...(getHistorial(inicial)),{ts:now(),txt:"Trabajo actualizado",tipo:"sistema"}];
-    const trabajo={...f,clienteId:+f.clienteId,colaboradorId:f.colaboradorId?+f.colaboradorId:null,presupuestoColaborador:f.presupuestoColaborador||null,margen:+f.margen||30,precioCliente:precio,estado:esNuevo?(colab?"Presupuestando":"Solicitud"):f.estado,historial};
+const estadoFinal=esNuevo?(colab?"Presupuestando":"Solicitud"):(f.estado==="Solicitud"&&colab?"Presupuestando":f.estado);
+    const trabajo={...f,clienteId:+f.clienteId,colaboradorId:f.colaboradorId?+f.colaboradorId:null,presupuestoColaborador:f.presupuestoColaborador||null,margen:+f.margen||30,precioCliente:precio,estado:estadoFinal,historial};
     const saved=await dbSaveTrabajo(trabajo);
     if(saved){
       if(esNuevo){setData(d=>({...d,trabajos:[...d.trabajos,{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}]}));if(colab){toast("✅ Registrado — abriendo WhatsApp");setTimeout(()=>window.open(buildWA(colab,trabajo,cliente),"_blank"),400);}else toast("✅ Solicitud registrada");}
