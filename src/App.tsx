@@ -634,7 +634,23 @@ const[modo,setModo]=useState<"ver"|"editar"|"presupuesto">("ver");
         {co&&t.estado==="Presupuestando"&&<button onClick={()=>{window.open(buildWA(co,t,cl),"_blank");toast("📱 WhatsApp a colaborador...");}} className="w-full bg-green-500 hover:bg-green-600 text-white py-2.5 rounded-xl font-bold text-sm transition">📱 Pedir visita a {co.nombre.split(" ")[0]}</button>}
         {t.estado==="Visita confirmada"&&cl?.telefono&&<button onClick={()=>{window.open(buildWAVisitaCliente(cl,t,co),"_blank");toast("📱 Propuesta enviada al cliente");}} className="w-full bg-cyan-500 hover:bg-cyan-600 text-white py-2.5 rounded-xl font-bold text-sm transition">📱 Proponer visita al cliente</button>}
         {t.estado==="Visita confirmada"&&co&&<button onClick={async()=>{const hist=[...getHistorial(t),{ts:now(),txt:"Cliente confirmó la visita",tipo:"ok"}];await dbSaveTrabajo({...t,estado:"En curso",historial:hist});setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,estado:"En curso"}:x)}));window.open(buildWAConfirmacionColab(co,t,cl),"_blank");toast("✅ Confirmado — avisando a colaborador");onClose();}} className="w-full bg-teal-500 hover:bg-teal-600 text-white py-2.5 rounded-xl font-bold text-sm transition">✅ Cliente confirmó — avisar a {co.nombre.split(" ")[0]}</button>}
-{t.estado==="Presupuesto recibido"&&<button onClick={()=>setModo("presupuesto")} className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-xl font-bold text-sm transition">📄 Generar presupuesto Domia</button>}
+{(t.estado==="Presupuesto recibido"||t.estado==="Visita confirmada"||t.estado==="En curso")&&<button onClick={()=>setModo("presupuesto")} className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-xl font-bold text-sm transition">📄 Generar presupuesto Domia</button>}
+        {t.estado==="Visita confirmada"&&<label className="w-full cursor-pointer">
+          <div className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 rounded-xl font-bold text-sm transition text-center">📎 Subir presupuesto colaborador</div>
+          <input type="file" accept="image/*,application/pdf" className="hidden" onChange={async(e)=>{
+            const archivo=e.target.files?.[0];
+            if(!archivo)return;
+            const ext=archivo.name.split('.').pop();
+            const nombre=`presup_${t.id}_${Date.now()}.${ext}`;
+            const{data:up}=await supabase.storage.from('fotos-demandas').upload(nombre,archivo,{upsert:true});
+            if(up){
+              const{data:pub}=supabase.storage.from('fotos-demandas').getPublicUrl(nombre);
+              const hist=[...getHistorial(t),{ts:now(),txt:"Presupuesto subido manualmente",tipo:"presupuesto"}];
+              const saved=await dbSaveTrabajo({...t,estado:"Presupuesto recibido",notas:'presup:'+pub.publicUrl,historial:hist});
+              if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("✅ Presupuesto subido");}
+            }
+          }}/>
+        </label>}
       </div>
       <div>
         <div className="text-[10px] font-bold text-gray-400 uppercase mb-2">Historial</div>
