@@ -823,7 +823,7 @@ function PortalColaborador({id}:{id:string}){
     const historial=JSON.parse(trabajo.historial||"[]");
     historial.push({ts:now(),txt:`Colaborador disponible. Horarios sugeridos: ${slots.join(", ")}`,tipo:"ok"});
     await supabase.from('trabajos').update({
-      estado:"Visita confirmada",
+estado:"Colaborador disponible",
       colaborador_id:trabajo.colaborador_id,
       historial:JSON.stringify(historial),
       notas:trabajo.notas?trabajo.notas+` | disponibilidad: ${slots.join(", ")}`:`disponibilidad: ${slots.join(", ")}`,
