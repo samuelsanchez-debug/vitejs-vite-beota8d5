@@ -546,7 +546,7 @@ const lineas=partidas.filter(p=>p.desc).map(p=>`<tr><td style="padding:8px;borde
       <div class="titulo">${t.tipo}</div>
       <div class="info">Cliente: ${cl?.nombre}<br>${fecha}</div>
       <table>
-        <tr><th>Descripción</th><th>Importe</th></tr>
+        <tr><th>Descripción</th></tr>
         ${lineas}
       </table>
       <div class="total-box">
