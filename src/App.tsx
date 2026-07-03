@@ -646,7 +646,7 @@ const[modo,setModo]=useState<"ver"|"editar"|"presupuesto">("ver");
         <button onClick={async()=>{if(!confirm("¿Eliminar?"))return;await dbDeleteTrabajo(t.id);setData(d=>({...d,trabajos:d.trabajos.filter(x=>x.id!==t.id)}));onClose();}} className="bg-red-50 hover:bg-red-100 text-red-500 px-4 py-2.5 rounded-xl text-sm transition">Eliminar</button>
       </div>
     </div>
-    ):(
+    
     ):modo==="presupuesto"?(
     <EditorPresupuesto t={t} cl={cl} co={co} data={data} setData={setData} onClose={()=>setModo("ver")} toast={toast}/>
     ):(
