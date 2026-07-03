@@ -69,7 +69,7 @@ const buildWA=(colab,trabajo,cliente)=>{
 const buildWAVisitaCliente=(cliente,trabajo,colab)=>{
   const nombre=cliente.nombre.split(" ")[0];
   const enlace=`${BASE_URL}/cliente/${trabajo.id}`;
-  const msg=`Hola ${nombre} 😊\n\nSoy Samuel de *Domia Services*.\n\nTe escribo porque hemos organizado una visita de nuestro técnico para revisar el trabajo de *${trabajo.tipo}*.\n\n📅 *${fmt(trabajo.fecha)} a las ${trabajo.hora}*\n\n👇 Confirma aquí si te viene bien (solo un clic):\n${enlace}\n\nSi necesitas cambiar la fecha, también puedes indicarlo ahí. Cualquier duda estamos en el 622 123 456 🙏\n\n— Samuel · Domia Services`;
+  const msg=`Hola ${nombre} 😊\n\nSoy Samuel de *Domia Services*.\n\nTe escribo porque hemos organizado una visita de nuestro técnico para revisar el trabajo de *${trabajo.tipo}*.\n\n📅 *${fmt(trabajo.fecha)} a las ${trabajo.hora}*\n\n👇 Confirma aquí si te viene bien (solo un clic):\n${enlace}\n\nSi necesitas cambiar la fecha, también puedes indicarlo ahí. Cualquier duda estamos en el 685 917 059 🙏\n\n— Samuel · Domia Services`;
   return `https://wa.me/${cliente.telefono?.replace(/\s/g,'')}?text=${encodeURIComponent(msg)}`;
 };
 const buildWAConfirmacionColab=(colab,trabajo,cliente)=>{
