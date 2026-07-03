@@ -139,7 +139,7 @@ export default function FormularioDomia() {
             <div><span className="font-semibold">Teléfono:</span> {form.telefono}</div>
           </div>
         </div>
-        <div className="text-sm text-[#1E3A5F] font-semibold">📞 622 123 456</div>
+        <div className="text-sm text-[#1E3A5F] font-semibold">📞 685 917 059</div>
         <div className="text-xs text-gray-400 mt-1">domiaservices.es · Elche</div>
       </div>
     </div>
