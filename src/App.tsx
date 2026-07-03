@@ -545,7 +545,7 @@ const lineas=partidas.filter(p=>p.desc).map(p=>`<tr><td style="padding:8px;borde
         <img src="https://opijkazhbktiikdzbanb.supabase.co/storage/v1/object/public/fotos-demandas/logo-domia.png" style="max-width:200px;" onerror="this.style.display='none'"/>
         <div style="font-size:10px;color:#999;margin-top:5px;">685 917 059 · Elche, Alicante</div>
       </div>
-      <div class="titulo">${t.tipo}</div>
+<div class="titulo">Presupuesto</div>
       <div class="info">Cliente: ${cl?.nombre}<br>${fecha}</div>
       <table>
         <tr><th>Descripción</th></tr>
