@@ -672,7 +672,26 @@ const[modo,setModo]=useState<"ver"|"editar"|"presupuesto">("ver");
     )}
   </Modal>;
 }
-
+function DisponibilidadSelector({onConfirmar}:{onConfirmar:(slots:string[])=>void}){
+  const[slots,setSlots]=useState<string[]>([]);
+  const[dia,setDia]=useState("");
+  const[hora,setHora]=useState("09:00");
+  const addSlot=()=>{if(!dia)return;const s=`${dia} a las ${hora}`;if(!slots.includes(s))setSlots(p=>[...p,s]);};
+  return<div className="space-y-3">
+    <div className="flex gap-2">
+      <input type="date" value={dia} onChange={e=>setDia(e.target.value)} className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"/>
+      <input type="time" value={hora} onChange={e=>setHora(e.target.value)} className="w-28 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"/>
+      <button onClick={addSlot} className="bg-[#1E3A5F] text-white px-3 rounded-xl text-sm font-bold">+</button>
+    </div>
+    {slots.length>0&&<div className="space-y-1">
+      {slots.map((s,i)=><div key={i} className="flex items-center justify-between bg-teal-50 border border-teal-100 rounded-xl px-3 py-2 text-sm">
+        <span className="text-teal-700 font-medium">📅 {s}</span>
+        <button onClick={()=>setSlots(p=>p.filter((_,idx)=>idx!==i))} className="text-red-400 hover:text-red-600 font-bold">×</button>
+      </div>)}
+    </div>}
+    {slots.length>0&&<button onClick={()=>onConfirmar(slots)} className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-bold text-sm transition">✅ Confirmar disponibilidad</button>}
+  </div>;
+}
 function PortalCliente({id}:{id:string}){
   const[trabajo,setTrabajo]=useState<any>(null);
   const[estado,setEstado]=useState<"idle"|"ok"|"no"|"cargando">("idle");
