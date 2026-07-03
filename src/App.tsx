@@ -900,16 +900,7 @@ function PortalColaborador({id}:{id:string}){
     </div>
   </div>;
 }
-{estado==="nopuedo"&&<div className="border-t border-gray-100 pt-4">
-          <div className="text-[10px] text-gray-400 font-bold uppercase mb-2">¿Puedes en otra fecha? (opcional)</div>
-          <DisponibilidadSelector onConfirmar={(slots)=>{
-            const msg=`❌ Trabajo #${id} · ${trabajo.tipo}\nEl colaborador NO puede encargarse.\n${slots.length>0?`\nPodría en:\n${slots.map(s=>`• ${s}`).join("\n")}`:""}\n\nDirección: ${cliente?.direccion}`;
-            window.open(`https://wa.me/34661121413?text=${encodeURIComponent(msg)}`,"_blank");
-            setEstado("no");
-          }}/>
-          <button onClick={()=>confirmar(false)} className="w-full mt-2 border border-gray-200 text-gray-500 py-2.5 rounded-xl text-sm">No puedo en ninguna fecha</button>
-        </div>}
-export default function App(){
+
   const path=window.location.pathname;
   const trabajoMatch=path.match(/^\/trabajo\/(\d+)$/);
   if(trabajoMatch)return<PortalColaborador id={trabajoMatch[1]}/>;
