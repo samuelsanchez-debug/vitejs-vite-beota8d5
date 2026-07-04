@@ -654,6 +654,13 @@ const[partidas,setPartidas]=useState([{desc:t.descripcion||"",importe:0}]);  con
       <button onClick={addPartida} className="mt-2 w-full border-2 border-dashed border-gray-200 text-gray-400 py-2 rounded-xl text-sm hover:border-[#1E3A5F] hover:text-[#1E3A5F] transition">+ Añadir partida</button>
     </div>
     <button onClick={generarPDF} className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-bold text-sm transition">📄 Generar PDF Domia ({totalCliente}€)</button>
+    {pdfUrl&&cl?.telefono&&<button onClick={async()=>{
+      const msg=`Hola ${cl.nombre.split(" ")[0]} 😊\n\nTu presupuesto de *Domia Services* ya está listo.\n\n💶 Total: *${totalCliente}€* (sin IVA)\n\n📄 Descárgalo aquí:\n${pdfUrl}\n\nCualquier duda me dices. ¡Gracias!\n\n— Samuel · Domia Services · 685 917 059`;
+      window.open(`https://wa.me/${cl.telefono.replace(/\s/g,'')}?text=${encodeURIComponent(msg)}`,"_blank");
+      const hist=[...getHistorial(t),{ts:now(),txt:`Presupuesto enviado al cliente: ${totalCliente}€`,tipo:"cliente"}];
+      const saved=await dbSaveTrabajo({...t,estado:"Presupuesto enviado",precioCliente:totalCliente,historial:hist,notas:getNotas(t)+` | pdfdomia:${pdfUrl}`});
+      if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("📤 Presupuesto enviado");onClose();}
+    }} className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-bold text-sm transition">📤 Enviar al cliente por WhatsApp</button>}
     <button onClick={onClose} className="w-full border border-gray-200 text-gray-500 py-2.5 rounded-xl text-sm">Cancelar</button>
   </div>;
 }
