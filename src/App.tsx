@@ -574,7 +574,7 @@ const[partidas,setPartidas]=useState([{desc:t.descripcion||"",importe:0}]);  con
     doc.text(fecha,195,93,{align:"right"});
 
     doc.setFillColor(30,58,95);
-    doc.rect(15,78,180,8,"F");
+    doc.rect(15,102,180,8,"F");
     doc.setTextColor(255,255,255);
     doc.setFontSize(10);
     doc.text("Descripción",18,83.5);
