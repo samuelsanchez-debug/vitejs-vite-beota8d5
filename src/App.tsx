@@ -635,7 +635,7 @@ const[partidas,setPartidas]=useState([{desc:t.descripcion||"",importe:0}]);  con
       setPdfUrl(pub.publicUrl);
       toast("✅ PDF generado y guardado");
     }
-    doc.save(nombre);
+   window.open(URL.createObjectURL(blob),"_blank");
     setGenerando(false);
   };
   const notas=getNotas(t);
