@@ -147,7 +147,23 @@ const estadoFinal=esNuevo?(colab?"Presupuestando":"Solicitud"):(f.estado==="Soli
     onClose();
   };
   return<div>
-    <Fld label="Cliente *"><select className={S} value={f.clienteId} onChange={e=>set("clienteId",e.target.value)}><option value="">— Seleccionar —</option>{data.clientes.map(c=><option key={c.id} value={c.id}>{c.nombre}</option>)}</select></Fld>
+<Fld label="Cliente *">
+      <div className="flex gap-2">
+        <select className={S} value={f.clienteId} onChange={e=>set("clienteId",e.target.value)}><option value="">— Seleccionar —</option>{data.clientes.map(c=><option key={c.id} value={c.id}>{c.nombre}</option>)}</select>
+        <button type="button" onClick={()=>setShowNuevoCliente(!showNuevoCliente)} className="bg-[#1E3A5F] text-white px-3 rounded-xl text-sm font-bold whitespace-nowrap">+ Nuevo</button>
+      </div>
+    </Fld>
+    {showNuevoCliente&&<div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-3 space-y-2">
+      <div className="text-xs font-bold text-blue-800">Nuevo cliente</div>
+      <input className={S} placeholder="Nombre *" value={nc.nombre} onChange={e=>setNc(x=>({...x,nombre:e.target.value}))}/>
+      <input className={S} placeholder="Teléfono" value={nc.telefono} onChange={e=>setNc(x=>({...x,telefono:e.target.value}))}/>
+      <input className={S} placeholder="Dirección" value={nc.direccion} onChange={e=>setNc(x=>({...x,direccion:e.target.value}))}/>
+      <button type="button" onClick={async()=>{
+        if(!nc.nombre.trim())return;
+        const saved=await dbSaveCliente({...nc,creado:hoy()});
+        if(saved){setData(d=>({...d,clientes:[...d.clientes,saved]}));set("clienteId",saved.id);setShowNuevoCliente(false);setNc({nombre:"",telefono:"",direccion:""});toast("✅ Cliente creado");}
+      }} className="w-full bg-[#1E3A5F] text-white py-2 rounded-xl text-sm font-bold">Guardar cliente</button>
+    </div>}
     <div className="grid grid-cols-2 gap-3">
       <Fld label="Tipo"><select className={S} value={f.tipo} onChange={e=>set("tipo",e.target.value)}>{TIPOS.map(t=><option key={t}>{t}</option>)}</select></Fld>
       <Fld label="Canal"><select className={S} value={f.origen} onChange={e=>set("origen",e.target.value)}>{ORIGENES.map(o=><option key={o.id} value={o.id}>{o.icon} {o.label}</option>)}</select></Fld>
