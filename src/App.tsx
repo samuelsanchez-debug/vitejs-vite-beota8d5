@@ -128,6 +128,8 @@ function FormTrabajo({data,setData,inicial,onClose,toast}){
   const esNuevo=!inicial;
   const[f,setF]=useState(inicial?{...inicial,clienteId:getClienteId(inicial),colaboradorId:getColabId(inicial),presupuestoColaborador:getPresupColab(inicial),precioCliente:getPrecioCliente(inicial)}:{clienteId:"",tipo:TIPOS[0],origen:"telefono",prioridad:"Media",estado:"Solicitud",fecha:hoy(),hora:"09:00",presupuestoColaborador:null,margen:30,precioCliente:null,colaboradorId:null,descripcion:"",notas:"",historial:[]});
   const set=(k,v)=>setF(x=>({...x,[k]:v}));
+  const[showNuevoCliente,setShowNuevoCliente]=useState(false);
+  const[nc,setNc]=useState({nombre:"",telefono:"",direccion:""});
   const sugerido=sugerirColab(f.tipo,data.colaboradores,data.trabajos);
   const precioAuto=calc(f.presupuestoColaborador,f.margen);
   const save=async()=>{
