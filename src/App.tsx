@@ -550,12 +550,19 @@ const[partidas,setPartidas]=useState([{desc:t.descripcion||"",importe:0}]);  con
     const doc=new jsPDF();
     const azul="#1E3A5F";
 
-    doc.setFontSize(24);
-    doc.setTextColor(30,58,95);
-    doc.text("DOMIA SERVICES",105,25,{align:"center"});
+    try{
+      const logoResp=await fetch('https://opijkazhbktiikdzbanb.supabase.co/storage/v1/object/public/fotos-demandas/logo-domia.png');
+      const logoBlob=await logoResp.blob();
+      const logoBase64=await new Promise<string>((res)=>{const r=new FileReader();r.onload=()=>res(r.result as string);r.readAsDataURL(logoBlob);});
+      doc.addImage(logoBase64,'PNG',75,10,60,45);
+    }catch(e){
+      doc.setFontSize(24);
+      doc.setTextColor(30,58,95);
+      doc.text("DOMIA SERVICES",105,25,{align:"center"});
+    }
     doc.setFontSize(9);
     doc.setTextColor(150,150,150);
-    doc.text("685 917 059 · Elche, Alicante",105,32,{align:"center"});
+    doc.text("685 917 059 · Elche, Alicante",105,60,{align:"center"});
 
     doc.setFontSize(20);
     doc.setTextColor(30,58,95);
