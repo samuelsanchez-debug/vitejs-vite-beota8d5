@@ -333,6 +333,9 @@ const presupUrl=notas.startsWith('presup:')?notas.split('|')[0].replace('presup:
       {presupUrl&&<div className="px-4 py-3 bg-purple-50 border-b border-gray-50">
         <a href={presupUrl} target="_blank" className="text-sm text-purple-700 font-semibold hover:underline">📄 Ver presupuesto del colaborador →</a>
       </div>}
+      {pdfDomiaUrl&&<div className="px-4 py-3 bg-emerald-50 border-b border-gray-50">
+        <a href={pdfDomiaUrl} target="_blank" className="text-sm text-emerald-700 font-semibold hover:underline">📄 Ver presupuesto Domia enviado al cliente →</a>
+      </div>}
 
       <div className="px-4 py-3 bg-gray-900">
         <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">Financiero</div>
