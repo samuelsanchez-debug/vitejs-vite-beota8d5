@@ -564,9 +564,9 @@ const[partidas,setPartidas]=useState([{desc:t.descripcion||"",importe:0}]);  con
     doc.setTextColor(150,150,150);
     doc.text("685 917 059 · Elche, Alicante",105,60,{align:"center"});
 
-    doc.setFontSize(20);
+   doc.setFontSize(20);
     doc.setTextColor(30,58,95);
-    doc.text("PRESUPUESTO",105,50,{align:"center"});
+    doc.text("PRESUPUESTO",105,75,{align:"center"});
 
     doc.setFontSize(10);
     doc.setTextColor(80,80,80);
