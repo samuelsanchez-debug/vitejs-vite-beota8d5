@@ -577,9 +577,9 @@ const[partidas,setPartidas]=useState([{desc:t.descripcion||"",importe:0}]);  con
     doc.rect(15,102,180,8,"F");
     doc.setTextColor(255,255,255);
     doc.setFontSize(10);
-    doc.text("Descripción",18,83.5);
+    doc.text("Descripción",18,107.5);
 
-    let y=94;
+    let y=118;
     doc.setTextColor(60,60,60);
     partidas.filter(p=>p.desc).forEach(p=>{
       const lineas=doc.splitTextToSize(p.desc,170);
