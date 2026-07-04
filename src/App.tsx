@@ -570,8 +570,8 @@ const[partidas,setPartidas]=useState([{desc:t.descripcion||"",importe:0}]);  con
 
     doc.setFontSize(10);
     doc.setTextColor(80,80,80);
-    doc.text(`Cliente: ${cl?.nombre||""}`,195,62,{align:"right"});
-    doc.text(fecha,195,68,{align:"right"});
+    doc.text(`Cliente: ${cl?.nombre||""}`,195,87,{align:"right"});
+    doc.text(fecha,195,93,{align:"right"});
 
     doc.setFillColor(30,58,95);
     doc.rect(15,78,180,8,"F");
