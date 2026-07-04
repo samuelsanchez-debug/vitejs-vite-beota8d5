@@ -629,13 +629,13 @@ const[partidas,setPartidas]=useState([{desc:t.descripcion||"",importe:0}]);  con
 
     const blob=doc.output("blob");
     const nombre=`domia_presupuesto_${t.id}_${Date.now()}.pdf`;
+    window.open(URL.createObjectURL(blob),"_blank");
     const{data:up}=await supabase.storage.from('fotos-demandas').upload(nombre,blob,{contentType:'application/pdf',upsert:true});
     if(up){
       const{data:pub}=supabase.storage.from('fotos-demandas').getPublicUrl(nombre);
       setPdfUrl(pub.publicUrl);
       toast("✅ PDF generado y guardado");
     }
-   window.open(URL.createObjectURL(blob),"_blank");
     setGenerando(false);
   };
   const notas=getNotas(t);
