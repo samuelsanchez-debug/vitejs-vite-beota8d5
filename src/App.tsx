@@ -633,11 +633,11 @@ const[partidas,setPartidas]=useState([{desc:t.descripcion||"",importe:0}]);  con
     if(up){
       const{data:pub}=supabase.storage.from('fotos-demandas').getPublicUrl(nombre);
       setPdfUrl(pub.publicUrl);
-      const notasActuales=getNotas(t).split('|').filter(n=>!n.trim().startsWith('pdfdomia:')).join('|');
+      const notasActuales=getNotas(t).split('|').filter(n=>!n.trim().startsWith('pdfdomia:')).map(n=>n.trim()).join(' | ');
       const hist=[...getHistorial(t),{ts:now(),txt:`PDF Domia generado: ${totalCliente}€`,tipo:"presupuesto"}];
       const saved=await dbSaveTrabajo({...t,precioCliente:totalCliente,historial:hist,notas:(notasActuales?notasActuales+' | ':'')+`pdfdomia:${pub.publicUrl}`});
       if(saved)setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));
-      toast("✅ PDF generado y guardado");
+      toast("✅ PDF generado y guardado en la tarjeta");
     }
     setGenerando(false);
   };
