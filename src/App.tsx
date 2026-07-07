@@ -731,7 +731,7 @@ const[modo,setModo]=useState<"ver"|"editar"|"presupuesto">("ver");
             if(up){
               const{data:pub}=supabase.storage.from('fotos-demandas').getPublicUrl(nombre);
               const hist=[...getHistorial(t),{ts:now(),txt:"Presupuesto subido manualmente",tipo:"presupuesto"}];
-              const saved=await dbSaveTrabajo({...t,estado:"Presupuesto recibido",notas:'presup:'+pub.publicUrl,historial:hist});
+              const saved=await dbSaveTrabajo({...t,estado:"Presupuesto recibido",notas:(getNotas(t)?getNotas(t)+' | ':'')+'presup:'+pub.publicUrl,historial:hist});
               if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("✅ Presupuesto subido");}
             }
           }}/>
