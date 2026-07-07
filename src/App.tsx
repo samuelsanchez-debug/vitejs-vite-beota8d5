@@ -1023,7 +1023,7 @@ export default function App(){
         <div className="font-black text-sm leading-none">{TITULO[sec]||"Domia CRM"}</div>
         {sec==="home"&&<div className="text-[10px] text-blue-300 mt-0.5">{sinAsignar>0?`⚡ ${sinAsignar} sin asignar · `:""}{sinPrecio>0?`💶 ${sinPrecio} sin precio · `:""}activos: {data.trabajos.filter(t=>["Aceptado","En curso"].includes(t.estado)).length}</div>}
       </div>
-      <button onClick={()=>setShowNuevo(true)} className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition whitespace-nowrap">+ Nuevo</button>
+      <button onClick={()=>window.open('/solicitar','_blank')} className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition whitespace-nowrap">+ Nuevo</button>
     </header>
     <main className="flex-1 px-4 py-5 max-w-2xl mx-auto w-full pb-8">
       {sec==="home"&&<Home data={data} setData={setData} go={setSec} setTid={setTid} toast={T}/>}
