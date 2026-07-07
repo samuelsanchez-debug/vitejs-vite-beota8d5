@@ -294,8 +294,11 @@ function TarjetaTrabajo({t,data,setData,toast,onVer,alertColor}){
   const co=data.colaboradores.find(c=>c.id===getColabId(t));
   const notas=getNotas(t);
   const disponibilidad=notas.includes('disponibilidad:')?notas.split('disponibilidad:')[1]?.split('|')[0]?.trim():null;
-const presupUrl=notas.startsWith('presup:')?notas.split('|')[0].replace('presup:','').trim():null;
-  const pdfDomiaUrl=notas.includes('pdfdomia:')?notas.split('pdfdomia:')[1]?.split('|')[0]?.trim():null;
+const partes=notas.split('|').map(n=>n.trim());
+  const fotoCliente=partes.find(p=>p.startsWith('foto:'))?.replace('foto:','');
+  const presupUrl=partes.find(p=>p.startsWith('presup:'))?.replace('presup:','');
+  const pdfDomiaUrl=partes.find(p=>p.startsWith('pdfdomia:'))?.replace('pdfdomia:','');
+  const comentCliente=partes.find(p=>p.startsWith('cliente:'))?.replace('cliente:','');
   const cfg=ESTADO_CFG[t.estado]||{bg:"bg-gray-100",text:"text-gray-500",dot:"bg-gray-300"};
 
   const avanzar=async(nuevoEstado,txtHistorial)=>{
