@@ -710,7 +710,8 @@ const[modo,setModo]=useState<"ver"|"editar"|"presupuesto">("ver");
 {!fotoUrl&&notas&&(notas.startsWith('presup:')?
   <a href={notas.replace('presup:','')} target="_blank" className="flex items-center gap-2 bg-purple-50 border border-purple-200 rounded-xl p-3 text-sm text-purple-700 font-semibold hover:bg-purple-100 transition">📄 Ver presupuesto del colaborador →</a>
   :<div className="bg-yellow-50 border border-yellow-100 rounded-xl p-3 text-xs text-gray-600">📝 {notas}</div>
-)}      <div className="bg-gray-900 rounded-xl p-4 text-white">
+)}
+      <div className="bg-gray-900 rounded-xl p-4 text-white">
         <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">Financiero</div>
         <div className="grid grid-cols-3 gap-3 text-center">
           <div><div className="text-xl font-black text-red-400">{getPresupColab(t)?`${getPresupColab(t)}€`:"—"}</div><div className="text-[10px] text-gray-400">Colab.</div></div>
