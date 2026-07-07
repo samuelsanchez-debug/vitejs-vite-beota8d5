@@ -333,11 +333,12 @@ const partes=notas.split('|').map(n=>n.trim());
         <div className="text-sm text-teal-800">{disponibilidad}</div>
       </div>}
 
-      {presupUrl&&<div className="px-4 py-3 bg-purple-50 border-b border-gray-50">
-        <a href={presupUrl} target="_blank" className="text-sm text-purple-700 font-semibold hover:underline">📄 Ver presupuesto del colaborador →</a>
-      </div>}
-      {pdfDomiaUrl&&<div className="px-4 py-3 bg-emerald-50 border-b border-gray-50">
-        <a href={pdfDomiaUrl} target="_blank" className="text-sm text-emerald-700 font-semibold hover:underline">📄 Ver presupuesto Domia enviado al cliente →</a>
+      {(fotoCliente||presupUrl||pdfDomiaUrl||comentCliente)&&<div className="px-4 py-3 border-b border-gray-50 space-y-2">
+        <div className="text-[10px] text-gray-400 uppercase font-bold">📎 Archivos y notas</div>
+        {fotoCliente&&<a href={fotoCliente} target="_blank" className="block text-sm text-blue-700 font-semibold hover:underline">🖼️ Foto del cliente →</a>}
+        {presupUrl&&<a href={presupUrl} target="_blank" className="block text-sm text-purple-700 font-semibold hover:underline">📄 Presupuesto del colaborador →</a>}
+        {pdfDomiaUrl&&<a href={pdfDomiaUrl} target="_blank" className="block text-sm text-emerald-700 font-semibold hover:underline">📄 Presupuesto Domia →</a>}
+        {comentCliente&&<div className="text-sm text-gray-600 bg-yellow-50 border border-yellow-100 rounded-lg px-3 py-2">💬 Cliente: {comentCliente}</div>}
       </div>}
 
       <div className="px-4 py-3 bg-gray-900">
