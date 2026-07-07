@@ -793,7 +793,7 @@ function PortalCliente({id}:{id:string}){
     await supabase.from('trabajos').update({
 estado:confirma?"Cliente confirmó":"Visita propuesta",
       historial:JSON.stringify(historial),
-      notas:comentario?`cliente: ${comentario}`:trabajo.notas,
+    notas:comentario?(trabajo.notas?trabajo.notas+' | ':'')+`cliente: ${comentario}`:trabajo.notas,
     }).eq('id',id);
     setEstado(confirma?"ok":"no");
   };
