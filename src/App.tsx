@@ -854,7 +854,7 @@ function SubirPresupuesto({id,trabajo,onSubido}:{id:string,trabajo:any,onSubido:
     await supabase.from('trabajos').update({
       estado:"Presupuesto recibido",
       presupuesto_colaborador:+importe,
-      notas:fotoUrl?'presup:'+fotoUrl:(notas||''),
+      notas:(trabajo.notas?trabajo.notas+' | ':'')+(fotoUrl?'presup:'+fotoUrl:(notas?'nota-colab: '+notas:'')),
       historial:JSON.stringify(historial),
     }).eq('id',id);
     onSubido(fotoUrl||"ok");
