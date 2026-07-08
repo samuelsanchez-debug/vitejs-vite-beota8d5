@@ -592,13 +592,22 @@ const[partidas,setPartidas]=useState([{desc:t.descripcion||"",importe:0}]);  con
 
     let y=118;
     doc.setTextColor(60,60,60);
+    doc.setFontSize(10);
     partidas.filter(p=>p.desc).forEach(p=>{
       const lineas=doc.splitTextToSize(p.desc,170);
+      const alturaNecesaria=lineas.length*6+4;
+      if(y+alturaNecesaria>270){
+        doc.addPage();
+        y=25;
+        doc.setFontSize(10);
+        doc.setTextColor(60,60,60);
+      }
       doc.text(lineas,18,y);
-      y+=lineas.length*6+4;
+      y+=alturaNecesaria;
       doc.setDrawColor(230,230,230);
       doc.line(15,y-3,195,y-3);
     });
+    if(y>230){doc.addPage();y=25;}
 
     y+=8;
     doc.setDrawColor(30,58,95);
