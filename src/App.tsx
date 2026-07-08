@@ -1037,6 +1037,11 @@ export default function App(){
   if(trabajoMatch)return<PortalColaborador id={trabajoMatch[1]}/>;
   const clienteMatch=path.match(/^\/cliente\/(\d+)$/);
   if(clienteMatch)return<PortalCliente id={clienteMatch[1]}/>;
+  const solicitarMatch=path==="/solicitar";
+  const[autenticado,setAutenticado]=useState<boolean|null>(null);
+  useEffect(()=>{
+    supabase.auth.getSession().then(({data})=>setAutenticado(!!data.session));
+  },[]);
   const[data,setData]=useState({clientes:[],colaboradores:[],trabajos:[]});
   const[cargando,setCargando]=useState(true);
   const[sec,setSec]=useState("home");
