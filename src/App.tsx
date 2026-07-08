@@ -787,6 +787,33 @@ function DisponibilidadSelector({onConfirmar}:{onConfirmar:(slots:string[])=>voi
     {slots.length>0&&<button onClick={()=>onConfirmar(slots)} className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-bold text-sm transition">✅ Confirmar disponibilidad</button>}
   </div>;
 }
+function LoginScreen({onLogin}:{onLogin:()=>void}){
+  const[email,setEmail]=useState("");
+  const[pass,setPass]=useState("");
+  const[error,setError]=useState("");
+  const[cargando,setCargando]=useState(false);
+  const entrar=async()=>{
+    setCargando(true);setError("");
+    const{error:err}=await supabase.auth.signInWithPassword({email,password:pass});
+    if(err){setError("Email o contraseña incorrectos");setCargando(false);return;}
+    onLogin();
+  };
+  return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4" style={{fontFamily:"'Inter',system-ui,sans-serif"}}>
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 w-full max-w-sm">
+      <div className="text-center mb-6">
+        <img src="/logo-domia.png" alt="Domia" className="w-24 mx-auto mb-3"/>
+        <div className="font-black text-gray-800 text-lg">Domia CRM</div>
+        <div className="text-xs text-gray-400 mt-1">Acceso privado</div>
+      </div>
+      <div className="space-y-3">
+        <input type="email" placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"/>
+        <input type="password" placeholder="Contraseña" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&entrar()} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"/>
+        {error&&<div className="text-red-500 text-xs text-center">{error}</div>}
+        <button onClick={entrar} disabled={cargando} className="w-full bg-[#1E3A5F] hover:bg-[#152d4a] text-white py-3 rounded-xl font-bold text-sm transition disabled:opacity-50">{cargando?"Entrando...":"Entrar"}</button>
+      </div>
+    </div>
+  </div>;
+}
 function PortalCliente({id}:{id:string}){
   const[trabajo,setTrabajo]=useState<any>(null);
   const[estado,setEstado]=useState<"idle"|"ok"|"no"|"cargando">("idle");
