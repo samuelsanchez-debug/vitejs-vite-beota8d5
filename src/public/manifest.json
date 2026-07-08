@@ -1,0 +1,16 @@
+{
+  "name": "Domia CRM",
+  "short_name": "Domia",
+  "description": "Gestión de demandas de Domia Services",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F0F2F5",
+  "theme_color": "#1E3A5F",
+  "icons": [
+    {
+      "src": "https://opijkazhbktiikdzbanb.supabase.co/storage/v1/object/public/fotos-demandas/logo-domia.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
