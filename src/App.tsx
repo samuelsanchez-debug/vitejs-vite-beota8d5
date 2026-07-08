@@ -1057,6 +1057,8 @@ export default function App(){
     };
     cargar();
   },[]);
+  if(autenticado===null)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-4xl">⚙️</div></div>;
+  if(!autenticado)return<LoginScreen onLogin={()=>setAutenticado(true)}/>;
   if(cargando)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-center"><div className="text-4xl mb-3">⚙️</div><div className="font-bold text-gray-700">Cargando Domia CRM...</div></div></div>;
   const sinAsignar=data.trabajos.filter(t=>t.estado==="Solicitud").length;
   const sinPrecio=data.trabajos.filter(t=>t.estado==="Presupuestando"&&!getPresupColab(t)).length;
