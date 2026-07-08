@@ -373,6 +373,7 @@ const partes=notas.split('|').map(n=>n.trim());
 
 function EstadoDemandas({data,setData,onBack,toast,onVer}){
   const[busca,setBusca]=useState("");
+  const[fEstado,setFEstado]=useState("Todos");
   let items=[...data.trabajos];
   if(busca.trim()){const q=busca.toLowerCase();items=items.filter(t=>{const cl=data.clientes.find(c=>c.id===getClienteId(t));return t.descripcion?.toLowerCase().includes(q)||cl?.nombre.toLowerCase().includes(q)||t.tipo?.toLowerCase().includes(q);});}
 
