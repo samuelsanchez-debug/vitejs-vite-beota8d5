@@ -64,25 +64,39 @@ export default function FormularioDomia() {
         }
       }
 
-      const clienteRes = await fetch(`${SUPABASE_URL}/rest/v1/clientes`, {
-        method: 'POST',
+      const telLimpio = (form.telefono || '').replace(/\s/g, '');
+      let clienteId = null;
+
+      const buscaRes = await fetch(`${SUPABASE_URL}/rest/v1/clientes?telefono=eq.${encodeURIComponent(telLimpio)}&select=id`, {
         headers: {
           'apikey': SUPABASE_KEY,
           'Authorization': `Bearer ${SUPABASE_KEY}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=representation',
         },
-        body: JSON.stringify({
-          nombre: form.nombre,
-          telefono: form.telefono,
-          email: form.email,
-          direccion: form.direccion,
-          notas: 'Cliente registrado desde formulario web',
-          creado: new Date().toISOString().slice(0, 10),
-        }),
       });
-      const clienteData = await clienteRes.json();
-      const clienteId = clienteData[0]?.id;
+      const existentes = await buscaRes.json();
+      if (existentes.length > 0) {
+        clienteId = existentes[0].id;
+      } else {
+        const clienteRes = await fetch(`${SUPABASE_URL}/rest/v1/clientes`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation',
+          },
+          body: JSON.stringify({
+            nombre: form.nombre,
+            telefono: telLimpio,
+            email: form.email,
+            direccion: form.direccion,
+            notas: 'Cliente registrado desde formulario web',
+            creado: new Date().toISOString().slice(0, 10),
+          }),
+        });
+        const clienteData = await clienteRes.json();
+        clienteId = clienteData[0]?.id;
+      }
 
       const now = new Date();
       const historial = [{
