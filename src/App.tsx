@@ -397,7 +397,12 @@ function EstadoDemandas({data,setData,onBack,toast,onVer}){
   return<div>
     <Back title="Pipeline" onBack={onBack}/>
     <input className={S+" mb-4"} placeholder="🔍 Buscar cliente, tipo..." value={busca} onChange={e=>setBusca(e.target.value)}/>
-
+<div className="flex gap-1.5 flex-wrap mb-4">
+      <Pill label="Todos" active={fEstado==="Todos"} onClick={()=>setFEstado("Todos")}/>
+      {FLUJO.filter(e=>data.trabajos.some(t=>t.estado===e)).map(e=>(
+        <Pill key={e} label={`${e} (${data.trabajos.filter(t=>t.estado===e).length})`} active={fEstado===e} onClick={()=>setFEstado(e)}/>
+      ))}
+    </div>
     {atencion.length>0&&<div className="bg-red-50 border-2 border-red-200 rounded-2xl p-3 mb-4">
       <div className="font-bold text-red-700 text-sm mb-2 flex items-center gap-2">🔔 Requiere tu atención ({atencion.length})</div>
       <div className="space-y-2">{atencion.map(t=><TarjetaTrabajo key={t.id} t={t} data={data} setData={setData} toast={toast} onVer={onVer} alertColor="border-red-200"/>)}</div>
