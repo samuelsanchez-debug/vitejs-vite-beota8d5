@@ -64,7 +64,8 @@ export default function FormularioDomia() {
         }
       }
 
-      const telLimpio = (form.telefono || '').replace(/\s/g, '');
+let telLimpio = (form.telefono || '').replace(/\s/g, '');
+      if (telLimpio && !telLimpio.startsWith('+')) telLimpio = '+34' + telLimpio;
       let clienteId = null;
 
       const buscaRes = await fetch(`${SUPABASE_URL}/rest/v1/clientes?telefono=eq.${encodeURIComponent(telLimpio)}&select=id`, {
