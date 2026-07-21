@@ -940,17 +940,20 @@ function PortalColaborador({id}:{id:string}){
     if(puede){const msg='✅ Confirmado — Trabajo #'+id+' · '+trabajo.tipo+'\n📍 '+(cliente?.direccion)+'\n📅 '+fmt(trabajo.fecha)+' · '+trabajo.hora+'\nEl colaborador ha confirmado la visita.';window.open('https://wa.me/34661121413?text='+encodeURIComponent(msg),'_blank');}
     setEstado(puede?"ok":"no");
   };
-  const confirmarConDisponibilidad=async(slots:string[])=>{
+  const confirmarConDisponibilidad=async(dia:string,hora:string)=>{
     setEstado("cargando");
+    const fechaFmt=new Date(dia+"T00:00:00").toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"});
     const historial=JSON.parse(trabajo.historial||"[]");
-    historial.push({ts:now(),txt:`Colaborador disponible. Horarios sugeridos: ${slots.join(", ")}`,tipo:"ok"});
+    historial.push({ts:now(),txt:`Colaborador disponible: ${fechaFmt} a las ${hora}`,tipo:"ok"});
     await supabase.from('trabajos').update({
-estado:"Colaborador disponible",
+      estado:"Colaborador disponible",
       colaborador_id:trabajo.colaborador_id,
+      fecha:dia,
+      hora:hora,
       historial:JSON.stringify(historial),
-      notas:trabajo.notas?trabajo.notas+` | disponibilidad: ${slots.join(", ")}`:`disponibilidad: ${slots.join(", ")}`,
+      notas:trabajo.notas?trabajo.notas+` | disponibilidad: ${fechaFmt} a las ${hora}`:`disponibilidad: ${fechaFmt} a las ${hora}`,
     }).eq('id',id);
-    const msg=`✅ Trabajo #${id} · ${trabajo.tipo}\nEl colaborador puede encargarse.\n\nDisponibilidad sugerida:\n${slots.map(s=>`• ${s}`).join("\n")}`;
+    const msg=`✅ Trabajo #${id} · ${trabajo.tipo}\nEl colaborador puede encargarse.\n\nFecha propuesta: ${fechaFmt} a las ${hora}`;
     window.open(`https://wa.me/34661121413?text=${encodeURIComponent(msg)}`,"_blank");
     setEstado("ok");
   };
