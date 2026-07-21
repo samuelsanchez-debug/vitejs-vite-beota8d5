@@ -1020,8 +1020,9 @@ onConfirmar={(dia,hora)=>confirmarConDisponibilidad(dia,hora)}
         </div>}
         {estado==="nopuedo"&&<div className="border-t border-gray-100 pt-4">
           <div className="text-[10px] text-gray-400 font-bold uppercase mb-2">¿Puedes en otra fecha? (opcional)</div>
-          <DisponibilidadSelector onConfirmar={(slots)=>{
-            const msg=`❌ Trabajo #${id} · ${trabajo.tipo}\nEl colaborador NO puede encargarse.\n${slots.length>0?`\nPodría en:\n${slots.map(s=>`• ${s}`).join("\n")}`:""}\n\nDirección: ${cliente?.direccion}`;
+          <DisponibilidadSelector onConfirmar={(dia,hora)=>{
+            const fechaFmt=new Date(dia+"T00:00:00").toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"});
+            const msg=`❌ Trabajo #${id} · ${trabajo.tipo}\nEl colaborador NO puede en la fecha inicial.\n\nPodría el ${fechaFmt} a las ${hora}\n\nDirección: ${cliente?.direccion}`;
             window.open(`https://wa.me/34661121413?text=${encodeURIComponent(msg)}`,"_blank");
             setEstado("no");
           }}/>
