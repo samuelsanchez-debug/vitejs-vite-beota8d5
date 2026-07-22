@@ -250,7 +250,7 @@ let telLimpio = (form.telefono || '').replace(/\s/g, '');
                 <span className="text-3xl mb-1">📷</span>
                 <span className="text-sm text-gray-500 font-semibold">Añadir foto</span>
                 <span className="text-xs text-gray-400 mt-0.5">Toca para seleccionar o hacer foto</span>
-                <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFoto}/>
+               <input type="file" accept="image/*" className="hidden" onChange={handleFoto}/>
               </label>
             )}
           </div>
