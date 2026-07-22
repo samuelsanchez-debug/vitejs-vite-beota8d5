@@ -947,20 +947,33 @@ function PortalColaborador({id}:{id:string}){
     if(puede){const msg='✅ Confirmado — Trabajo #'+id+' · '+trabajo.tipo+'\n📍 '+(cliente?.direccion)+'\n📅 '+fmt(trabajo.fecha)+' · '+trabajo.hora+'\nEl colaborador ha confirmado la visita.';window.open('https://wa.me/34661121413?text='+encodeURIComponent(msg),'_blank');}
     setEstado(puede?"ok":"no");
   };
-  const confirmarConDisponibilidad=async(dia:string,hora:string)=>{
+  const confirmarConDisponibilidad=async(dia:string,hora:string,importe:string,archivo:File|null)=>{
     setEstado("cargando");
     const fechaFmt=new Date(dia+"T00:00:00").toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"});
+    let presupUrl="";
+    if(archivo){
+      const ext=archivo.name.split('.').pop();
+      const nombre=`presup_${id}_${Date.now()}.${ext}`;
+      const{data:up}=await supabase.storage.from('fotos-demandas').upload(nombre,archivo,{upsert:true});
+      if(up){const{data:pub}=supabase.storage.from('fotos-demandas').getPublicUrl(nombre);presupUrl=pub.publicUrl;}
+    }
     const historial=JSON.parse(trabajo.historial||"[]");
     historial.push({ts:now(),txt:`Colaborador disponible: ${fechaFmt} a las ${hora}`,tipo:"ok"});
-    await supabase.from('trabajos').update({
+    if(importe||presupUrl)historial.push({ts:now(),txt:`Presupuesto directo${importe?`: ${importe}€`:""}`,tipo:"presupuesto"});
+    let notasNuevas=trabajo.notas?trabajo.notas+` | disponibilidad: ${fechaFmt} a las ${hora}`:`disponibilidad: ${fechaFmt} a las ${hora}`;
+    if(presupUrl)notasNuevas+=` | presup:${presupUrl}`;
+    const update:any={
       estado:"Colaborador disponible",
       colaborador_id:trabajo.colaborador_id,
       fecha:dia,
       hora:hora,
       historial:JSON.stringify(historial),
-      notas:trabajo.notas?trabajo.notas+` | disponibilidad: ${fechaFmt} a las ${hora}`:`disponibilidad: ${fechaFmt} a las ${hora}`,
-    }).eq('id',id);
-    const msg=`✅ Trabajo #${id} · ${trabajo.tipo}\nEl colaborador puede encargarse.\n\nFecha propuesta: ${fechaFmt} a las ${hora}`;
+      notas:notasNuevas,
+    };
+    if(importe)update.presupuesto_colaborador=+importe;
+    await supabase.from('trabajos').update(update).eq('id',id);
+    let msg=`✅ Trabajo #${id} · ${trabajo.tipo}\nEl colaborador puede encargarse.\n\nFecha propuesta: ${fechaFmt} a las ${hora}`;
+    if(importe||presupUrl)msg+=`\n\n💶 Presupuesto directo${importe?`: ${importe}€`:" adjunto"}`;
     window.open(`https://wa.me/34661121413?text=${encodeURIComponent(msg)}`,"_blank");
     setEstado("ok");
   };
