@@ -7,8 +7,8 @@ const LOGO_URL = '/logo-domia.png';
 
 export default function FormularioDomia() {
   const [paso, setPaso] = useState(1);
-  const [foto, setFoto] = useState(null);
-  const [fotoPreview, setFotoPreview] = useState(null);
+  const [fotos, setFotos] = useState([]);
+  const [fotosPreview, setFotosPreview] = useState([]);
   const [form, setForm] = useState({
     nombre: "", telefono: "", email: "", direccion: "",
     tipos: [], descripcion: "",
