@@ -1000,9 +1000,10 @@ function PortalColaborador({id}:{id:string}){
       <div className="text-2xl font-black">{trabajo.tipo}</div>
     </div>
     <div className="px-4 py-5 max-w-lg mx-auto space-y-4">
-      <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm space-y-4">
+     <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm space-y-4">
         <div className="flex items-start gap-3"><span className="text-xl mt-0.5">📍</span><div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Dirección</div><div className="font-semibold text-gray-800">{cliente?.direccion||"—"}</div></div></div>
         <div className="flex items-start gap-3"><span className="text-xl mt-0.5">📝</span><div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Descripción</div><div className="text-gray-700 text-sm leading-relaxed">{trabajo.descripcion}</div></div></div>
+        {(()=>{const foto=(trabajo.notas||'').split('|').map(n=>n.trim()).find(n=>n.startsWith('foto:'))?.replace('foto:','');return foto?<div className="flex items-start gap-3"><span className="text-xl mt-0.5">📷</span><div className="flex-1"><div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Foto del trabajo</div><img src={foto} alt="Foto del trabajo" className="w-full rounded-xl object-cover max-h-64 cursor-pointer" onClick={()=>window.open(foto,"_blank")}/></div></div>:null;})()}
       </div>
       <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
         <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">¿Puedes encargarte de este trabajo?</div>
