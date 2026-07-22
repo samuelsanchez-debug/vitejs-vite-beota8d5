@@ -247,21 +247,25 @@ let telLimpio = (form.telefono || '').replace(/\s/g, '');
             {errores.descripcion && <p className="text-red-500 text-xs mt-1">⚠️ {errores.descripcion}</p>}
           </div>
 
-          {/* Foto */}
+         {/* Fotos */}
           <div className="mb-5">
-            <label className="block text-xs font-bold text-[#1E3A5F] uppercase tracking-wider mb-2">Foto del problema <span className="text-gray-400 font-normal">(opcional, nos ayuda a presupuestar mejor)</span></label>
-            {fotoPreview ? (
-              <div className="relative">
-                <img src={fotoPreview} alt="preview" className="w-full h-40 object-cover rounded-xl border border-gray-200"/>
-                <button onClick={() => { setFoto(null); setFotoPreview(null); }}
-                  className="absolute top-2 right-2 bg-red-500 text-white w-7 h-7 rounded-full text-sm flex items-center justify-center shadow">×</button>
+            <label className="block text-xs font-bold text-[#1E3A5F] uppercase tracking-wider mb-2">Fotos del problema <span className="text-gray-400 font-normal">(opcional, hasta 3)</span></label>
+            {fotosPreview.length > 0 && (
+              <div className="grid grid-cols-3 gap-2 mb-2">
+                {fotosPreview.map((src, i) => (
+                  <div key={i} className="relative">
+                    <img src={src} alt={`foto ${i+1}`} className="w-full h-24 object-cover rounded-xl border border-gray-200"/>
+                    <button onClick={() => quitarFoto(i)} className="absolute top-1 right-1 bg-red-500 text-white w-6 h-6 rounded-full text-xs flex items-center justify-center shadow">×</button>
+                  </div>
+                ))}
               </div>
-            ) : (
+            )}
+            {fotos.length < 3 && (
               <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl py-5 cursor-pointer hover:border-[#1E3A5F] hover:bg-blue-50 transition bg-gray-50">
                 <span className="text-3xl mb-1">📷</span>
                 <span className="text-sm text-gray-500 font-semibold">Añadir foto</span>
-                <span className="text-xs text-gray-400 mt-0.5">Toca para seleccionar o hacer foto</span>
-               <input type="file" accept="image/*" className="hidden" onChange={handleFoto}/>
+                <span className="text-xs text-gray-400 mt-0.5">{fotos.length > 0 ? `${fotos.length}/3 · toca para añadir más` : "Toca para seleccionar o hacer foto"}</span>
+                <input type="file" accept="image/*" multiple className="hidden" onChange={handleFoto}/>
               </label>
             )}
           </div>
