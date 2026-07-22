@@ -37,10 +37,20 @@ export default function FormularioDomia() {
   };
 
   const handleFoto = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setFoto(file);
-    setFotoPreview(URL.createObjectURL(file));
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setFotos(prev => {
+      const combinadas = [...prev, ...files].slice(0, 3);
+      setFotosPreview(combinadas.map(f => URL.createObjectURL(f)));
+      return combinadas;
+    });
+  };
+  const quitarFoto = (idx) => {
+    setFotos(prev => {
+      const nuevas = prev.filter((_, i) => i !== idx);
+      setFotosPreview(nuevas.map(f => URL.createObjectURL(f)));
+      return nuevas;
+    });
   };
 
   const enviar = async () => {
