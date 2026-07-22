@@ -135,7 +135,7 @@ let telLimpio = (form.telefono || '').replace(/\s/g, '');
           fecha: now.toISOString().slice(0, 10),
           hora: now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
           margen: 30,
-          notas: fotoUrl ? `foto:${fotoUrl}` : '',
+          notas: fotosUrls.length ? fotosUrls.map(u => `foto:${u}`).join('||') : '',
           historial: JSON.stringify(historial),
         }),
       });
