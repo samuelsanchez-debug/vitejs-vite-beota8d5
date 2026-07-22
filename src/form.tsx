@@ -57,20 +57,21 @@ export default function FormularioDomia() {
     if (!validar()) return;
     setPaso(2);
     try {
-      let fotoUrl = null;
-      if (foto) {
-        const ext = foto.name.split('.').pop();
-        const nombre = `demandas/${Date.now()}.${ext}`;
+     const fotosUrls = [];
+      for (let i = 0; i < fotos.length; i++) {
+        const f = fotos[i];
+        const ext = f.name.split('.').pop();
+        const nombre = `demandas/${Date.now()}_${i}.${ext}`;
         const uploadRes = await fetch(`${SUPABASE_URL}/storage/v1/object/fotos-demandas/${nombre}`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${SUPABASE_KEY}`,
-            'Content-Type': foto.type,
+            'Content-Type': f.type,
           },
-          body: foto,
+          body: f,
         });
         if (uploadRes.ok) {
-          fotoUrl = `${SUPABASE_URL}/storage/v1/object/public/fotos-demandas/${nombre}`;
+          fotosUrls.push(`${SUPABASE_URL}/storage/v1/object/public/fotos-demandas/${nombre}`);
         }
       }
 
