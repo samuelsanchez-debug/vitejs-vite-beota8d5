@@ -1095,6 +1095,7 @@ export default function App(){
   if(trabajoMatch)return<PortalColaborador id={trabajoMatch[1]}/>;
   const clienteMatch=path.match(/^\/cliente\/(\d+)$/);
   if(clienteMatch)return<PortalCliente id={clienteMatch[1]}/>;
+  if(path==="/calculadora")return<Calculadora/>;
   const solicitarMatch=path==="/solicitar";
   const[autenticado,setAutenticado]=useState<boolean|null>(null);
   useEffect(()=>{
