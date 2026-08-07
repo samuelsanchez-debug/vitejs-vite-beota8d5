@@ -819,6 +819,41 @@ function LoginScreen({onLogin}:{onLogin:()=>void}){
     </div>
   </div>;
 }
+function Calculadora(){
+  const[precio,setPrecio]=useState("");
+  const p=parseFloat(precio)||0;
+  let margen=30;
+  if(p>=15000)margen=20;
+  else if(p>=5000)margen=25;
+  const precioCliente=p>0?Math.round(p*(1+margen/100)):0;
+  return<div className="min-h-screen bg-[#F0F2F5]" style={{fontFamily:"'Inter',system-ui,sans-serif"}}>
+    <div className="bg-[#1E3A5F] px-5 py-6 text-white text-center">
+      <img src="/logo-domia.png" alt="Domia" className="w-20 mx-auto mb-2"/>
+      <div className="text-lg font-black">Calculadora de precios</div>
+      <div className="text-blue-200 text-xs mt-1">Introduce tu precio y calcula el precio final</div>
+    </div>
+    <div className="px-4 py-6 max-w-md mx-auto space-y-4">
+      <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">Tu precio (€)</div>
+        <input type="number" value={precio} onChange={e=>setPrecio(e.target.value)} placeholder="Ej: 3000" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-2xl font-black text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"/>
+      </div>
+      {p>0&&<div className="bg-[#1E3A5F] rounded-2xl p-6 text-white text-center">
+        <div className="text-[10px] text-blue-300 font-bold uppercase tracking-widest mb-2">Precio final para el cliente</div>
+        <div className="text-4xl font-black text-emerald-400">{precioCliente}€</div>
+        <div className="text-xs text-blue-200 mt-2">Margen aplicado: {margen}%</div>
+      </div>}
+      <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">Tabla de márgenes</div>
+        <div className="space-y-2 text-sm">
+          <div className={`flex justify-between px-3 py-2 rounded-lg ${p>0&&p<5000?"bg-blue-50 font-bold text-[#1E3A5F]":"text-gray-500"}`}><span>0 – 5.000€</span><span>+30%</span></div>
+          <div className={`flex justify-between px-3 py-2 rounded-lg ${p>=5000&&p<15000?"bg-blue-50 font-bold text-[#1E3A5F]":"text-gray-500"}`}><span>5.000 – 15.000€</span><span>+25%</span></div>
+          <div className={`flex justify-between px-3 py-2 rounded-lg ${p>=15000?"bg-blue-50 font-bold text-[#1E3A5F]":"text-gray-500"}`}><span>15.000€ en adelante</span><span>+20%</span></div>
+        </div>
+      </div>
+      <div className="text-center text-xs text-gray-400 pb-4">Domia Services · Uso interno colaboradores</div>
+    </div>
+  </div>;
+}
 function PortalCliente({id}:{id:string}){
   const[trabajo,setTrabajo]=useState<any>(null);
   const[estado,setEstado]=useState<"idle"|"ok"|"no"|"cargando">("idle");
