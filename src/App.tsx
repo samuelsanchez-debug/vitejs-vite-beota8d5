@@ -837,19 +837,16 @@ function Calculadora(){
         <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">Tu precio (€)</div>
         <input type="number" value={precio} onChange={e=>setPrecio(e.target.value)} placeholder="Ej: 3000" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-2xl font-black text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"/>
       </div>
-      {p>0&&<div className="bg-[#1E3A5F] rounded-2xl p-6 text-white text-center">
-        <div className="text-[10px] text-blue-300 font-bold uppercase tracking-widest mb-2">Precio final para el cliente</div>
-        <div className="text-4xl font-black text-emerald-400">{precioCliente}€</div>
-        <div className="text-xs text-blue-200 mt-2">Margen aplicado: {margen}%</div>
-      </div>}
-      <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">Tabla de márgenes</div>
-        <div className="space-y-2 text-sm">
-          <div className={`flex justify-between px-3 py-2 rounded-lg ${p>0&&p<5000?"bg-blue-50 font-bold text-[#1E3A5F]":"text-gray-500"}`}><span>0 – 5.000€</span><span>+30%</span></div>
-          <div className={`flex justify-between px-3 py-2 rounded-lg ${p>=5000&&p<15000?"bg-blue-50 font-bold text-[#1E3A5F]":"text-gray-500"}`}><span>5.000 – 15.000€</span><span>+25%</span></div>
-          <div className={`flex justify-between px-3 py-2 rounded-lg ${p>=15000?"bg-blue-50 font-bold text-[#1E3A5F]":"text-gray-500"}`}><span>15.000€ en adelante</span><span>+20%</span></div>
+      {p>0&&<div className="bg-[#1E3A5F] rounded-2xl p-6 text-white space-y-4">
+        <div className="flex justify-between items-center border-b border-blue-800 pb-3">
+          <span className="text-sm text-blue-200">Presupuesto colaborador</span>
+          <span className="text-xl font-black">{p}€</span>
         </div>
-      </div>
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-blue-200">Presupuesto Domia</span>
+          <span className="text-2xl font-black text-emerald-400">{precioCliente}€</span>
+        </div>
+      </div>}
       <div className="text-center text-xs text-gray-400 pb-4">Domia Services · Uso interno colaboradores</div>
     </div>
   </div>;
