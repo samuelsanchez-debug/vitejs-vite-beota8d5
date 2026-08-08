@@ -486,6 +486,12 @@ function Colaboradores({data,setData,onBack,toast}){
   const[fEsp,setFEsp]=useState("Todas");
   const[fEst,setFEst]=useState("Todos");
   const[fZona,setFZona]=useState("Todas");
+  const[tab,setTab]=useState("activos");
+  const[solicitudes,setSolicitudes]=useState([]);
+  useEffect(()=>{
+    supabase.from('solicitudes_colaborador').select('*').order('creado',{ascending:false}).then(({data})=>setSolicitudes(data||[]));
+  },[]);
+  const pendientes=solicitudes.filter(s=>s.estado==="Pendiente").length;
   const zonas=["Todas",...[...new Set(data.colaboradores.map(c=>c.zona).filter(Boolean))]];
   const FormColab=({ini,onSave,onCancel})=>{
     const[f,setF]=useState(ini||{nombre:"",especialidades:[TIPOS[0]],telefono:"",whatsapp:"",activo:true,zona:"",disponibilidad:[0,1,2,3,4],valoracion:5,trabajosCompletados:0});
