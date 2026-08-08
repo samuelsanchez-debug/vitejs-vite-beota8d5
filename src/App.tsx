@@ -558,6 +558,7 @@ function Colaboradores({data,setData,onBack,toast}){
       {list.length===0&&<div className="text-center py-10 text-sm text-gray-400">Sin resultados.</div>}
       </div>
       {showNew&&<Modal title="Nuevo colaborador" onClose={()=>setShowNew(false)}><FormColab onSave={async f=>{if(!f.nombre.trim())return;const saved=await dbSaveColab(f);if(saved){setData(d=>({...d,colaboradores:[...d.colaboradores,saved]}));setShowNew(false);toast("✅ Colaborador creado");}}} onCancel={()=>setShowNew(false)}/></Modal>}
+      </>}
     </div>;
   }
   const co=data.colaboradores.find(x=>x.id===coid);
