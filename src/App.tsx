@@ -519,6 +519,36 @@ function Colaboradores({data,setData,onBack,toast}){
     if(fZona!=="Todas")list=list.filter(c=>c.zona===fZona);
     return<div>
       <Back title="Colaboradores" onBack={onBack} right={<button onClick={()=>setShowNew(true)} className="bg-[#1E3A5F] text-white text-xs font-bold px-3 py-1.5 rounded-xl hover:bg-[#152d4a] transition">+ Nuevo</button>}/>
+      <div className="flex gap-2 mb-4">
+        <button onClick={()=>setTab("activos")} className={`flex-1 py-2 rounded-xl text-sm font-bold transition ${tab==="activos"?"bg-[#1E3A5F] text-white":"bg-white text-gray-500 border border-gray-200"}`}>Colaboradores</button>
+        <button onClick={()=>setTab("solicitudes")} className={`flex-1 py-2 rounded-xl text-sm font-bold transition relative ${tab==="solicitudes"?"bg-[#1E3A5F] text-white":"bg-white text-gray-500 border border-gray-200"}`}>Solicitudes{pendientes>0&&<span className="absolute -top-1.5 -right-1.5 bg-amber-500 text-white text-[10px] font-black min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center">{pendientes}</span>}</button>
+      </div>
+      {tab==="solicitudes"&&<div className="space-y-2">
+        {solicitudes.length===0&&<div className="text-center py-10 text-sm text-gray-400">Sin solicitudes</div>}
+        {solicitudes.map(s=><div key={s.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+          <div className="flex items-start justify-between mb-2">
+            <div><div className="font-bold text-gray-800">{s.nombre}</div><div className="text-xs text-gray-500">{s.telefono} · {s.email}</div></div>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${s.estado==="Pendiente"?"bg-amber-100 text-amber-700":s.estado==="Validado"?"bg-emerald-100 text-emerald-700":"bg-gray-100 text-gray-400"}`}>{s.estado}</span>
+          </div>
+          <div className="text-xs text-gray-600 mb-1">🔧 {s.especialidades}</div>
+          {s.zona&&<div className="text-xs text-gray-400">📍 {s.zona}</div>}
+          {s.experiencia&&<div className="text-xs text-gray-500 bg-gray-50 rounded-lg p-2 mt-2">{s.experiencia}</div>}
+          {s.estado==="Pendiente"&&<div className="flex gap-2 mt-3">
+            <button onClick={async()=>{
+              const nuevoColab={nombre:s.nombre,telefono:s.telefono,whatsapp:s.telefono.replace('+',''),especialidades:s.especialidades.split(", "),activo:true,zona:s.zona,disponibilidad:[0,1,2,3,4],valoracion:5,trabajosCompletados:0};
+              const saved=await dbSaveColab(nuevoColab);
+              if(saved){
+                setData(d=>({...d,colaboradores:[...d.colaboradores,saved]}));
+                await supabase.from('solicitudes_colaborador').update({estado:"Validado"}).eq('id',s.id);
+                setSolicitudes(prev=>prev.map(x=>x.id===s.id?{...x,estado:"Validado"}:x));
+                toast("✅ Colaborador dado de alta");
+              }
+            }} className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold py-2 rounded-xl transition">✅ Validar y crear colaborador</button>
+            <button onClick={async()=>{await supabase.from('solicitudes_colaborador').update({estado:"Rechazado"}).eq('id',s.id);setSolicitudes(prev=>prev.map(x=>x.id===s.id?{...x,estado:"Rechazado"}:x));}} className="bg-red-50 text-red-500 text-xs font-bold px-3 rounded-xl">Rechazar</button>
+          </div>}
+        </div>)}
+      </div>}
+      {tab==="activos"&&<>
       <input className={S+" mb-3"} placeholder="🔍 Nombre, zona o teléfono..." value={busca} onChange={e=>setBusca(e.target.value)}/>
       <div className="mb-3"><div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Especialidad</div><div className="flex gap-1.5 flex-wrap">{["Todas",...TIPOS].map(t=><Pill key={t} label={t} active={fEsp===t} onClick={()=>setFEsp(t)}/>)}</div></div>
       <div className="mb-3"><div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Estado</div><div className="flex gap-1.5">{["Todos","Activo","Inactivo"].map(o=><Pill key={o} label={o} active={fEst===o} onClick={()=>setFEst(o)}/>)}</div></div>
