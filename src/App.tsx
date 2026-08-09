@@ -877,7 +877,12 @@ function PortalColaboradorApp(){
   const[pagos,setPagos]=useState([]);
   const[tab,setTab]=useState("trabajos");
 
+ const[modoPass,setModoPass]=useState(false);
   useEffect(()=>{
+    const hash=window.location.hash;
+    if(hash.includes("type=invite")||hash.includes("type=recovery")){
+      setModoPass(true);
+    }
     supabase.auth.getSession().then(({data})=>{setSesion(data.session);setCargando(false);});
     const{data:sub}=supabase.auth.onAuthStateChange((_e,s)=>setSesion(s));
     return()=>sub.subscription.unsubscribe();
