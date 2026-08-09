@@ -874,6 +874,7 @@ function PortalColaboradorApp(){
   const[error,setError]=useState("");
   const[colab,setColab]=useState(null);
   const[trabajos,setTrabajos]=useState([]);
+  const[pagos,setPagos]=useState([]);
   const[tab,setTab]=useState("trabajos");
 
   useEffect(()=>{
