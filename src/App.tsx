@@ -999,6 +999,131 @@ function CalcInterna(){
     </div>}
   </div>;
 }
+function Finanzas({data,setData,onBack,toast}){
+  const[pagos,setPagos]=useState([]);
+  const[cargando,setCargando]=useState(true);
+  const[modal,setModal]=useState(null);
+
+  useEffect(()=>{
+    supabase.from('pagos_colaborador').select('*').order('fecha',{ascending:false}).then(({data})=>{setPagos(data||[]);setCargando(false);});
+  },[]);
+
+  const trabajosConColab=data.trabajos.filter(t=>getColabId(t)&&["Aceptado","En curso","Completado"].includes(t.estado));
+
+  const pagosDeTrabajo=(tid)=>pagos.filter(p=>p.trabajo_id===tid);
+  const totalPagado=(tid)=>pagosDeTrabajo(tid).reduce((s,p)=>s+(+p.importe||0),0);
+
+  const totalDeuda=trabajosConColab.reduce((s,t)=>s+(getPresupColab(t)||0),0);
+  const totalPagadoGlobal=pagos.reduce((s,p)=>s+(+p.importe||0),0);
+  const pendienteGlobal=totalDeuda-totalPagadoGlobal;
+
+  return<div>
+    <Back title="Finanzas · Pagos a colaboradores" onBack={onBack}/>
+
+    <div className="grid grid-cols-3 gap-2 mb-4">
+      <div className="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm text-center">
+        <div className="text-[10px] text-gray-400 font-bold uppercase">Total</div>
+        <div className="text-lg font-black text-gray-800">{totalDeuda}€</div>
+      </div>
+      <div className="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm text-center">
+        <div className="text-[10px] text-gray-400 font-bold uppercase">Pagado</div>
+        <div className="text-lg font-black text-emerald-600">{totalPagadoGlobal}€</div>
+      </div>
+      <div className="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm text-center">
+        <div className="text-[10px] text-gray-400 font-bold uppercase">Pendiente</div>
+        <div className="text-lg font-black text-red-500">{pendienteGlobal}€</div>
+      </div>
+    </div>
+
+    {cargando&&<div className="text-center py-8 text-gray-400 text-sm">Cargando...</div>}
+
+    <div className="space-y-2">
+      {trabajosConColab.map(t=>{
+        const co=data.colaboradores.find(c=>c.id===getColabId(t));
+        const cl=data.clientes.find(c=>c.id===getClienteId(t));
+        const total=getPresupColab(t)||0;
+        const pagado=totalPagado(t.id);
+        const pendiente=total-pagado;
+        const misPagos=pagosDeTrabajo(t.id);
+        return<div key={t.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+          <div className="flex justify-between items-start mb-2">
+            <div>
+              <div className="font-bold text-gray-800 text-sm">{t.tipo} — {co?.nombre||"?"}</div>
+              <div className="text-[11px] text-gray-400">{cl?.nombre} · {fmt(t.fecha)}</div>
+            </div>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${pendiente<=0?"bg-emerald-100 text-emerald-700":pagado>0?"bg-amber-100 text-amber-700":"bg-red-100 text-red-600"}`}>{pendiente<=0?"Pagado":pagado>0?"Parcial":"Pendiente"}</span>
+          </div>
+          <div className="grid grid-cols-3 gap-2 text-center bg-gray-50 rounded-xl p-2 mb-2">
+            <div><div className="text-sm font-bold text-gray-700">{total}€</div><div className="text-[9px] text-gray-400 uppercase">Total</div></div>
+            <div><div className="text-sm font-bold text-emerald-600">{pagado}€</div><div className="text-[9px] text-gray-400 uppercase">Pagado</div></div>
+            <div><div className="text-sm font-bold text-red-500">{pendiente}€</div><div className="text-[9px] text-gray-400 uppercase">Pendiente</div></div>
+          </div>
+          {misPagos.length>0&&<div className="space-y-1 mb-2">
+            {misPagos.map(p=><div key={p.id} className="flex justify-between items-center text-xs bg-emerald-50 rounded-lg px-2 py-1.5">
+              <span className="text-emerald-700 font-medium">{p.importe}€ · {p.forma_pago}</span>
+              <span className="text-gray-400">{fmt(p.fecha)}{p.notas?` · ${p.notas}`:""}</span>
+            </div>)}
+          </div>}
+          {pendiente>0&&<button onClick={()=>setModal({trabajo:t,colab:co,pendiente})} className="w-full bg-[#1E3A5F] text-white py-2 rounded-xl text-xs font-bold transition hover:bg-[#152d4a]">+ Registrar pago</button>}
+        </div>;
+      })}
+      {!cargando&&trabajosConColab.length===0&&<div className="text-center py-10 text-sm text-gray-400">Sin trabajos con colaborador asignado</div>}
+    </div>
+
+    {modal&&<RegistrarPago modal={modal} onClose={()=>setModal(null)} onGuardado={(nuevo)=>{setPagos(p=>[nuevo,...p]);setModal(null);toast("✅ Pago registrado");}}/>}
+  </div>;
+}
+
+function RegistrarPago({modal,onClose,onGuardado}){
+  const[importe,setImporte]=useState(String(modal.pendiente));
+  const[forma,setForma]=useState("Efectivo");
+  const[fecha,setFecha]=useState(hoy());
+  const[notas,setNotas]=useState("");
+  const[guardando,setGuardando]=useState(false);
+
+  const guardar=async()=>{
+    if(!importe)return;
+    setGuardando(true);
+    const{data,error}=await supabase.from('pagos_colaborador').insert({
+      trabajo_id:modal.trabajo.id,
+      colaborador_id:modal.colab?.id,
+      importe:+importe,
+      forma_pago:forma,
+      fecha,
+      notas,
+    }).select();
+    setGuardando(false);
+    if(!error&&data)onGuardado(data[0]);
+  };
+
+  return<Modal title="Registrar pago" onClose={onClose}>
+    <div className="space-y-3">
+      <div className="bg-gray-50 rounded-xl p-3 text-sm">
+        <div className="font-bold text-gray-700">{modal.trabajo.tipo} — {modal.colab?.nombre}</div>
+        <div className="text-xs text-gray-400">Pendiente: {modal.pendiente}€</div>
+      </div>
+      <div>
+        <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Importe (€)</div>
+        <input type="number" value={importe} onChange={e=>setImporte(e.target.value)} className={S}/>
+      </div>
+      <div>
+        <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Forma de pago</div>
+        <div className="flex gap-1.5">
+          {["Efectivo","Transferencia","Bizum"].map(f=><button key={f} onClick={()=>setForma(f)} className={`flex-1 py-2 rounded-xl text-xs font-bold transition ${forma===f?"bg-[#1E3A5F] text-white":"bg-white text-gray-500 border border-gray-200"}`}>{f}</button>)}
+        </div>
+      </div>
+      <div>
+        <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Fecha</div>
+        <input type="date" value={fecha} onChange={e=>setFecha(e.target.value)} className={S}/>
+      </div>
+      <div>
+        <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Notas (opcional)</div>
+        <input value={notas} onChange={e=>setNotas(e.target.value)} className={S} placeholder="Ej: adelanto materiales"/>
+      </div>
+      <button onClick={guardar} disabled={guardando} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-xl font-bold text-sm transition disabled:opacity-50">{guardando?"Guardando...":"✅ Registrar pago"}</button>
+    </div>
+  </Modal>;
+}
 function Calculadora(){
   const[precio,setPrecio]=useState("");
   const p=parseFloat(precio)||0;
