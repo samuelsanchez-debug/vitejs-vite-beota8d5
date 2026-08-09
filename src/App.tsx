@@ -910,7 +910,7 @@ function PortalColaboradorApp(){
   const salir=async()=>{await supabase.auth.signOut();setColab(null);setTrabajos([]);};
 
   if(cargando)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-4xl">⚙️</div></div>;
-
+if(modoPass&&sesion)return<CrearPassword onListo={()=>{setModoPass(false);window.location.hash="";}}/>;
   if(!sesion)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4" style={{fontFamily:"'Inter',system-ui,sans-serif"}}>
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 w-full max-w-sm">
       <div className="text-center mb-6">
