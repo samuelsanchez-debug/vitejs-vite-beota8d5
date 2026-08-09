@@ -967,18 +967,54 @@ function PortalColaboradorApp(){
         </div>)}
       </>}
 
-      {tab==="cobros"&&<>
-        <div className="bg-[#1E3A5F] rounded-2xl p-6 text-white text-center">
-          <div className="text-[10px] text-blue-300 font-bold uppercase tracking-widest mb-2">Total cobrado</div>
-          <div className="text-4xl font-black text-emerald-400">{totalCobrado}€</div>
-          <div className="text-xs text-blue-200 mt-2">{realizados.length} trabajos completados</div>
+     {tab==="cobros"&&(()=>{
+        const totalGanado=trabajos.filter(t=>["Aceptado","En curso","Completado"].includes(t.estado)).reduce((s,t)=>s+(t.presupuesto_colaborador||0),0);
+        const totalCobradoReal=pagos.reduce((s,p)=>s+(+p.importe||0),0);
+        const pendienteReal=totalGanado-totalCobradoReal;
+        const trabajosConImporte=trabajos.filter(t=>["Aceptado","En curso","Completado"].includes(t.estado)&&(t.presupuesto_colaborador||0)>0);
+        return<>
+        <div className="grid grid-cols-3 gap-2">
+          <div className="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm text-center">
+            <div className="text-[9px] text-gray-400 font-bold uppercase">Total</div>
+            <div className="text-base font-black text-gray-800">{totalGanado}€</div>
+          </div>
+          <div className="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm text-center">
+            <div className="text-[9px] text-gray-400 font-bold uppercase">Cobrado</div>
+            <div className="text-base font-black text-emerald-600">{totalCobradoReal}€</div>
+          </div>
+          <div className="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm text-center">
+            <div className="text-[9px] text-gray-400 font-bold uppercase">Pendiente</div>
+            <div className="text-base font-black text-red-500">{pendienteReal}€</div>
+          </div>
         </div>
-        {realizados.map(t=><div key={t.id} className="bg-white rounded-2xl p-3 border border-gray-100 shadow-sm flex justify-between items-center">
-          <div><div className="font-semibold text-gray-700 text-sm">{t.tipo}</div><div className="text-xs text-gray-400">{fmt(t.fecha)}</div></div>
-          <div className="text-sm font-bold text-emerald-600">{t.presupuesto_colaborador||0}€</div>
-        </div>)}
-        {realizados.length===0&&<div className="text-center py-6 text-sm text-gray-400">Aún no hay cobros</div>}
-      </>}
+        {trabajosConImporte.map(t=>{
+          const misPagos=pagos.filter(p=>p.trabajo_id===t.id);
+          const total=t.presupuesto_colaborador||0;
+          const cobrado=misPagos.reduce((s,p)=>s+(+p.importe||0),0);
+          const pend=total-cobrado;
+          return<div key={t.id} className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+            <div className="flex justify-between items-start mb-2">
+              <div><div className="font-bold text-gray-800 text-sm">{t.tipo}</div><div className="text-[11px] text-gray-400">{fmt(t.fecha)}</div></div>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${pend<=0?"bg-emerald-100 text-emerald-700":cobrado>0?"bg-amber-100 text-amber-700":"bg-red-100 text-red-600"}`}>{pend<=0?"Cobrado":cobrado>0?"Parcial":"Pendiente"}</span>
+            </div>
+            <div className="grid grid-cols-3 gap-2 text-center bg-gray-50 rounded-xl p-2 mb-2">
+              <div><div className="text-sm font-bold text-gray-700">{total}€</div><div className="text-[9px] text-gray-400 uppercase">Total</div></div>
+              <div><div className="text-sm font-bold text-emerald-600">{cobrado}€</div><div className="text-[9px] text-gray-400 uppercase">Cobrado</div></div>
+              <div><div className="text-sm font-bold text-red-500">{pend}€</div><div className="text-[9px] text-gray-400 uppercase">Pendiente</div></div>
+            </div>
+            {misPagos.map(p=><div key={p.id} className="flex justify-between items-center text-xs bg-emerald-50 rounded-lg px-2 py-1.5 mb-1">
+              <span className="text-emerald-700 font-medium">{p.importe}€ · {p.forma_pago}</span>
+              <span className="text-gray-400">{fmt(p.fecha)}{p.notas?` · ${p.notas}`:""}</span>
+            </div>)}
+          </div>;
+        })}
+        {trabajosConImporte.length===0&&<div className="text-center py-6 text-sm text-gray-400">Aún no hay cobros</div>}
+        </>;
+      })()}
+      {tab==="calc"&&<CalcInterna/>}
+    </div>
+  </div>;
+}
 
       {tab==="calc"&&<CalcInterna/>}
     </div>
