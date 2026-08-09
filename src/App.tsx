@@ -1024,7 +1024,37 @@ const idsConPago=[...new Set(pagos.map(p=>p.trabajo_id))];
     </div>
   </div>;
 }
-
+function CrearPassword({onListo}){
+  const[pass,setPass]=useState("");
+  const[pass2,setPass2]=useState("");
+  const[error,setError]=useState("");
+  const[guardando,setGuardando]=useState(false);
+  const guardar=async()=>{
+    setError("");
+    if(pass.length<6){setError("Mínimo 6 caracteres");return;}
+    if(pass!==pass2){setError("Las contraseñas no coinciden");return;}
+    setGuardando(true);
+    const{error:err}=await supabase.auth.updateUser({password:pass});
+    setGuardando(false);
+    if(err){setError(err.message);return;}
+    onListo();
+  };
+  return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4" style={{fontFamily:"'Inter',system-ui,sans-serif"}}>
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 w-full max-w-sm">
+      <div className="text-center mb-6">
+        <img src="/logo-domia.png" alt="Domia" className="w-24 mx-auto mb-3"/>
+        <div className="font-black text-gray-800 text-lg">Crea tu contraseña</div>
+        <div className="text-xs text-gray-400 mt-1">Para acceder a tu portal</div>
+      </div>
+      <div className="space-y-3">
+        <input type="password" placeholder="Nueva contraseña" value={pass} onChange={e=>setPass(e.target.value)} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"/>
+        <input type="password" placeholder="Repite la contraseña" value={pass2} onChange={e=>setPass2(e.target.value)} onKeyDown={e=>e.key==="Enter"&&guardar()} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"/>
+        {error&&<div className="text-red-500 text-xs text-center">{error}</div>}
+        <button onClick={guardar} disabled={guardando} className="w-full bg-[#1E3A5F] hover:bg-[#152d4a] text-white py-3 rounded-xl font-bold text-sm transition disabled:opacity-50">{guardando?"Guardando...":"Guardar y entrar"}</button>
+      </div>
+    </div>
+  </div>;
+}
 function CalcInterna(){
   const[precio,setPrecio]=useState("");
   const p=parseFloat(precio)||0;
