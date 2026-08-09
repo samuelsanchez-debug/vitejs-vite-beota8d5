@@ -971,8 +971,8 @@ function PortalColaboradorApp(){
         const totalGanado=trabajos.filter(t=>["Aceptado","En curso","Completado"].includes(t.estado)).reduce((s,t)=>s+(t.presupuesto_colaborador||0),0);
         const totalCobradoReal=pagos.reduce((s,p)=>s+(+p.importe||0),0);
         const pendienteReal=totalGanado-totalCobradoReal;
-        const trabajosConImporte=trabajos.filter(t=>["Aceptado","En curso","Completado"].includes(t.estado)&&(t.presupuesto_colaborador||0)>0);
-        return<>
+const idsConPago=[...new Set(pagos.map(p=>p.trabajo_id))];
+        const trabajosConImporte=trabajos.filter(t=>(t.presupuesto_colaborador||0)>0||idsConPago.includes(t.id));        return<>
         <div className="grid grid-cols-3 gap-2">
           <div className="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm text-center">
             <div className="text-[9px] text-gray-400 font-bold uppercase">Total</div>
