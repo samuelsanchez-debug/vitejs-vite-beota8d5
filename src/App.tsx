@@ -865,6 +865,139 @@ function LoginScreen({onLogin}:{onLogin:()=>void}){
     </div>
   </div>;
 }
+function PortalColaboradorApp(){
+  const[sesion,setSesion]=useState(null);
+  const[cargando,setCargando]=useState(true);
+  const[email,setEmail]=useState("");
+  const[pass,setPass]=useState("");
+  const[error,setError]=useState("");
+  const[colab,setColab]=useState(null);
+  const[trabajos,setTrabajos]=useState([]);
+  const[tab,setTab]=useState("trabajos");
+
+  useEffect(()=>{
+    supabase.auth.getSession().then(({data})=>{setSesion(data.session);setCargando(false);});
+    const{data:sub}=supabase.auth.onAuthStateChange((_e,s)=>setSesion(s));
+    return()=>sub.subscription.unsubscribe();
+  },[]);
+
+  useEffect(()=>{
+    if(!sesion?.user?.email)return;
+    (async()=>{
+      const{data:col}=await supabase.from('colaboradores').select('*').eq('email',sesion.user.email).single();
+      setColab(col);
+      if(col){
+        const{data:tr}=await supabase.from('trabajos').select('*').eq('colaborador_id',col.id).order('id',{ascending:false});
+        setTrabajos(tr||[]);
+      }
+    })();
+  },[sesion]);
+
+  const entrar=async()=>{
+    setError("");
+    const{error:err}=await supabase.auth.signInWithPassword({email,password:pass});
+    if(err)setError("Email o contraseña incorrectos");
+  };
+  const salir=async()=>{await supabase.auth.signOut();setColab(null);setTrabajos([]);};
+
+  if(cargando)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-4xl">⚙️</div></div>;
+
+  if(!sesion)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4" style={{fontFamily:"'Inter',system-ui,sans-serif"}}>
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 w-full max-w-sm">
+      <div className="text-center mb-6">
+        <img src="/logo-domia.png" alt="Domia" className="w-24 mx-auto mb-3"/>
+        <div className="font-black text-gray-800 text-lg">Portal Colaborador</div>
+        <div className="text-xs text-gray-400 mt-1">Accede con tu cuenta</div>
+      </div>
+      <div className="space-y-3">
+        <input type="email" placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"/>
+        <input type="password" placeholder="Contraseña" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&entrar()} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"/>
+        {error&&<div className="text-red-500 text-xs text-center">{error}</div>}
+        <button onClick={entrar} className="w-full bg-[#1E3A5F] hover:bg-[#152d4a] text-white py-3 rounded-xl font-bold text-sm transition">Entrar</button>
+      </div>
+    </div>
+  </div>;
+
+  if(!colab)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4 text-center">
+    <div>
+      <div className="text-4xl mb-3">🔍</div>
+      <div className="font-bold text-gray-700 mb-1">Cuenta sin vincular</div>
+      <div className="text-sm text-gray-400 mb-4">Tu email no está asociado a ningún colaborador.</div>
+      <button onClick={salir} className="text-xs text-gray-500 underline">Cerrar sesión</button>
+    </div>
+  </div>;
+
+  const pendientes=trabajos.filter(t=>["Presupuestando","Colaborador disponible","Visita propuesta","Cliente confirmó","Aceptado","En curso"].includes(t.estado));
+  const realizados=trabajos.filter(t=>t.estado==="Completado");
+  const totalCobrado=realizados.reduce((s,t)=>s+(t.presupuesto_colaborador||0),0);
+
+  return<div className="min-h-screen bg-[#F0F2F5]" style={{fontFamily:"'Inter',system-ui,sans-serif"}}>
+    <div className="bg-[#1E3A5F] px-5 py-5 text-white flex items-center justify-between">
+      <div>
+        <div className="text-[10px] text-blue-300 font-bold uppercase tracking-widest">Portal Colaborador</div>
+        <div className="text-lg font-black">Hola, {colab.nombre.split(" ")[0]} 👋</div>
+      </div>
+      <button onClick={salir} className="text-xs text-blue-200 border border-blue-400 rounded-lg px-3 py-1.5">Salir</button>
+    </div>
+
+    <div className="flex gap-1 px-4 pt-4 max-w-lg mx-auto">
+      {[["trabajos","Trabajos"],["cobros","Cobros"],["calc","Calculadora"]].map(([k,label])=>(
+        <button key={k} onClick={()=>setTab(k)} className={`flex-1 py-2 rounded-xl text-sm font-bold transition ${tab===k?"bg-[#1E3A5F] text-white":"bg-white text-gray-500 border border-gray-200"}`}>{label}</button>
+      ))}
+    </div>
+
+    <div className="px-4 py-4 max-w-lg mx-auto space-y-4">
+      {tab==="trabajos"&&<>
+        <div className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Pendientes ({pendientes.length})</div>
+        {pendientes.length===0&&<div className="text-center py-6 text-sm text-gray-400">Sin trabajos pendientes</div>}
+        {pendientes.map(t=><div key={t.id} className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+          <div className="flex justify-between items-start"><div className="font-bold text-gray-800">{t.tipo}</div><span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold">{t.estado}</span></div>
+          <div className="text-sm text-gray-500 mt-1">{t.descripcion}</div>
+          {t.fecha&&<div className="text-xs text-gray-400 mt-2">📅 {fmt(t.fecha)} {t.hora&&`· ${t.hora}`}</div>}
+        </div>)}
+
+        <div className="text-[11px] font-bold text-gray-400 uppercase tracking-widest pt-2">Realizados ({realizados.length})</div>
+        {realizados.map(t=><div key={t.id} className="bg-white rounded-2xl p-3 border border-gray-100 shadow-sm flex justify-between items-center">
+          <div><div className="font-semibold text-gray-700 text-sm">{t.tipo}</div><div className="text-xs text-gray-400">{fmt(t.fecha)}</div></div>
+          {t.presupuesto_colaborador&&<div className="text-sm font-bold text-emerald-600">{t.presupuesto_colaborador}€</div>}
+        </div>)}
+      </>}
+
+      {tab==="cobros"&&<>
+        <div className="bg-[#1E3A5F] rounded-2xl p-6 text-white text-center">
+          <div className="text-[10px] text-blue-300 font-bold uppercase tracking-widest mb-2">Total cobrado</div>
+          <div className="text-4xl font-black text-emerald-400">{totalCobrado}€</div>
+          <div className="text-xs text-blue-200 mt-2">{realizados.length} trabajos completados</div>
+        </div>
+        {realizados.map(t=><div key={t.id} className="bg-white rounded-2xl p-3 border border-gray-100 shadow-sm flex justify-between items-center">
+          <div><div className="font-semibold text-gray-700 text-sm">{t.tipo}</div><div className="text-xs text-gray-400">{fmt(t.fecha)}</div></div>
+          <div className="text-sm font-bold text-emerald-600">{t.presupuesto_colaborador||0}€</div>
+        </div>)}
+        {realizados.length===0&&<div className="text-center py-6 text-sm text-gray-400">Aún no hay cobros</div>}
+      </>}
+
+      {tab==="calc"&&<CalcInterna/>}
+    </div>
+  </div>;
+}
+
+function CalcInterna(){
+  const[precio,setPrecio]=useState("");
+  const p=parseFloat(precio)||0;
+  let margen=30;
+  if(p>=15000)margen=20;else if(p>=5000)margen=25;
+  const precioCliente=p>0?Math.round(p*(1+margen/100)):0;
+  return<div className="space-y-4">
+    <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+      <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">Tu precio (€)</div>
+      <input type="number" value={precio} onChange={e=>setPrecio(e.target.value)} placeholder="Ej: 3000" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-2xl font-black text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"/>
+    </div>
+    {p>0&&<div className="bg-[#1E3A5F] rounded-2xl p-6 text-white space-y-4">
+      <div className="flex justify-between items-center border-b border-blue-800 pb-3"><span className="text-sm text-blue-200">Presupuesto colaborador</span><span className="text-xl font-black">{p}€</span></div>
+      <div className="flex justify-between items-center"><span className="text-sm text-blue-200">Presupuesto Domia</span><span className="text-2xl font-black text-emerald-400">{precioCliente}€</span></div>
+    </div>}
+  </div>;
+}
 function Calculadora(){
   const[precio,setPrecio]=useState("");
   const p=parseFloat(precio)||0;
