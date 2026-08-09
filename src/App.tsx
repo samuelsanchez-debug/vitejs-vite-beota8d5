@@ -541,7 +541,16 @@ function Colaboradores({data,setData,onBack,toast}){
                 setData(d=>({...d,colaboradores:[...d.colaboradores,saved]}));
                 await supabase.from('solicitudes_colaborador').update({estado:"Validado"}).eq('id',s.id);
                 setSolicitudes(prev=>prev.map(x=>x.id===s.id?{...x,estado:"Validado"}:x));
-                toast("✅ Colaborador dado de alta");
+                try{
+                  await fetch("https://opijkazhbktiikdzbanb.supabase.co/functions/v1/invitar-colaborador",{
+                    method:"POST",
+                    headers:{"Content-Type":"application/json"},
+                    body:JSON.stringify({email:s.email,nombre:s.nombre}),
+                  });
+                  toast("✅ Colaborador creado e invitado por email");
+                }catch(err){
+                  toast("✅ Colaborador creado (fallo al enviar invitación)");
+                }
               }
             }} className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold py-2 rounded-xl transition">✅ Validar y crear colaborador</button>
             <button onClick={async()=>{await supabase.from('solicitudes_colaborador').update({estado:"Rechazado"}).eq('id',s.id);setSolicitudes(prev=>prev.map(x=>x.id===s.id?{...x,estado:"Rechazado"}:x));}} className="bg-red-50 text-red-500 text-xs font-bold px-3 rounded-xl">Rechazar</button>
