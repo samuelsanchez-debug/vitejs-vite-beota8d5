@@ -1442,6 +1442,7 @@ export default function App(){
       {sec==="demandas"&&<EstadoDemandas data={data} setData={setData} onBack={()=>setSec("home")} toast={T} onVer={id=>{setTid(id);}}/>}
       {sec==="clientes"&&<Clientes data={data} setData={setData} onBack={()=>setSec("home")} toast={T}/>}
       {sec==="colaboradores"&&<Colaboradores data={data} setData={setData} onBack={()=>setSec("home")} toast={T}/>}
+      {sec==="finanzas"&&<Finanzas data={data} setData={setData} onBack={()=>setSec("home")} toast={T}/>}
     </main>
     {showNuevo&&<Modal title="Nueva solicitud" onClose={()=>setShowNuevo(false)} wide><FormTrabajo data={data} setData={setData} onClose={()=>setShowNuevo(false)} toast={T}/></Modal>}
     {tid&&<TrabajoModal tid={tid} data={data} setData={setData} onClose={()=>setTid(null)} toast={T}/>}
