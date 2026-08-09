@@ -923,6 +923,11 @@ if(modoPass&&sesion)return<CrearPassword onListo={()=>{setModoPass(false);window
         <input type="password" placeholder="Contraseña" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&entrar()} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"/>
         {error&&<div className="text-red-500 text-xs text-center">{error}</div>}
         <button onClick={entrar} className="w-full bg-[#1E3A5F] hover:bg-[#152d4a] text-white py-3 rounded-xl font-bold text-sm transition">Entrar</button>
+        <button onClick={async()=>{
+          if(!email){setError("Escribe tu email primero");return;}
+          const{error:err}=await supabase.auth.resetPasswordForEmail(email,{redirectTo:"https://domia-crm-two.vercel.app/portal"});
+          if(err)setError(err.message);else setError("📧 Te hemos enviado un email para restablecer tu contraseña");
+        }} className="w-full text-xs text-gray-400 hover:text-gray-600 mt-1">¿Olvidaste tu contraseña?</button>
       </div>
     </div>
   </div>;
