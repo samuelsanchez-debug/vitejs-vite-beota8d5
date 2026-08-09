@@ -98,8 +98,7 @@ const dbSaveTrabajo = async(trabajo) => {
 };
 const dbDeleteTrabajo = async(id) => await supabase.from('trabajos').delete().eq('id',id);
 const dbSaveColab = async(colab) => {
-  const row = { nombre:colab.nombre, especialidades:colab.especialidades, telefono:colab.telefono, whatsapp:colab.whatsapp, activo:colab.activo, zona:colab.zona, disponibilidad:colab.disponibilidad, valoracion:colab.valoracion||5, trabajos_completados:colab.trabajosCompletados||colab.trabajos_completados||0 };
-  if (colab.id) { const {data} = await supabase.from('colaboradores').update(row).eq('id',colab.id).select(); return data?.[0]; }
+const row = { nombre:colab.nombre, especialidades:colab.especialidades, telefono:colab.telefono, whatsapp:colab.whatsapp, email:colab.email, activo:colab.activo, zona:colab.zona, disponibilidad:colab.disponibilidad, valoracion:colab.valoracion||5, trabajos_completados:colab.trabajosCompletados||colab.trabajos_completados||0 };  if (colab.id) { const {data} = await supabase.from('colaboradores').update(row).eq('id',colab.id).select(); return data?.[0]; }
   else { const {data} = await supabase.from('colaboradores').insert(row).select(); return data?.[0]; }
 };
 
