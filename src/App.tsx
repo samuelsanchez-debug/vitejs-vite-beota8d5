@@ -535,8 +535,8 @@ function Colaboradores({data,setData,onBack,toast}){
           {s.experiencia&&<div className="text-xs text-gray-500 bg-gray-50 rounded-lg p-2 mt-2">{s.experiencia}</div>}
           {s.estado==="Pendiente"&&<div className="flex gap-2 mt-3">
             <button onClick={async()=>{
-              const nuevoColab={nombre:s.nombre,telefono:s.telefono,whatsapp:s.telefono.replace('+',''),especialidades:s.especialidades.split(", "),activo:true,zona:s.zona,disponibilidad:[0,1,2,3,4],valoracion:5,trabajosCompletados:0};
-              const saved=await dbSaveColab(nuevoColab);
+const nuevoColab={nombre:s.nombre,telefono:s.telefono,whatsapp:s.telefono.replace('+',''),email:s.email,especialidades:s.especialidades.split(", "),activo:true,zona:s.zona,disponibilidad:[0,1,2,3,4],valoracion:5,trabajosCompletados:0};
+      const saved=await dbSaveColab(nuevoColab);
               if(saved){
                 setData(d=>({...d,colaboradores:[...d.colaboradores,saved]}));
                 await supabase.from('solicitudes_colaborador').update({estado:"Validado"}).eq('id',s.id);
