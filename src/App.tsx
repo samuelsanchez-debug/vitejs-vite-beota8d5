@@ -1110,8 +1110,25 @@ const[filtro,setFiltro]=useState("todos");
 
     {cargando&&<div className="text-center py-8 text-gray-400 text-sm">Cargando...</div>}
 
+   <div className="flex gap-1.5 mb-4 flex-wrap">
+      {[["todos","Todos"],["pendientes","Pendientes"],["proximos","Próximos"],["pagados","Pagados"]].map(([k,label])=>(
+        <button key={k} onClick={()=>setFiltro(k)} className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${filtro===k?"bg-[#1E3A5F] text-white":"bg-white text-gray-500 border border-gray-200"}`}>{label}</button>
+      ))}
+    </div>
+
     <div className="space-y-2">
-      {trabajosConColab.map(t=>{
+      {trabajosConColab.filter(t=>{
+        const total=getPresupColab(t)||0;
+        const pagado=totalPagado(t.id);
+        const pend=total-pagado;
+        if(filtro==="pendientes")return pend>0;
+        if(filtro==="pagados")return pend<=0&&total>0;
+        if(filtro==="proximos")return pend>0&&t.vencimiento_pago;
+        return true;
+      }).sort((a,b)=>{
+        if(filtro==="proximos")return (a.vencimiento_pago||"").localeCompare(b.vencimiento_pago||"");
+        return 0;
+      }).map(t=>{
         const co=data.colaboradores.find(c=>c.id===getColabId(t));
         const cl=data.clientes.find(c=>c.id===getClienteId(t));
         const total=getPresupColab(t)||0;
