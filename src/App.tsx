@@ -1166,8 +1166,9 @@ function RegistrarPago({modal,onClose,onGuardado}){
       fecha,
       notas,
     }).select();
+    if(vencimiento)await supabase.from('trabajos').update({vencimiento_pago:vencimiento}).eq('id',modal.trabajo.id);
     setGuardando(false);
-    if(!error&&data)onGuardado(data[0]);
+    if(!error&&data)onGuardado(data[0],vencimiento);
   };
 
   return<Modal title="Registrar pago" onClose={onClose}>
