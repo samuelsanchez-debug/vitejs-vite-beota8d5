@@ -822,10 +822,22 @@ const[modo,setModo]=useState<"ver"|"editar"|"presupuesto">(window.__abrirPresupu
       </div>
       <div className="bg-gray-50 rounded-xl p-3 text-sm text-gray-700">{t.descripcion}</div>
       {fotoUrl&&<div className="bg-gray-50 border border-gray-100 rounded-xl p-3"><div className="text-[10px] font-bold text-gray-400 uppercase mb-2">📎 Archivos adjuntos</div><img src={fotoUrl} alt="Foto del problema" className="w-full rounded-xl object-cover max-h-64 cursor-pointer" onClick={()=>window.open(fotoUrl,"_blank")}/><div className="text-xs text-gray-400 mt-1 text-center">Toca para ver en tamaño completo</div></div>}
-{!fotoUrl&&notas&&(notas.startsWith('presup:')?
-  <a href={notas.replace('presup:','')} target="_blank" className="flex items-center gap-2 bg-purple-50 border border-purple-200 rounded-xl p-3 text-sm text-purple-700 font-semibold hover:bg-purple-100 transition">📄 Ver presupuesto del colaborador →</a>
-  :<div className="bg-yellow-50 border border-yellow-100 rounded-xl p-3 text-xs text-gray-600">📝 {notas}</div>
-)}
+{notas&&(()=>{
+  const partes=notas.split('|').map(n=>n.trim());
+  const foto=partes.find(p=>p.startsWith('foto:'))?.replace('foto:','');
+  const pres=partes.find(p=>p.startsWith('presup:'))?.replace('presup:','');
+  const pdfD=partes.find(p=>p.startsWith('pdfdomia:'))?.replace('pdfdomia:','');
+  const disp=partes.find(p=>p.startsWith('disponibilidad:'))?.replace('disponibilidad:','').trim();
+  const notaColab=partes.find(p=>p.startsWith('nota-colab:'))?.replace('nota-colab:','').trim();
+  const comentCli=partes.find(p=>p.startsWith('cliente:'))?.replace('cliente:','').trim();
+  return<div className="space-y-2">
+    {pres&&<a href={pres} target="_blank" className="flex items-center gap-2 bg-purple-50 border border-purple-200 rounded-xl p-3 text-sm text-purple-700 font-semibold hover:bg-purple-100 transition">📄 Ver presupuesto del colaborador →</a>}
+    {pdfD&&<a href={pdfD} target="_blank" className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-sm text-emerald-700 font-semibold hover:bg-emerald-100 transition">📄 Ver presupuesto Domia →</a>}
+    {disp&&<div className="bg-teal-50 border border-teal-100 rounded-xl p-3 text-sm text-teal-700">📅 Disponibilidad: {disp}</div>}
+    {comentCli&&<div className="bg-yellow-50 border border-yellow-100 rounded-xl p-3 text-sm text-gray-700">💬 Cliente: {comentCli}</div>}
+    {notaColab&&<div className="bg-gray-50 border border-gray-100 rounded-xl p-3 text-sm text-gray-600">🔧 Colaborador: {notaColab}</div>}
+  </div>;
+})()}
       <div className="bg-gray-900 rounded-xl p-4 text-white">
         <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">Financiero</div>
         <div className="grid grid-cols-3 gap-3 text-center">
