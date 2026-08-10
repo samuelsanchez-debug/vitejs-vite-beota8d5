@@ -1152,6 +1152,7 @@ function RegistrarPago({modal,onClose,onGuardado}){
   const[forma,setForma]=useState("Efectivo");
   const[fecha,setFecha]=useState(hoy());
   const[notas,setNotas]=useState("");
+  const[vencimiento,setVencimiento]=useState(modal.trabajo.vencimiento_pago||"");
   const[guardando,setGuardando]=useState(false);
 
   const guardar=async()=>{
