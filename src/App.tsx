@@ -645,24 +645,52 @@ const[partidas,setPartidas]=useState([{desc:t.descripcion||"",importe:0}]);  con
     doc.setFontSize(10);
     doc.text("Descripción",18,107.5);
 
-    let y=118;
+   let y=118;
     doc.setTextColor(60,60,60);
     doc.setFontSize(10);
+    const factor=1+margen/100;
     partidas.filter(p=>p.desc).forEach(p=>{
-      const lineas=doc.splitTextToSize(p.desc,170);
+      const lineas=doc.splitTextToSize(p.desc,140);
       const alturaNecesaria=lineas.length*6+4;
-      if(y+alturaNecesaria>270){
+      if(y+alturaNecesaria>260){
         doc.addPage();
         y=25;
         doc.setFontSize(10);
         doc.setTextColor(60,60,60);
       }
       doc.text(lineas,18,y);
+      const importeLinea=Math.round((+p.importe||0)*factor);
+      doc.text(`${importeLinea}€`,192,y,{align:"right"});
       y+=alturaNecesaria;
       doc.setDrawColor(230,230,230);
       doc.line(15,y-3,195,y-3);
     });
-    if(y>230){doc.addPage();y=25;}
+    if(y>235){doc.addPage();y=25;}
+
+    const base=totalCliente;
+    const importeIva=Math.round(base*iva/100);
+    const totalConIva=base+importeIva;
+
+    y+=6;
+    doc.setFontSize(10);
+    doc.setTextColor(90,90,90);
+    doc.text("Base imponible",150,y,{align:"right"});
+    doc.text(`${base}€`,192,y,{align:"right"});
+    y+=7;
+    doc.text(`IVA (${iva}%)`,150,y,{align:"right"});
+    doc.text(`${importeIva}€`,192,y,{align:"right"});
+    y+=4;
+    doc.setDrawColor(30,58,95);
+    doc.setLineWidth(0.5);
+    doc.line(120,y,192,y);
+    y+=8;
+    doc.setFontSize(14);
+    doc.setTextColor(30,58,95);
+    doc.setFont(undefined,"bold");
+    doc.text("TOTAL",150,y,{align:"right"});
+    doc.text(`${totalConIva}€`,192,y,{align:"right"});
+    doc.setFont(undefined,"normal");
+    y+=6;
 
     y+=8;
     doc.setDrawColor(30,58,95);
