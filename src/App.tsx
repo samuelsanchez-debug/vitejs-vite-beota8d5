@@ -774,8 +774,8 @@ const saved=await dbSaveTrabajo({...t,precioCliente:totalCliente,historial:hist,
 }
 function TrabajoModal({tid,data,setData,onClose,toast}){
   const t=data.trabajos.find(x=>x.id===tid||x.id===+tid);
-const[modo,setModo]=useState<"ver"|"editar"|"presupuesto">("ver");
-  if(!t)return null;
+const[modo,setModo]=useState<"ver"|"editar"|"presupuesto">(window.__abrirPresupuesto?"presupuesto":"ver");
+  useEffect(()=>{if(window.__abrirPresupuesto)window.__abrirPresupuesto=false;},[]);  if(!t)return null;
   const cl=data.clientes.find(c=>c.id===getClienteId(t));
   const co=data.colaboradores.find(c=>c.id===getColabId(t));
   const historial=getHistorial(t);
