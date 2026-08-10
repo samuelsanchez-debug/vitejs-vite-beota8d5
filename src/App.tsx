@@ -888,8 +888,7 @@ const[modo,setModo]=useState<"ver"|"editar"|"presupuesto">(window.__abrirPresupu
   const notas=getNotas(t);
   const fotoUrl=notas.startsWith('foto:')?notas.replace('foto:',''):null;
   const iconH=tipo=>({entrada:"🟢",wa:"💬",presupuesto:"💶",cliente:"📤",ok:"✅",sistema:"·"}[tipo]||"·");
-  return<Modal title={`${t.tipo} #${t.id}`} onClose={onClose} wide>
-{modo==="ver"?(
+return<Modal title={`${t.tipo} #${t.id}`} onClose={onClose} wide={modo!=="ver"} xwide={modo==="ver"}>{modo==="ver"?(
       <FichaTrabajo t={t} cl={cl} co={co} data={data} setData={setData} onClose={onClose} toast={toast} setModo={setModo}/>
     ):false?(    <div className="space-y-4">
       <div className="flex flex-wrap gap-1.5"><Badge text={t.estado}/><OrigenTag id={t.origen}/><span className={`text-xs font-bold ${PRIO_CFG[t.prioridad]?.text}`}>{PRIO_CFG[t.prioridad]?.icon} {t.prioridad}</span></div>
