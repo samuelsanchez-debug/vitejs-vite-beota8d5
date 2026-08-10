@@ -602,8 +602,12 @@ const nuevoColab={nombre:s.nombre,telefono:s.telefono,whatsapp:s.telefono.replac
 }
 function EditorPresupuesto({t,cl,co,data,setData,onClose,toast}){
 const[partidas,setPartidas]=useState(t.partidas&&t.partidas.length?t.partidas:[{desc:t.descripcion||"",importe:0}]);
-  const[margen,setMargen]=useState(t.margen||30);
-  const[iva,setIva]=useState(t.iva||21);  const totalColab=partidas.reduce((s,p)=>s+(+p.importe||0),0);
+  const[iva,setIva]=useState(t.iva||21);
+  const[margenManual,setMargenManual]=useState(t.margen||null);
+  const totalColab=partidas.reduce((s,p)=>s+(+p.importe||0),0);
+  const margenTramo=totalColab>=15000?20:totalColab>=5000?25:30;
+  const margen=margenManual!==null?margenManual:margenTramo;
+  const setMargen=(v)=>setMargenManual(v);
   const totalCliente=Math.round(totalColab*(1+margen/100));
   const addPartida=()=>setPartidas(p=>[...p,{desc:"",importe:0}]);
   const updPartida=(i,k,v)=>setPartidas(p=>p.map((x,idx)=>idx===i?{...x,[k]:v}:x));
