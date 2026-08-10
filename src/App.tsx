@@ -1165,8 +1165,7 @@ const[filtro,setFiltro]=useState("todos");
       {!cargando&&trabajosConColab.length===0&&<div className="text-center py-10 text-sm text-gray-400">Sin trabajos con colaborador asignado</div>}
     </div>
 
-    {modal&&<RegistrarPago modal={modal} onClose={()=>setModal(null)} onGuardado={(nuevo)=>{setPagos(p=>[nuevo,...p]);setModal(null);toast("✅ Pago registrado");}}/>}
-  </div>;
+{modal&&<RegistrarPago modal={modal} onClose={()=>setModal(null)} onGuardado={(nuevo,venc)=>{setPagos(p=>[nuevo,...p]);if(venc)setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===modal.trabajo.id?{...x,vencimiento_pago:venc}:x)}));setModal(null);toast("✅ Pago registrado");}}/>}  </div>;
 }
 
 function RegistrarPago({modal,onClose,onGuardado}){
