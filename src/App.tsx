@@ -722,10 +722,16 @@ const[partidas,setPartidas]=useState([{desc:t.descripcion||"",importe:0}]);  con
         <div className="text-[10px] font-bold text-gray-400 uppercase">Tu margen %</div>
         <input type="number" value={margen} onChange={e=>setMargen(+e.target.value||30)} className="w-20 bg-gray-800 border border-gray-700 rounded-lg px-2 py-1 text-sm text-white text-right focus:outline-none"/>
       </div>
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-[10px] font-bold text-gray-400 uppercase">IVA aplicado</div>
+        <div className="flex gap-1">
+          {[21,10,0].map(v=><button key={v} onClick={()=>setIva(v)} className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${iva===v?"bg-emerald-500 text-white":"bg-gray-800 text-gray-400"}`}>{v}%</button>)}
+        </div>
+      </div>
       <div className="grid grid-cols-3 gap-2 text-center mt-2">
         <div><div className="text-lg font-black text-red-400">{totalColab}€</div><div className="text-[10px] text-gray-400">Colab.</div></div>
         <div><div className="text-lg font-black text-blue-400">{margen}%</div><div className="text-[10px] text-gray-400">Margen</div></div>
-        <div><div className="text-lg font-black text-emerald-400">{totalCliente}€</div><div className="text-[10px] text-gray-400">Cliente</div></div>
+        <div><div className="text-lg font-black text-emerald-400">{totalCliente}€</div><div className="text-[10px] text-gray-400">Base</div></div>
       </div>
     </div>
     <div>
