@@ -1024,11 +1024,6 @@ const idsConPago=[...new Set(pagos.map(p=>p.trabajo_id))];
     </div>
   </div>;
 }
-
-      {tab==="calc"&&<CalcInterna/>}
-    </div>
-  </div>;
-}
 function CrearPassword({onListo}){
   const[pass,setPass]=useState("");
   const[pass2,setPass2]=useState("");
