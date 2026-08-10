@@ -18,6 +18,11 @@ const ORIGENES = [
   {id:"referido",label:"Referido",icon:"🤝",color:"bg-purple-50 text-purple-700 border-purple-200"},
   {id:"otros",label:"Otros",icon:"📌",color:"bg-orange-50 text-orange-700 border-orange-200"},
 ];
+const ICONO_TIPO = {
+  "Fontanería":"🔧","Electricidad":"⚡","Albañilería":"🧱","Carpintería":"🪚",
+  "Pintura":"🎨","Cerrajería":"🔑","Climatización":"❄️","Mantenimiento":"🛠️",
+  "Jardinería":"🌿","Limpieza":"🧽","Otros":"📋"
+};
 const ESTADO_CFG = {
   "Solicitud":{bg:"bg-slate-100",text:"text-slate-600",dot:"bg-slate-400"},
   "Presupuestando":{bg:"bg-amber-100",text:"text-amber-700",dot:"bg-amber-400"},
