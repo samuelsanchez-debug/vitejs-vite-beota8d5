@@ -691,18 +691,6 @@ const[partidas,setPartidas]=useState([{desc:t.descripcion||"",importe:0}]);  con
     doc.text(`${totalConIva}€`,192,y,{align:"right"});
     doc.setFont(undefined,"normal");
     y+=6;
-
-    y+=8;
-    doc.setDrawColor(30,58,95);
-    doc.setLineWidth(0.8);
-    doc.rect(115,y,80,22);
-    doc.setFontSize(9);
-    doc.setTextColor(120,120,120);
-    doc.text("TOTAL sin IVA",190,y+7,{align:"right"});
-    doc.setFontSize(18);
-    doc.setTextColor(30,58,95);
-    doc.text(`${totalCliente}€`,190,y+17,{align:"right"});
-
     y+=34;
     doc.setFontSize(10);
     doc.setTextColor(60,60,60);
