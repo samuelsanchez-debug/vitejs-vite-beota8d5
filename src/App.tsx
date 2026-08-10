@@ -603,7 +603,7 @@ const nuevoColab={nombre:s.nombre,telefono:s.telefono,whatsapp:s.telefono.replac
 function EditorPresupuesto({t,cl,co,data,setData,onClose,toast}){
 const[partidas,setPartidas]=useState(t.partidas&&t.partidas.length?t.partidas:[{desc:t.descripcion||"",importe:0}]);
   const[iva,setIva]=useState(t.iva||21);
-  const[margenManual,setMargenManual]=useState(t.margen||null);
+  const[margenManual,setMargenManual]=useState(null);
   const totalColab=partidas.reduce((s,p)=>s+(+p.importe||0),0);
   const margenTramo=totalColab>=15000?20:totalColab>=5000?25:30;
   const margen=margenManual!==null?margenManual:margenTramo;
