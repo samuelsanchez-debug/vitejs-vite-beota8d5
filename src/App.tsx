@@ -1143,6 +1143,11 @@ const[filtro,setFiltro]=useState("todos");
             </div>
             <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${pendiente<=0?"bg-emerald-100 text-emerald-700":pagado>0?"bg-amber-100 text-amber-700":"bg-red-100 text-red-600"}`}>{pendiente<=0?"Pagado":pagado>0?"Parcial":"Pendiente"}</span>
           </div>
+          {pendiente>0&&t.vencimiento_pago&&(()=>{
+            const dias=Math.ceil((new Date(t.vencimiento_pago).getTime()-Date.now())/(1000*60*60*24));
+            const col=dias<0?"bg-red-100 text-red-700":dias<=3?"bg-orange-100 text-orange-700":"bg-blue-50 text-blue-600";
+            return<div className={`text-[11px] font-bold px-2 py-1 rounded-lg mb-2 inline-block ${col}`}>📅 {dias<0?`Vencido hace ${-dias}d`:dias===0?"Vence hoy":`Vence en ${dias}d`} · {fmt(t.vencimiento_pago)}</div>;
+          })()}
           <div className="grid grid-cols-3 gap-2 text-center bg-gray-50 rounded-xl p-2 mb-2">
             <div><div className="text-sm font-bold text-gray-700">{total}€</div><div className="text-[9px] text-gray-400 uppercase">Total</div></div>
             <div><div className="text-sm font-bold text-emerald-600">{pagado}€</div><div className="text-[9px] text-gray-400 uppercase">Pagado</div></div>
