@@ -1194,6 +1194,10 @@ function RegistrarPago({modal,onClose,onGuardado}){
         <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Notas (opcional)</div>
         <input value={notas} onChange={e=>setNotas(e.target.value)} className={S} placeholder="Ej: adelanto materiales"/>
       </div>
+      <div>
+        <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Vencimiento del resto (opcional)</div>
+        <input type="date" value={vencimiento} onChange={e=>setVencimiento(e.target.value)} className={S}/>
+      </div>
       <button onClick={guardar} disabled={guardando} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-xl font-bold text-sm transition disabled:opacity-50">{guardando?"Guardando...":"✅ Registrar pago"}</button>
     </div>
   </Modal>;
