@@ -1076,7 +1076,7 @@ function Finanzas({data,setData,onBack,toast}){
   const[pagos,setPagos]=useState([]);
   const[cargando,setCargando]=useState(true);
   const[modal,setModal]=useState(null);
-
+const[filtro,setFiltro]=useState("todos");
   useEffect(()=>{
     supabase.from('pagos_colaborador').select('*').order('fecha',{ascending:false}).then(({data})=>{setPagos(data||[]);setCargando(false);});
   },[]);
