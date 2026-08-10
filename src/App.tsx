@@ -90,8 +90,10 @@ const dbSaveTrabajo = async(trabajo) => {
     presupuesto_colaborador: trabajo.presupuestoColaborador||trabajo.presupuesto_colaborador||null,
     margen: trabajo.margen||30,
     precio_cliente: trabajo.precioCliente||trabajo.precio_cliente||null,
-    notas: trabajo.notas||'',
+   notas: trabajo.notas||'',
     historial: JSON.stringify(trabajo.historial||[]),
+    partidas: trabajo.partidas||null,
+    iva: trabajo.iva||21,
   };
   if (trabajo.id) { const {data} = await supabase.from('trabajos').update(row).eq('id',trabajo.id).select(); return data?.[0]; }
   else { const {data} = await supabase.from('trabajos').insert(row).select(); return data?.[0]; }
