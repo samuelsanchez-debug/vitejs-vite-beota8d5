@@ -357,12 +357,24 @@ const partes=notas.split('|').map(n=>n.trim());
         </div>}        {comentCliente&&<div className="text-sm text-gray-600 bg-yellow-50 border border-yellow-100 rounded-lg px-3 py-2">💬 Cliente: {comentCliente}</div>}
       </div>}
 
-      <div className="px-4 py-3 bg-gray-900">
-        <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">Financiero</div>
-        <div className="grid grid-cols-3 gap-2 text-center">
-          <div><div className="text-base font-bold text-red-400">{getPresupColab(t)?`${getPresupColab(t)}€`:"—"}</div><div className="text-[10px] text-gray-400">Colab.</div></div>
-          <div><div className="text-base font-bold text-blue-400">{t.margen||30}%</div><div className="text-[10px] text-gray-400">Margen</div></div>
-          <div><div className="text-base font-bold text-emerald-400">{getPrecioCliente(t)?`${getPrecioCliente(t)}€`:"—"}</div><div className="text-[10px] text-gray-400">Cliente</div></div>
+      <div className="px-4 py-4 bg-gray-50 border-y border-gray-100">
+        <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-3">Económico</div>
+        <div className="flex items-center justify-between">
+          <div className="text-center flex-1">
+            <div className="text-xl font-black text-emerald-600">{getPrecioCliente(t)?`${getPrecioCliente(t)}€`:"—"}</div>
+            <div className="text-[10px] text-gray-400 mt-0.5">Cliente</div>
+          </div>
+          <div className="text-gray-300 text-lg font-bold px-1">−</div>
+          <div className="text-center flex-1">
+            <div className="text-xl font-black text-red-500">{getPresupColab(t)?`${getPresupColab(t)}€`:"—"}</div>
+            <div className="text-[10px] text-gray-400 mt-0.5">Colaborador</div>
+          </div>
+          <div className="text-gray-300 text-lg font-bold px-1">=</div>
+          <div className="text-center flex-1">
+            <div className="text-xl font-black text-blue-600">{getPrecioCliente(t)&&getPresupColab(t)?`${getPrecioCliente(t)-getPresupColab(t)}€`:"—"}</div>
+            <div className="text-[10px] text-gray-400 mt-0.5">Margen</div>
+            {getPrecioCliente(t)&&getPresupColab(t)>0&&<div className="text-[10px] font-bold text-blue-500 bg-blue-50 rounded-full px-2 py-0.5 mt-1 inline-block">{Math.round((getPrecioCliente(t)-getPresupColab(t))/getPresupColab(t)*100)}%</div>}
+          </div>
         </div>
       </div>
 
