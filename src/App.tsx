@@ -721,8 +721,7 @@ const[partidas,setPartidas]=useState(t.partidas&&t.partidas.length?t.partidas:[{
       setPdfUrl(pub.publicUrl);
       const notasActuales=getNotas(t).split('|').filter(n=>!n.trim().startsWith('pdfdomia:')).map(n=>n.trim()).join(' | ');
       const hist=[...getHistorial(t),{ts:now(),txt:`PDF Domia generado: ${totalCliente}€`,tipo:"presupuesto"}];
-      const saved=await dbSaveTrabajo({...t,precioCliente:totalCliente,historial:hist,notas:(notasActuales?notasActuales+' | ':'')+`pdfdomia:${pub.publicUrl}`});
-      if(saved)setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));
+const saved=await dbSaveTrabajo({...t,precioCliente:totalCliente,historial:hist,partidas,iva,notas:(notasActuales?notasActuales+' | ':'')+`pdfdomia:${pub.publicUrl}`});      if(saved)setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));
       toast("✅ PDF generado y guardado en la tarjeta");
     }
     setGenerando(false);
