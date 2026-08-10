@@ -644,7 +644,7 @@ const[partidas,setPartidas]=useState([{desc:t.descripcion||"",importe:0}]);  con
     doc.setTextColor(255,255,255);
     doc.setFontSize(10);
     doc.text("Descripción",18,107.5);
-
+    doc.text("Importe",192,107.5,{align:"right"});
    let y=118;
     doc.setTextColor(60,60,60);
     doc.setFontSize(10);
