@@ -316,16 +316,22 @@ const partes=notas.split('|').map(n=>n.trim());
   };
 
   return<div className={`bg-white border rounded-2xl overflow-hidden shadow-sm ${alertColor||"border-gray-100"}`}>
-    <div onClick={()=>setAbierta(!abierta)} className="px-4 py-3.5 cursor-pointer flex justify-between items-center hover:bg-gray-50 transition">
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5 flex-wrap mb-1">
-          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${cfg.bg} ${cfg.text}`}><span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`}/>{t.estado}</span>
-          <span className={`text-[10px] font-bold ${PRIO_CFG[t.prioridad]?.text}`}>{PRIO_CFG[t.prioridad]?.icon}</span>
+   <div onClick={()=>setAbierta(!abierta)} className="px-4 py-3.5 cursor-pointer hover:bg-gray-50 transition">
+      <div className="flex items-center justify-between mb-2.5">
+        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${cfg.bg} ${cfg.text}`}><span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`}/>{t.estado}</span>
+        <div className="flex items-center gap-2">
+          {PRIO_CFG[t.prioridad]?.icon&&<span className={`text-[10px] font-bold ${PRIO_CFG[t.prioridad]?.text}`}>{PRIO_CFG[t.prioridad]?.icon}</span>}
+          <span className={`text-gray-300 text-lg transition-transform ${abierta?"rotate-180":""}`}>▾</span>
         </div>
-        <div className="text-sm font-semibold text-gray-800">{t.tipo} — {cl?.nombre}</div>
-        <div className="text-[11px] text-gray-400 mt-0.5">{co?co.nombre:"Sin colaborador"} · {fmt(t.fecha)}</div>
       </div>
-      <span className={`text-gray-300 text-lg transition-transform flex-shrink-0 ml-2 ${abierta?"rotate-180":""}`}>▾</span>
+      <div className="flex items-center gap-3">
+        <div className="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center text-xl flex-shrink-0">{ICONO_TIPO[t.tipo]||"📋"}</div>
+        <div className="flex-1 min-w-0">
+          <div className="font-bold text-gray-800 text-[15px] leading-tight truncate">{t.tipo}</div>
+          <div className="text-[13px] text-gray-500 truncate">{cl?.nombre}</div>
+          <div className="text-[11px] text-gray-400 mt-0.5 truncate">{co?`👷 ${co.nombre}`:"Sin colaborador"} · {fmt(t.fecha)}</div>
+        </div>
+      </div>
     </div>
 
     {abierta&&<div className="border-t border-gray-100">
