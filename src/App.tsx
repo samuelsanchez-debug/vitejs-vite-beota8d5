@@ -801,6 +801,83 @@ const saved=await dbSaveTrabajo({...t,precioCliente:totalCliente,historial:hist,
     <button onClick={onClose} className="w-full border border-gray-200 text-gray-500 py-2.5 rounded-xl text-sm">Cancelar</button>
   </div>;
 }
+function FichaTrabajo({t,cl,co,data,setData,onClose,toast,setModo}){
+  const notas=getNotas(t);
+  const partes=notas.split('|').map(n=>n.trim());
+  const foto=partes.find(p=>p.startsWith('foto:'))?.replace('foto:','');
+  const pres=partes.find(p=>p.startsWith('presup:'))?.replace('presup:','');
+  const pdfD=partes.find(p=>p.startsWith('pdfdomia:'))?.replace('pdfdomia:','');
+  const disp=partes.find(p=>p.startsWith('disponibilidad:'))?.replace('disponibilidad:','').trim();
+  const comentCli=partes.find(p=>p.startsWith('cliente:'))?.replace('cliente:','').trim();
+  const cfg=ESTADO_CFG[t.estado]||{bg:"bg-gray-100",text:"text-gray-500",dot:"bg-gray-300"};
+  const precio=getPrecioCliente(t)||0;
+  const colab=getPresupColab(t)||0;
+  const margen=precio-colab;
+  const tel=(cl?.telefono||"").replace(/\s/g,'');
+
+  return<div className="grid grid-cols-1 lg:grid-cols-[0.85fr_1.3fr_0.85fr] gap-3">
+
+    <div className="space-y-3">
+      <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+        <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-3">Cliente</div>
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold">{cl?.nombre?.[0]||"?"}</div>
+          <div className="min-w-0"><div className="font-semibold text-gray-800 truncate">{cl?.nombre}</div><div className="text-xs text-gray-500">{cl?.telefono}</div></div>
+        </div>
+        <div className="flex gap-2">
+          {tel&&<a href={`https://wa.me/${tel.replace('+','')}`} target="_blank" className="flex-1 text-center py-2 rounded-lg bg-green-50 text-green-600 text-sm">💬</a>}
+          {tel&&<a href={`tel:${tel}`} className="flex-1 text-center py-2 rounded-lg bg-gray-50 text-gray-600 text-sm">📞</a>}
+          {cl?.email&&<a href={`mailto:${cl.email}`} className="flex-1 text-center py-2 rounded-lg bg-gray-50 text-gray-600 text-sm">✉️</a>}
+        </div>
+      </div>
+      <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+        <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">Dirección</div>
+        <div className="text-sm text-gray-700">{cl?.direccion||"—"}</div>
+        {cl?.direccion&&<a href={`https://maps.google.com/?q=${encodeURIComponent(cl.direccion)}`} target="_blank" className="text-xs text-blue-600 mt-2 inline-block">📍 Ver en mapa</a>}
+      </div>
+    </div>
+
+    <div className="space-y-3">
+      <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${cfg.bg} ${cfg.text} mb-3`}><span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`}/>{t.estado}</span>
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-xl">{ICONO_TIPO[t.tipo]||"📋"}</div>
+          <div className="text-lg font-bold text-gray-800">{t.tipo}</div>
+        </div>
+        <div className="flex gap-6 pt-3 border-t border-gray-100 text-xs">
+          <div><div className="text-gray-400">Fecha</div><div className="font-semibold text-gray-700">{fmt(t.fecha)} · {t.hora}</div></div>
+          <div><div className="text-gray-400">Colaborador</div><div className="font-semibold text-gray-700">{co?.nombre||"—"}</div></div>
+        </div>
+      </div>
+      <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+        <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">Descripción</div>
+        <div className="text-sm text-gray-700 leading-relaxed">{t.descripcion}</div>
+      </div>
+      {disp&&<div className="bg-teal-50 border border-teal-100 rounded-2xl p-4"><div className="text-[10px] text-teal-600 uppercase font-bold mb-1">📅 Disponibilidad colaborador</div><div className="text-sm text-teal-800">{disp}</div></div>}
+      {comentCli&&<div className="bg-yellow-50 border border-yellow-100 rounded-2xl p-4"><div className="text-[10px] text-yellow-700 uppercase font-bold mb-1">💬 Nota del cliente</div><div className="text-sm text-gray-700">{comentCli}</div></div>}
+      {foto&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm"><div className="text-[10px] text-gray-400 uppercase font-bold mb-2">📎 Foto del cliente</div><img src={foto} className="w-full rounded-xl max-h-56 object-cover cursor-pointer" onClick={()=>window.open(foto,"_blank")}/></div>}
+    </div>
+
+    <div className="space-y-3">
+      <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+        <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-3">Resumen económico</div>
+        <div className="flex justify-between text-sm mb-1.5"><span className="text-gray-500">Cliente</span><span className="font-bold text-emerald-600">{precio?`${precio}€`:"—"}</span></div>
+        <div className="flex justify-between text-sm mb-2"><span className="text-gray-500">Colaborador</span><span className="font-bold text-red-500">{colab?`${colab}€`:"—"}</span></div>
+        <div className="flex justify-between text-sm pt-2 border-t border-gray-100"><span className="font-semibold">Margen</span><span className="font-bold text-blue-600">{precio&&colab?`${margen}€`:"—"}</span></div>
+      </div>
+      {(pres||pdfD)&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm space-y-2">
+        <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-1">Archivos</div>
+        {pres&&<a href={pres} target="_blank" className="block text-sm text-purple-700 font-semibold hover:underline">📄 Presupuesto colaborador →</a>}
+        {pdfD&&<a href={pdfD} target="_blank" className="block text-sm text-emerald-700 font-semibold hover:underline">📄 Presupuesto Domia →</a>}
+      </div>}
+      <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm space-y-2">
+        <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-1">Acciones</div>
+        <button onClick={()=>setModo("presupuesto")} className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-xl font-bold text-sm transition">📄 Generar presupuesto</button>
+        <button onClick={()=>setModo("editar")} className="w-full bg-white border border-gray-200 text-gray-600 py-2.5 rounded-xl font-bold text-sm hover:border-gray-400 transition">✏️ Editar trabajo</button>
+      </div>
+    </div>
+  </div>;
+}
 function TrabajoModal({tid,data,setData,onClose,toast}){
   const t=data.trabajos.find(x=>x.id===tid||x.id===+tid);
 const[modo,setModo]=useState<"ver"|"editar"|"presupuesto">(window.__abrirPresupuesto?"presupuesto":"ver");
