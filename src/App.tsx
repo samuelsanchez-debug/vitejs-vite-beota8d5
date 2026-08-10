@@ -601,6 +601,7 @@ const nuevoColab={nombre:s.nombre,telefono:s.telefono,whatsapp:s.telefono.replac
 }
 function EditorPresupuesto({t,cl,co,data,setData,onClose,toast}){
 const[partidas,setPartidas]=useState([{desc:t.descripcion||"",importe:0}]);  const[margen,setMargen]=useState(t.margen||30);
+  const[iva,setIva]=useState(21);
   const totalColab=partidas.reduce((s,p)=>s+(+p.importe||0),0);
   const totalCliente=Math.round(totalColab*(1+margen/100));
   const addPartida=()=>setPartidas(p=>[...p,{desc:"",importe:0}]);
