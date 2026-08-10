@@ -802,6 +802,7 @@ const saved=await dbSaveTrabajo({...t,precioCliente:totalCliente,historial:hist,
   </div>;
 }
 function FichaTrabajo({t,cl,co,data,setData,onClose,toast,setModo}){
+  const[tab,setTab]=useState("resumen");
   const notas=getNotas(t);
   const partes=notas.split('|').map(n=>n.trim());
   const foto=partes.find(p=>p.startsWith('foto:'))?.replace('foto:','');
