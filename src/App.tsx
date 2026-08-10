@@ -600,7 +600,7 @@ const nuevoColab={nombre:s.nombre,telefono:s.telefono,whatsapp:s.telefono.replac
   </div>;
 }
 function EditorPresupuesto({t,cl,co,data,setData,onClose,toast}){
-const[partidas,setPartidas]=useState(t.partidas&&t.partidas.length?t.partidas:[{desc:t.descripcion||"",importe:0}]);  const[iva,setIva]=useState(21);
+const[partidas,setPartidas]=useState(t.partidas&&t.partidas.length?t.partidas:[{desc:t.descripcion||"",importe:0}]);  const[iva,setIva]=useState(t.iva||21);
   const totalColab=partidas.reduce((s,p)=>s+(+p.importe||0),0);
   const totalCliente=Math.round(totalColab*(1+margen/100));
   const addPartida=()=>setPartidas(p=>[...p,{desc:"",importe:0}]);
