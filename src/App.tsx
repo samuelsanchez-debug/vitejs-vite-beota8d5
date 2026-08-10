@@ -839,7 +839,7 @@ function FichaTrabajo({t,cl,co,data,setData,onClose,toast,setModo}){
     </div>
 
     <div className="space-y-3">
-      <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+  <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${cfg.bg} ${cfg.text} mb-3`}><span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`}/>{t.estado}</span>
         <div className="flex items-center gap-3 mb-3">
           <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-xl">{ICONO_TIPO[t.tipo]||"📋"}</div>
@@ -850,13 +850,49 @@ function FichaTrabajo({t,cl,co,data,setData,onClose,toast,setModo}){
           <div><div className="text-gray-400">Colaborador</div><div className="font-semibold text-gray-700">{co?.nombre||"—"}</div></div>
         </div>
       </div>
-      <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-        <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">Descripción</div>
-        <div className="text-sm text-gray-700 leading-relaxed">{t.descripcion}</div>
+
+      <div className="flex gap-1 border-b border-gray-200">
+        {[["resumen","Resumen"],["presupuesto","Presupuesto"],["archivos","Archivos"],["historial","Historial"]].map(([k,label])=>(
+          <button key={k} onClick={()=>setTab(k)} className={`px-3 py-2 text-sm font-semibold transition border-b-2 -mb-px ${tab===k?"border-[#1E3A5F] text-[#1E3A5F]":"border-transparent text-gray-400 hover:text-gray-600"}`}>{label}</button>
+        ))}
       </div>
-      {disp&&<div className="bg-teal-50 border border-teal-100 rounded-2xl p-4"><div className="text-[10px] text-teal-600 uppercase font-bold mb-1">📅 Disponibilidad colaborador</div><div className="text-sm text-teal-800">{disp}</div></div>}
-      {comentCli&&<div className="bg-yellow-50 border border-yellow-100 rounded-2xl p-4"><div className="text-[10px] text-yellow-700 uppercase font-bold mb-1">💬 Nota del cliente</div><div className="text-sm text-gray-700">{comentCli}</div></div>}
-      {foto&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm"><div className="text-[10px] text-gray-400 uppercase font-bold mb-2">📎 Foto del cliente</div><img src={foto} className="w-full rounded-xl max-h-56 object-cover cursor-pointer" onClick={()=>window.open(foto,"_blank")}/></div>}
+
+      {tab==="resumen"&&<div className="space-y-3">
+        <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+          <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">Descripción</div>
+          <div className="text-sm text-gray-700 leading-relaxed">{t.descripcion}</div>
+        </div>
+        {disp&&<div className="bg-teal-50 border border-teal-100 rounded-2xl p-4"><div className="text-[10px] text-teal-600 uppercase font-bold mb-1">📅 Disponibilidad colaborador</div><div className="text-sm text-teal-800">{disp}</div></div>}
+        {comentCli&&<div className="bg-yellow-50 border border-yellow-100 rounded-2xl p-4"><div className="text-[10px] text-yellow-700 uppercase font-bold mb-1">💬 Nota del cliente</div><div className="text-sm text-gray-700">{comentCli}</div></div>}
+      </div>}
+
+      {tab==="presupuesto"&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+        {t.partidas&&t.partidas.length?<div className="space-y-2">
+          <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">Partidas · IVA {t.iva||21}%</div>
+          {t.partidas.filter(p=>p.desc).map((p,i)=><div key={i} className="flex justify-between text-sm border-b border-gray-50 py-1.5">
+            <span className="text-gray-700">{p.desc}</span>
+            <span className="font-semibold text-gray-800 whitespace-nowrap ml-2">{Math.round((+p.importe||0)*(1+(t.margen||30)/100))}€</span>
+          </div>)}
+          <div className="flex justify-between text-base font-bold pt-2"><span>Total cliente</span><span className="text-emerald-600">{precio}€</span></div>
+        </div>:<div className="text-center py-6 text-sm text-gray-400">Sin presupuesto generado aún</div>}
+      </div>}
+
+      {tab==="archivos"&&<div className="space-y-3">
+        {foto&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm"><div className="text-[10px] text-gray-400 uppercase font-bold mb-2">📷 Foto del cliente</div><img src={foto} className="w-full rounded-xl max-h-56 object-cover cursor-pointer" onClick={()=>window.open(foto,"_blank")}/></div>}
+        {pres&&<a href={pres} target="_blank" className="block bg-white border border-gray-100 rounded-2xl p-4 shadow-sm text-sm text-purple-700 font-semibold hover:underline">📄 Presupuesto del colaborador →</a>}
+        {pdfD&&<a href={pdfD} target="_blank" className="block bg-white border border-gray-100 rounded-2xl p-4 shadow-sm text-sm text-emerald-700 font-semibold hover:underline">📄 Presupuesto Domia →</a>}
+        {!foto&&!pres&&!pdfD&&<div className="text-center py-6 text-sm text-gray-400">Sin archivos</div>}
+      </div>}
+
+      {tab==="historial"&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+        <div className="space-y-2 max-h-80 overflow-y-auto">
+          {getHistorial(t).slice().reverse().map((h,i)=><div key={i} className="flex gap-2 text-xs">
+            <span className="text-gray-300">•</span>
+            <div><div className="text-gray-700">{h.txt}</div><div className="text-gray-400">{h.ts}</div></div>
+          </div>)}
+          {getHistorial(t).length===0&&<div className="text-center py-4 text-sm text-gray-400">Sin historial</div>}
+        </div>
+      </div>}
     </div>
 
     <div className="space-y-3">
