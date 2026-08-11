@@ -799,8 +799,7 @@ const saved=await dbSaveTrabajo({...t,precioCliente:totalCliente,historial:hist,
     </div>
     <button onClick={generarPDF} className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-bold text-sm transition">📄 Generar PDF Domia ({totalCliente}€)</button>
     {pdfUrl&&cl?.telefono&&<button onClick={async()=>{
-      const msg=`Hola ${cl.nombre.split(" ")[0]} 😊\n\nTu presupuesto de *Domia Services* ya está listo.\n\n💶 Total: *${totalCliente}€* (sin IVA)\n\n📄 Descárgalo aquí:\n${pdfUrl}\n\nCualquier duda me dices. ¡Gracias!\n\n— Samuel · Domia Services · 685 917 059`;
-      window.open(`https://wa.me/${cl.telefono.replace(/\s/g,'')}?text=${encodeURIComponent(msg)}`,"_blank");
+const msg=`Hola ${cl.nombre.split(" ")[0]} 😊\n\nTu presupuesto de *Domia Services* ya está listo.\n\n💶 Total: *${totalCliente}€* (sin IVA)\n\n📄 Verlo y aceptarlo aquí:\nhttps://domia-crm-two.vercel.app/aceptar/${t.id}\n\nCualquier duda me dices. ¡Gracias!\n\n— Samuel · Domia Services · 685 917 059`;      window.open(`https://wa.me/${cl.telefono.replace(/\s/g,'')}?text=${encodeURIComponent(msg)}`,"_blank");
       const hist=[...getHistorial(t),{ts:now(),txt:`Presupuesto enviado al cliente: ${totalCliente}€`,tipo:"cliente"}];
       const saved=await dbSaveTrabajo({...t,estado:"Presupuesto enviado",precioCliente:totalCliente,historial:hist,notas:getNotas(t)+` | pdfdomia:${pdfUrl}`});
       if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("📤 Presupuesto enviado");onClose();}
