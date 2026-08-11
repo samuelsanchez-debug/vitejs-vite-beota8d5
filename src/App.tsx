@@ -929,6 +929,19 @@ function FichaTrabajo({t,cl,co,data,setData,onClose,toast,setModo}){
         <div className="flex justify-between text-sm mb-2"><span className="text-gray-500">Colaborador</span><span className="font-bold text-red-500">{colab?`${colab}€`:"—"}</span></div>
         <div className="flex justify-between text-sm pt-2 border-t border-gray-100"><span className="font-semibold">Margen</span><span className="font-bold text-blue-600">{precio&&colab?`${margen}€`:"—"}</span></div>
       </div>
+      {pdfD&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+        <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-3">Aceptación cliente</div>
+        <div className={`flex items-center gap-2 mb-3 text-sm font-bold ${t.aceptado_cliente?"text-emerald-600":"text-amber-600"}`}>
+          <span>{t.aceptado_cliente?"✅":"⏳"}</span>
+          <span>{t.aceptado_cliente?"Cliente ha aceptado":"Pendiente de aceptar"}</span>
+        </div>
+        <div className="bg-amber-50 rounded-xl p-3 mb-3">
+          <div className="text-[10px] text-amber-700 font-bold uppercase mb-0.5">Adelanto a pagar</div>
+          <div className="text-2xl font-black text-amber-600">{adelanto}€</div>
+          <div className="text-[10px] text-amber-600 mt-0.5">{t.adelanto_tipo==='fijo'?'Importe fijo':`${t.adelanto_valor||30}% del total con IVA (${totalIva}€)`}</div>
+        </div>
+        <button onClick={()=>{navigator.clipboard.writeText(linkAceptar);toast("🔗 Enlace copiado");}} className="w-full bg-gray-50 border border-gray-200 text-gray-600 py-2 rounded-xl text-xs font-bold hover:border-gray-400 transition">🔗 Copiar enlace de aceptación</button>
+      </div>}
       {(pres||pdfD)&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm space-y-2">
         <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-1">Archivos</div>
         {pres&&<a href={pres} target="_blank" className="block text-sm text-purple-700 font-semibold hover:underline">📄 Presupuesto colaborador →</a>}
