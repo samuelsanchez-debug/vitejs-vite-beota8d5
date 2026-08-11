@@ -529,6 +529,7 @@ function Colaboradores({data,setData,onBack,toast}){
         <Fld label="Teléfono"><input className={S} value={f.telefono||""} onChange={e=>setF(x=>({...x,telefono:e.target.value}))}/></Fld>
         <Fld label="WhatsApp (34...)"><input className={S} value={f.whatsapp||""} onChange={e=>setF(x=>({...x,whatsapp:e.target.value}))} placeholder="34666..."/></Fld>
       </div>
+      <Fld label="Email *"><input className={S} type="email" value={f.email||""} onChange={e=>setF(x=>({...x,email:e.target.value}))} placeholder="colaborador@email.com"/></Fld>
       <Fld label="Zona"><input className={S} value={f.zona||""} onChange={e=>setF(x=>({...x,zona:e.target.value}))}/></Fld>
       <Fld label="Especialidades"><div className="flex flex-wrap gap-1.5">{TIPOS.map(t=><button key={t} type="button" onClick={()=>tE(t)} className={`text-xs px-2.5 py-1 rounded-full border transition ${f.especialidades?.includes(t)?"bg-[#1E3A5F] text-white border-[#1E3A5F]":"bg-white text-gray-500 border-gray-200 hover:border-[#1E3A5F]"}`}>{t}</button>)}</div></Fld>
       <Fld label="Disponibilidad"><div className="flex gap-1.5">{DIAS.map((d,i)=><button key={i} type="button" onClick={()=>tD(i)} className={`flex-1 text-[10px] py-2 rounded-lg font-bold transition ${f.disponibilidad?.includes(i)?"bg-emerald-500 text-white":"bg-gray-100 text-gray-400"}`}>{d}</button>)}</div></Fld>
