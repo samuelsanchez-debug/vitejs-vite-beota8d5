@@ -930,15 +930,20 @@ function FichaTrabajo({t,cl,co,data,setData,onClose,toast,setModo}){
         <div className="flex justify-between text-sm pt-2 border-t border-gray-100"><span className="font-semibold">Margen</span><span className="font-bold text-blue-600">{precio&&colab?`${margen}€`:"—"}</span></div>
       </div>
       {pdfD&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-        <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-3">Aceptación cliente</div>
-        <div className={`flex items-center gap-2 mb-3 text-sm font-bold ${t.aceptado_cliente?"text-emerald-600":"text-amber-600"}`}>
-          <span>{t.aceptado_cliente?"✅":"⏳"}</span>
-          <span>{t.aceptado_cliente?"Cliente ha aceptado":"Pendiente de aceptar"}</span>
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Estado cliente</span>
+          <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${t.aceptado_cliente?"bg-emerald-100 text-emerald-700":"bg-amber-100 text-amber-700"}`}>{t.aceptado_cliente?"Aceptado":"Pendiente"}</span>
         </div>
-        <div className="bg-amber-50 rounded-xl p-3 mb-3">
-          <div className="text-[10px] text-amber-700 font-bold uppercase mb-0.5">Adelanto a pagar</div>
-          <div className="text-2xl font-black text-amber-600">{adelanto}€</div>
-          <div className="text-[10px] text-amber-600 mt-0.5">{t.adelanto_tipo==='fijo'?'Importe fijo':`${t.adelanto_valor||30}% del total con IVA (${totalIva}€)`}</div>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[10px] text-gray-400 uppercase font-bold">Adelanto</span>
+          <div className="flex items-center gap-1">
+            <input type="number" defaultValue={t.adelanto_valor||30} onBlur={async e=>{const v=+e.target.value||0;await supabase.from('trabajos').update({adelanto_valor:v}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,adelanto_valor:v}:x)}));toast("✅ Adelanto actualizado");}} className="w-16 border border-gray-200 rounded-lg px-2 py-1 text-sm text-right"/>
+            <button onClick={async()=>{const nuevo=t.adelanto_tipo==='fijo'?'porcentaje':'fijo';await supabase.from('trabajos').update({adelanto_tipo:nuevo}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,adelanto_tipo:nuevo}:x)}));toast(`Adelanto en ${nuevo==='fijo'?'€ fijo':'%'}`);}} className="text-xs bg-gray-100 px-2 py-1 rounded-lg font-bold">{t.adelanto_tipo==='fijo'?'€':'%'}</button>
+          </div>
+        </div>
+        <div className="text-center bg-amber-50 rounded-xl py-2 mb-3">
+          <div className="text-xl font-black text-amber-600">{adelanto}€</div>
+          <div className="text-[10px] text-amber-600">a pagar por el cliente</div>
         </div>
         <button onClick={()=>{navigator.clipboard.writeText(linkAceptar);toast("🔗 Enlace copiado");}} className="w-full bg-gray-50 border border-gray-200 text-gray-600 py-2 rounded-xl text-xs font-bold hover:border-gray-400 transition">🔗 Copiar enlace de aceptación</button>
       </div>}
