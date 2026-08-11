@@ -561,8 +561,15 @@ function Colaboradores({data,setData,onBack,toast}){
           {s.experiencia&&<div className="text-xs text-gray-500 bg-gray-50 rounded-lg p-2 mt-2">{s.experiencia}</div>}
           {s.estado==="Pendiente"&&<div className="flex gap-2 mt-3">
             <button onClick={async()=>{
-const nuevoColab={nombre:s.nombre,telefono:s.telefono,whatsapp:s.telefono.replace('+',''),email:s.email,especialidades:s.especialidades.split(", "),activo:true,zona:s.zona,disponibilidad:[0,1,2,3,4],valoracion:5,trabajosCompletados:0};
-      const saved=await dbSaveColab(nuevoColab);
+const existe=data.colaboradores.find(c=>c.email&&s.email&&c.email.toLowerCase().trim()===s.email.toLowerCase().trim());
+              if(existe){
+                if(!confirm(`Ya existe un colaborador con el email ${s.email} (${existe.nombre}). ¿Marcar esta solicitud como validada sin crear un duplicado?`)){return;}
+                await supabase.from('solicitudes_colaborador').update({estado:"Validado"}).eq('id',s.id);
+                setSolicitudes(prev=>prev.map(x=>x.id===s.id?{...x,estado:"Validado"}:x));
+                toast("✅ Solicitud validada (colaborador ya existía)");
+                return;
+              }
+              const nuevoColab={nombre:s.nombre,telefono:s.telefono,whatsapp:s.telefono.replace('+',''),email:s.email,especialidades:s.especialidades.split(", "),activo:true,zona:s.zona,disponibilidad:[0,1,2,3,4],valoracion:5,trabajosCompletados:0};      const saved=await dbSaveColab(nuevoColab);
               if(saved){
                 setData(d=>({...d,colaboradores:[...d.colaboradores,saved]}));
                 await supabase.from('solicitudes_colaborador').update({estado:"Validado"}).eq('id',s.id);
