@@ -782,10 +782,23 @@ const saved=await dbSaveTrabajo({...t,precioCliente:totalCliente,historial:hist,
           {[21,10,0].map(v=><button key={v} onClick={()=>setIva(v)} className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${iva===v?"bg-emerald-500 text-white":"bg-gray-800 text-gray-400"}`}>{v}%</button>)}
         </div>
       </div>
-      <div className="grid grid-cols-3 gap-2 text-center mt-2">
+     <div className="grid grid-cols-3 gap-2 text-center mt-2">
         <div><div className="text-lg font-black text-red-400">{totalColab}€</div><div className="text-[10px] text-gray-400">Colab.</div></div>
         <div><div className="text-lg font-black text-blue-400">{margen}%</div><div className="text-[10px] text-gray-400">Margen</div></div>
         <div><div className="text-lg font-black text-emerald-400">{totalCliente}€</div><div className="text-[10px] text-gray-400">Base</div></div>
+      </div>
+      <div className="border-t border-gray-700 mt-3 pt-3">
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-[10px] font-bold text-gray-400 uppercase">Adelanto cliente</div>
+          <div className="flex gap-1">
+            <button onClick={()=>setAdelantoTipo("porcentaje")} className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${adelantoTipo==="porcentaje"?"bg-amber-500 text-white":"bg-gray-800 text-gray-400"}`}>%</button>
+            <button onClick={()=>setAdelantoTipo("fijo")} className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${adelantoTipo==="fijo"?"bg-amber-500 text-white":"bg-gray-800 text-gray-400"}`}>€ fijo</button>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <input type="number" value={adelantoValor} onChange={e=>setAdelantoValor(+e.target.value||0)} className="w-24 bg-gray-800 border border-gray-700 rounded-lg px-2 py-1 text-sm text-white text-right focus:outline-none"/>
+          <span className="text-gray-400 text-sm">{adelantoTipo==="porcentaje"?"% del total":"€ fijos"}</span>
+        </div>
       </div>
     </div>
     <div>
