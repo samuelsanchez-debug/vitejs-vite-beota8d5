@@ -1408,6 +1408,93 @@ function RegistrarPago({modal,onClose,onGuardado}){
     </div>
   </Modal>;
 }
+function AceptarPresupuesto({id}){
+  const[trabajo,setTrabajo]=useState(null);
+  const[cliente,setCliente]=useState(null);
+  const[cargando,setCargando]=useState(true);
+  const[estado,setEstado]=useState("ver");
+
+  useEffect(()=>{
+    (async()=>{
+      const{data:t}=await supabase.from('trabajos').select('*').eq('id',id).single();
+      if(t){
+        setTrabajo(t);
+        if(t.aceptado_cliente)setEstado("aceptado");
+        const{data:c}=await supabase.from('clientes').select('*').eq('id',t.cliente_id).single();
+        setCliente(c);
+      }
+      setCargando(false);
+    })();
+  },[id]);
+
+  if(cargando)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-4xl">⚙️</div></div>;
+  if(!trabajo)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4 text-center"><div><div className="text-4xl mb-2">🔍</div><div className="text-gray-600">Presupuesto no encontrado</div></div></div>;
+
+  const notas=trabajo.notas||"";
+  const partes=notas.split('|').map(n=>n.trim());
+  const pdfUrl=partes.find(p=>p.startsWith('pdfdomia:'))?.replace('pdfdomia:','');
+  const total=trabajo.precio_cliente||0;
+  const iva=trabajo.iva||21;
+  const totalConIva=Math.round(total*(1+iva/100));
+  const adelanto=trabajo.adelanto_tipo==='fijo'?trabajo.adelanto_valor:Math.round(totalConIva*(trabajo.adelanto_valor||30)/100);
+
+  const aceptar=async()=>{
+    setEstado("procesando");
+    const hist=JSON.parse(trabajo.historial||"[]");
+    hist.push({ts:new Date().toLocaleString("es-ES"),txt:"✅ Cliente aceptó el presupuesto online",tipo:"ok"});
+    await supabase.from('trabajos').update({estado:"Aceptado",aceptado_cliente:true,historial:JSON.stringify(hist)}).eq('id',id);
+    setEstado("aceptado");
+  };
+
+  return<div className="min-h-screen bg-[#F0F2F5]" style={{fontFamily:"'Inter',system-ui,sans-serif"}}>
+    <div className="bg-[#1E3A5F] px-5 py-6 text-white text-center">
+      <img src="/logo-domia.png" alt="Domia" className="w-20 mx-auto mb-2"/>
+      <div className="text-lg font-black">Tu presupuesto</div>
+      <div className="text-blue-200 text-xs mt-1">Domia Services</div>
+    </div>
+
+    <div className="px-4 py-6 max-w-md mx-auto space-y-4">
+      <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+        <div className="text-sm text-gray-500 mb-1">Hola {cliente?.nombre?.split(" ")[0]||""} 👋</div>
+        <div className="font-bold text-gray-800 text-lg mb-3">{trabajo.tipo}</div>
+        <div className="text-sm text-gray-600 mb-4">{trabajo.descripcion}</div>
+        <div className="bg-[#1E3A5F] rounded-xl p-5 text-white text-center">
+          <div className="text-[10px] text-blue-300 font-bold uppercase tracking-widest mb-1">Total (IVA incl.)</div>
+          <div className="text-4xl font-black text-emerald-400">{totalConIva}€</div>
+          <div className="text-xs text-blue-200 mt-1">Base {total}€ + IVA {iva}%</div>
+        </div>
+      </div>
+
+      {pdfUrl&&<a href={pdfUrl} target="_blank" className="block bg-white rounded-2xl p-4 border border-gray-100 shadow-sm text-center text-sm text-[#1E3A5F] font-bold hover:bg-gray-50 transition">📄 Ver presupuesto detallado (PDF)</a>}
+
+      {estado==="ver"&&<button onClick={aceptar} className="w-full bg-green-500 hover:bg-green-600 text-white py-4 rounded-2xl font-black text-base transition shadow-lg">✅ Acepto el presupuesto</button>}
+      {estado==="procesando"&&<div className="text-center py-4 text-gray-400">Procesando...</div>}
+
+      {estado==="aceptado"&&<>
+        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 text-center">
+          <div className="text-4xl mb-2">✅</div>
+          <div className="font-black text-emerald-800 text-lg">¡Presupuesto aceptado!</div>
+          <div className="text-emerald-700 text-sm mt-1">Gracias por confiar en Domia Services</div>
+        </div>
+        <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+          <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">Reserva tu fecha — Adelanto</div>
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center mb-3">
+            <div className="text-xs text-amber-700 mb-1">Para iniciar el trabajo</div>
+            <div className="text-3xl font-black text-amber-600">{adelanto}€</div>
+          </div>
+          <div className="space-y-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2"><span>📱</span> <span><strong>Bizum:</strong> [tu número aquí]</span></div>
+            <div className="flex items-center gap-2"><span>🏦</span> <span><strong>Transferencia:</strong> [tu IBAN aquí]</span></div>
+            <div className="text-xs text-gray-400 mt-2">Concepto: {trabajo.tipo} #{id}</div>
+          </div>
+        </div>
+        <div className="text-center text-xs text-gray-400">Te contactaremos para coordinar el inicio del trabajo</div>
+      </>}
+
+      <div className="text-center text-xs text-gray-400 pb-4">Domia Services · 685 917 059 · Elche, Alicante</div>
+    </div>
+  </div>;
+}
 function Calculadora(){
   const[precio,setPrecio]=useState("");
   const p=parseFloat(precio)||0;
