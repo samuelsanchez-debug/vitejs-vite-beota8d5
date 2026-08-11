@@ -837,6 +837,10 @@ function FichaTrabajo({t,cl,co,data,setData,onClose,toast,setModo}){
   const precio=getPrecioCliente(t)||0;
   const colab=getPresupColab(t)||0;
   const margen=precio-colab;
+  const iva=t.iva||21;
+  const totalIva=Math.round(precio*(1+iva/100));
+  const adelanto=t.adelanto_tipo==='fijo'?(t.adelanto_valor||0):Math.round(totalIva*(t.adelanto_valor||30)/100);
+  const linkAceptar=`https://domia-crm-two.vercel.app/aceptar/${t.id}`;
   const tel=(cl?.telefono||"").replace(/\s/g,'');
 
   return<div className="grid grid-cols-1 lg:grid-cols-[0.85fr_1.3fr_0.85fr] gap-3">
