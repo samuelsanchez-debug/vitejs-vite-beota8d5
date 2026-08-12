@@ -943,14 +943,6 @@ function FichaTrabajo({t,cl,co,data,setData,onClose,toast,setModo}){
           <div className="text-xl font-black text-amber-600">{adelanto}€</div>
           <div className="text-[10px] text-amber-600">a pagar por el cliente</div>
         </div>
-        <button onClick={()=>{navigator.clipboard.writeText(linkAceptar);toast("🔗 Enlace copiado");}} className="w-full bg-gray-50 border border-gray-200 text-gray-600 py-2 rounded-xl text-xs font-bold hover:border-gray-400 transition">🔗 Copiar enlace de aceptación</button>
-      </div>}
-      {(pres||pdfD)&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm space-y-2">
-        <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-1">Archivos</div>
-        {pres&&<a href={pres} target="_blank" className="block text-sm text-purple-700 font-semibold hover:underline">📄 Presupuesto colaborador →</a>}
-        {pdfD&&<div className="flex items-center gap-2">
-          <a href={pdfD} target="_blank" className="flex-1 text-sm text-emerald-700 font-semibold hover:underline">📄 Presupuesto Domia →</a>
-          <button onClick={()=>setModo("presupuesto")} className="text-xs bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-lg hover:bg-emerald-200 transition">✏️ Editar</button>
         </div>}
       </div>}
       <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm space-y-2">
