@@ -336,7 +336,7 @@ const partes=notas.split('|').map(n=>n.trim());
       </div>
     </div>
 
-    {abierta&&<div className="border-t border-gray-100">
+    {abierta&&<div className="border-t border-gray-100" mt-1>
       <div className="px-4 py-3 grid grid-cols-2 gap-3 border-b border-gray-50">
         <div><div className="text-[10px] text-gray-400 uppercase font-bold mb-0.5">Cliente</div><div className="text-sm font-medium text-gray-800">{cl?.nombre}</div><div className="text-[11px] text-gray-500">{cl?.telefono}</div></div>
         <div><div className="text-[10px] text-gray-400 uppercase font-bold mb-0.5">Colaborador</div><div className="text-sm font-medium text-gray-800">{co?.nombre||"Sin asignar"}</div><div className="text-[11px] text-gray-500">{co?.telefono}</div></div>
