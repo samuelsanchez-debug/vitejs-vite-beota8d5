@@ -432,14 +432,92 @@ const partes=notas.split('|').map(n=>n.trim());
           <button onClick={()=>{window.open(buildWA(co,t,cl),"_blank");toast("📱 WhatsApp...");}} className="w-full bg-green-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-green-600">📱 Reenviar WhatsApp a {co.nombre.split(" ")[0]}</button>
         </>}
 {t.estado==="Colaborador disponible"&&cl?.telefono&&<button onClick={async()=>{window.open(buildWAVisitaCliente(cl,t,co),"_blank");await avanzar("Visita propuesta","Fecha propuesta al cliente por WhatsApp");}} className="w-full bg-cyan-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-cyan-600">📱 Proponer fecha al cliente</button>}
-{t.estado==="Cliente confirmó"&&co&&<button onClick={async()=>{window.open(buildWAConfirmacionColab(co,t,cl),"_blank");await avanzar("En curso","Visita programada — colaborador avisado");}} className="w-full bg-teal-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-teal-600">✅ Avisar colaborador — visita programada</button>}        
-<button onClick={()=>{(window as any).__abrirPresupuesto=true;onVer(t.id);}} className="w-full bg-purple-600 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-purple-700">📄 Generar presupuesto Domia</button>
-        {t.estado==="Presupuesto enviado"&&<>          {pdfDomiaUrl&&cl?.telefono&&<button onClick={()=>{const msg=`Hola ${cl.nombre.split(" ")[0]} 😊\n\nTe paso el presupuesto de *Domia Services*.\n\n💶 Total: *${getPrecioCliente(t)}€* (sin IVA)\n\n📄 Verlo y aceptarlo aquí:\nhttps://domia-crm-two.vercel.app/aceptar/${t.id}\n\nCualquier duda me dices. ¡Gracias!\n\n— Samuel · Domia Services · 685 917 059`;window.open(`https://wa.me/${cl.telefono.replace(/\s/g,'')}?text=${encodeURIComponent(msg)}`,"_blank");toast("📱 Reenviado");}} className="w-full bg-green-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-green-600">📱 Reenviar presupuesto al cliente</button>}
-          <button onClick={()=>avanzar("Aceptado","Cliente aceptó el presupuesto")} className="w-full bg-violet-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-violet-600">🤝 Cliente aceptó</button>
-        </>}
-        {t.estado==="Aceptado"&&<button onClick={()=>avanzar("En curso","Trabajo iniciado")} className="w-full bg-orange-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-orange-600">🔧 Marcar en curso</button>}
-        {t.estado==="En curso"&&<button onClick={()=>avanzar("Completado","Trabajo completado")} className="w-full bg-emerald-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-emerald-600">✅ Marcar completado</button>}
-        <button onClick={()=>onVer(t.id)} className="w-full bg-white border border-gray-200 text-gray-600 py-2.5 rounded-xl text-sm font-semibold transition hover:border-gray-400">✏️ Ver ficha completa / Editar</button>
+{t.estado==="Cliente confirmó"&&co&&(
+  <button
+    onClick={async()=>{
+      window.open(buildWAConfirmacionColab(co,t,cl),"_blank");
+      await avanzar("En curso","Visita programada — colaborador avisado");
+    }}
+    className="w-full bg-teal-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-teal-600"
+  >
+    ✅ Avisar colaborador — visita programada
+  </button>
+)}
+
+<button
+  onClick={()=>{
+    (window as any).__abrirPresupuesto=true;
+    onVer(t.id);
+  }}
+  className="w-full bg-purple-600 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-purple-700"
+>
+  📄 Generar presupuesto Domia
+</button>
+
+{t.estado==="Presupuesto enviado"&&(
+  <>
+    {pdfDomiaUrl&&cl?.telefono&&(
+      <button
+        onClick={()=>{
+          const msg=`Hola ${cl.nombre.split(" ")[0]} 😊
+
+Te paso el presupuesto de *Domia Services*.
+
+💶 Total: *${getPrecioCliente(t)}€* (sin IVA)
+
+📄 Verlo y aceptarlo aquí:
+https://domia-crm-two.vercel.app/aceptar/${t.id}
+
+Cualquier duda me dices. ¡Gracias!
+
+— Samuel · Domia Services · 685 917 059`;
+
+          window.open(
+            `https://wa.me/${cl.telefono.replace(/\s/g,"")}?text=${encodeURIComponent(msg)}`,
+            "_blank"
+          );
+
+          toast("📱 Reenviado");
+        }}
+        className="w-full bg-green-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-green-600"
+      >
+        📱 Reenviar presupuesto al cliente
+      </button>
+    )}
+
+    <button
+      onClick={()=>avanzar("Aceptado","Cliente aceptó el presupuesto")}
+      className="w-full bg-violet-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-violet-600"
+    >
+      🤝 Cliente aceptó
+    </button>
+  </>
+)}
+
+{t.estado==="Aceptado"&&(
+  <button
+    onClick={()=>avanzar("En curso","Trabajo iniciado")}
+    className="w-full bg-orange-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-orange-600"
+  >
+    🔧 Marcar en curso
+  </button>
+)}
+
+{t.estado==="En curso"&&(
+  <button
+    onClick={()=>avanzar("Completado","Trabajo completado")}
+    className="w-full bg-emerald-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-emerald-600"
+  >
+    ✅ Marcar completado
+  </button>
+)}
+
+<button
+  onClick={()=>onVer(t.id)}
+  className="w-full bg-white border border-gray-200 text-gray-600 py-2.5 rounded-xl text-sm font-semibold transition hover:border-gray-400"
+>
+  ✏️ Ver ficha completa / Editar
+</button>
       </div>
     </div>
   </div>;
