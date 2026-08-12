@@ -903,9 +903,12 @@ function FichaTrabajo({t,cl,co,data,setData,onClose,toast,setModo}){
             <span className="font-semibold text-gray-800 whitespace-nowrap ml-2">{Math.round((+p.importe||0)*(1+(t.margen||30)/100))}€</span>
           </div>)}
           <div className="flex justify-between text-base font-bold pt-2"><span>Total cliente</span><span className="text-emerald-600">{precio}€</span></div>
+          {pdfD&&<div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
+            <a href={pdfD} target="_blank" className="flex-1 text-sm text-emerald-700 font-semibold hover:underline">📄 Ver PDF →</a>
+            <button onClick={()=>setModo("presupuesto")} className="text-xs bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-lg hover:bg-emerald-200 transition">✏️ Editar</button>
+          </div>}
         </div>:<div className="text-center py-6 text-sm text-gray-400">Sin presupuesto generado aún</div>}
       </div>}
-
       {tab==="archivos"&&<div className="space-y-3">
         {foto&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm"><div className="text-[10px] text-gray-400 uppercase font-bold mb-2">📷 Foto del cliente</div><img src={foto} className="w-full rounded-xl max-h-56 object-cover cursor-pointer" onClick={()=>window.open(foto,"_blank")}/></div>}
         {pres&&<a href={pres} target="_blank" className="block bg-white border border-gray-100 rounded-2xl p-4 shadow-sm text-sm text-purple-700 font-semibold hover:underline">📄 Presupuesto del colaborador →</a>}
