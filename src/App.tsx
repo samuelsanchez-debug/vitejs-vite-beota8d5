@@ -317,7 +317,7 @@ const partes=notas.split('|').map(n=>n.trim());
     if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast(`→ ${nuevoEstado}`);}
   };
 
- <div className="px-4 py-3.5">
+     return <div className="px-4 py-3.5">
       <div className="flex items-center justify-between mb-2.5">
         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${cfg.bg} ${cfg.text}`}><span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`}/>{t.estado}</span>
         <div className="flex items-center gap-2">
@@ -396,8 +396,7 @@ const partes=notas.split('|').map(n=>n.trim());
         <button onClick={()=>onVer(t.id)} className="w-full bg-white border border-gray-200 text-gray-600 py-2.5 rounded-xl text-sm font-semibold transition hover:border-gray-400">✏️ Ver ficha completa / Editar</button>
       </div>
     </div>}
-  </div>
-    );
+  </div>;
 }
 
 function EstadoDemandas({data,setData,onBack,toast,onVer}){
