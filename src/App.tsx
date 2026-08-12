@@ -348,15 +348,63 @@ const partes=notas.split('|').map(n=>n.trim());
         <div className="text-sm text-teal-800">{disponibilidad}</div>
       </div>}
 
-      {(fotoCliente||presupUrl||pdfDomiaUrl||comentCliente)&&<div className="px-4 py-3 border-b border-gray-50 space-y-2">
-        <div className="text-[10px] text-gray-400 uppercase font-bold">📎 Archivos y notas</div>
-        {fotoCliente&&<a href={fotoCliente} target="_blank" className="block text-sm text-blue-700 font-semibold hover:underline">🖼️ Foto del cliente →</a>}
-        {presupUrl&&<a href={presupUrl} target="_blank" className="block text-sm text-purple-700 font-semibold hover:underline">📄 Presupuesto del colaborador →</a>}
-{pdfDomiaUrl&&<div className="flex items-center gap-2">
-          <a href={pdfDomiaUrl} target="_blank" className="flex-1 text-sm text-emerald-700 font-semibold hover:underline">📄 Presupuesto Domia →</a>
-          <button onClick={()=>{(window as any).__abrirPresupuesto=true;onVer(t.id);}} className="text-xs bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-lg hover:bg-emerald-200 transition">✏️ Editar</button>
-        </div>        {comentCliente&&<div className="text-sm text-gray-600 bg-yellow-50 border border-yellow-100 rounded-lg px-3 py-2">💬 Cliente: {comentCliente}</div>}
-      </div>}
+     {(fotoCliente || presupUrl || pdfDomiaUrl || comentCliente) && (
+  <div className="px-4 py-3 border-b border-gray-50 space-y-2">
+    
+    <div className="text-[10px] text-gray-400 uppercase font-bold">
+      📎 Archivos y notas
+    </div>
+
+    {fotoCliente && (
+      <a
+        href={fotoCliente}
+        target="_blank"
+        className="block text-sm text-blue-700 font-semibold hover:underline"
+      >
+        🖼️ Foto del cliente →
+      </a>
+    )}
+
+    {presupUrl && (
+      <a
+        href={presupUrl}
+        target="_blank"
+        className="block text-sm text-purple-700 font-semibold hover:underline"
+      >
+        📄 Presupuesto del colaborador →
+      </a>
+    )}
+
+    {pdfDomiaUrl && (
+      <div className="flex items-center gap-2">
+        <a
+          href={pdfDomiaUrl}
+          target="_blank"
+          className="flex-1 text-sm text-emerald-700 font-semibold hover:underline"
+        >
+          📄 Presupuesto Domia →
+        </a>
+
+        <button
+          onClick={() => {
+            (window as any).__abrirPresupuesto = true;
+            onVer(t.id);
+          }}
+          className="text-xs bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-lg hover:bg-emerald-200 transition"
+        >
+          ✏️ Editar
+        </button>
+      </div>
+    )}
+
+    {comentCliente && (
+      <div className="text-sm text-gray-600 bg-yellow-50 border border-yellow-100 rounded-lg px-3 py-2">
+        💬 Cliente: {comentCliente}
+      </div>
+    )}
+
+  </div>
+)}
 
       <div className="px-4 py-4 bg-gray-50 border-y border-gray-100">
         <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-3">Económico</div>
