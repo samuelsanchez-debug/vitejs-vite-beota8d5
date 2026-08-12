@@ -1479,11 +1479,18 @@ function AceptarPresupuesto({id}){
   const totalConIva=Math.round(total*(1+iva/100));
   const adelanto=trabajo.adelanto_tipo==='fijo'?trabajo.adelanto_valor:Math.round(totalConIva*(trabajo.adelanto_valor||30)/100);
 
-  const aceptar=async()=>{
+ const aceptar=async()=>{
     setEstado("procesando");
     const hist=JSON.parse(trabajo.historial||"[]");
     hist.push({ts:new Date().toLocaleString("es-ES"),txt:"✅ Cliente aceptó el presupuesto online",tipo:"ok"});
     await supabase.from('trabajos').update({estado:"Aceptado",aceptado_cliente:true,historial:JSON.stringify(hist)}).eq('id',id);
+    try{
+      await fetch("https://opijkazhbktiikdzbanb.supabase.co/functions/v1/notificar-aceptacion",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({tipo:trabajo.tipo,cliente:cliente?.nombre,id,total:totalConIva,adelanto}),
+      });
+    }catch(err){}
     setEstado("aceptado");
   };
 
