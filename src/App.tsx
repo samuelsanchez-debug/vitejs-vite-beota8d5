@@ -101,6 +101,8 @@ const dbSaveTrabajo = async(trabajo) => {
     iva: trabajo.iva||21,
     adelanto_tipo: trabajo.adelanto_tipo||'porcentaje',
     adelanto_valor: trabajo.adelanto_valor||30,
+    atendido: trabajo.atendido||false,
+    ultima_novedad: trabajo.ultima_novedad||null,
   };
   if (trabajo.id) { const {data} = await supabase.from('trabajos').update(row).eq('id',trabajo.id).select(); return data?.[0]; }
   else { const {data} = await supabase.from('trabajos').insert(row).select(); return data?.[0]; }
