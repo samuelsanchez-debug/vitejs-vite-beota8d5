@@ -333,8 +333,8 @@ function TarjetaTrabajo({t,data,setData,toast,onVer,alertColor}){
         <div className="flex-1 min-w-0 cursor-pointer" onClick={()=>onVer(t.id)}>
           <div className="font-bold text-gray-800 text-[15px] leading-tight truncate">{t.tipo}</div>
           <div className="text-[13px] text-gray-500 truncate">{cl?.nombre}</div>
-          <div className="text-[11px] text-gray-400 mt-0.5 truncate">{co?`👷 ${co.nombre}`:"Sin colaborador"} · {fmt(t.fecha)}</div>
-        </div>
+<div className="text-[11px] text-gray-400 mt-0.5 truncate">{co?`👷 ${co.nombre}`:"Sin colaborador"} · {fmt(t.fecha)}</div>
+          {t.ultima_novedad&&!t.atendido&&<div className="text-[11px] text-amber-600 font-bold mt-0.5 truncate">🔔 {t.ultima_novedad}</div>}        </div>
 <button onClick={async(e)=>{e.stopPropagation();await supabase.from('trabajos').update({atendido:true}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,atendido:true}:x)}));toast("✓ Marcado como atendido");}} className="flex-shrink-0 bg-gray-100 text-gray-500 text-xs font-bold px-2.5 py-2 rounded-xl hover:bg-emerald-100 hover:text-emerald-600 transition">✓</button>
         <button onClick={()=>onVer(t.id)} className="flex-shrink-0 bg-[#1E3A5F] text-white text-xs font-bold px-3 py-2 rounded-xl hover:bg-[#152d4a] transition">Ver ficha</button>      </div>
     </div>
