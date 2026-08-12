@@ -375,8 +375,9 @@ const partes=notas.split('|').map(n=>n.trim());
             <div className="text-xl font-black text-blue-600">{getPrecioCliente(t)&&getPresupColab(t)?`${getPrecioCliente(t)-getPresupColab(t)}€`:"—"}</div>
             <div className="text-[10px] text-gray-400 mt-0.5">Margen</div>
             {getPrecioCliente(t)&&getPresupColab(t)>0&&<div className="text-[10px] font-bold text-blue-500 bg-blue-50 rounded-full px-2 py-0.5 mt-1 inline-block">{Math.round((getPrecioCliente(t)-getPresupColab(t))/getPresupColab(t)*100)}%</div>}
-          </div>
+         </div>
         </div>
+      </div>
 
       <div className="px-4 py-3 space-y-2">
         <div className="text-[10px] text-gray-400 uppercase font-bold mb-1">Acciones</div>
@@ -394,7 +395,6 @@ const partes=notas.split('|').map(n=>n.trim());
         {t.estado==="En curso"&&<button onClick={()=>avanzar("Completado","Trabajo completado")} className="w-full bg-emerald-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-emerald-600">✅ Marcar completado</button>}
         <button onClick={()=>onVer(t.id)} className="w-full bg-white border border-gray-200 text-gray-600 py-2.5 rounded-xl text-sm font-semibold transition hover:border-gray-400">✏️ Ver ficha completa / Editar</button>
       </div>
-        </div>
     </div>}
   </div>;
 }
