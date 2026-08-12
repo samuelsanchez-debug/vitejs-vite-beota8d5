@@ -895,18 +895,11 @@ function FichaTrabajo({t,cl,co,data,setData,onClose,toast,setModo}){
         {comentCli&&<div className="bg-yellow-50 border border-yellow-100 rounded-2xl p-4"><div className="text-[10px] text-yellow-700 uppercase font-bold mb-1">💬 Nota del cliente</div><div className="text-sm text-gray-700">{comentCli}</div></div>}
       </div>}
 
-      {tab==="presupuesto"&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-        {t.partidas&&t.partidas.length?<div className="space-y-2">
-          {t.partidas.filter(p=>p.desc).map((p,i)=><div key={i} className="flex justify-between text-sm border-b border-gray-50 py-1.5">
-            <span className="text-gray-700">{p.desc}</span>
-            <span className="font-semibold text-gray-800 whitespace-nowrap ml-2">{Math.round((+p.importe||0)*(1+(t.margen||30)/100))}€</span>
-          </div>)}
-          <div className="flex justify-between text-base font-bold pt-2"><span>Total cliente</span><span className="text-emerald-600">{precio}€</span></div>
-          {pdfD&&<div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
-            <a href={pdfD} target="_blank" className="flex-1 text-sm text-emerald-700 font-semibold hover:underline">📄 Ver PDF →</a>
-            <button onClick={()=>setModo("presupuesto")} className="text-xs bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-lg hover:bg-emerald-200 transition">✏️ Editar</button>
-          </div>}
-        </div>:<div className="text-center py-6 text-sm text-gray-400">Sin presupuesto generado aún</div>}
+     {tab==="presupuesto"&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+        {pdfD?<div className="space-y-3">
+          <a href={pdfD} target="_blank" className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-sm text-emerald-700 font-semibold hover:bg-emerald-100 transition">📄 Ver presupuesto Domia →</a>
+          <button onClick={()=>setModo("presupuesto")} className="w-full bg-emerald-100 text-emerald-700 font-bold py-2.5 rounded-xl text-sm hover:bg-emerald-200 transition">✏️ Editar presupuesto</button>
+        </div>:<div className="text-center py-6 text-sm text-gray-400">Sin presupuesto generado aún<br/><button onClick={()=>setModo("presupuesto")} className="mt-2 text-purple-600 font-bold text-sm">📄 Generar presupuesto</button></div>}
       </div>}
       {tab==="archivos"&&<div className="space-y-3">
         {foto&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm"><div className="text-[10px] text-gray-400 uppercase font-bold mb-2">📷 Foto del cliente</div><img src={foto} className="w-full rounded-xl max-h-56 object-cover cursor-pointer" onClick={()=>window.open(foto,"_blank")}/></div>}
