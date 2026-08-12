@@ -947,7 +947,6 @@ function FichaTrabajo({t,cl,co,data,setData,onClose,toast,setModo}){
       </div>}
       <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm space-y-2">
         <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-1">Acciones</div>
-        <button onClick={()=>setModo("presupuesto")} className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-xl font-bold text-sm transition">📄 Generar presupuesto</button>
         <button onClick={()=>setModo("editar")} className="w-full bg-white border border-gray-200 text-gray-600 py-2.5 rounded-xl font-bold text-sm hover:border-gray-400 transition">✏️ Editar trabajo</button>
       </div>
     </div>
