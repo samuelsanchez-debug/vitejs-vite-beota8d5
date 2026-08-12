@@ -925,12 +925,6 @@ function FichaTrabajo({t,cl,co,data,setData,onClose,toast,setModo}){
     </div>
 
     <div className="space-y-3">
-      <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-        <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-3">Resumen económico</div>
-        <div className="flex justify-between text-sm mb-1.5"><span className="text-gray-500">Cliente</span><span className="font-bold text-emerald-600">{precio?`${precio}€`:"—"}</span></div>
-        <div className="flex justify-between text-sm mb-2"><span className="text-gray-500">Colaborador</span><span className="font-bold text-red-500">{colab?`${colab}€`:"—"}</span></div>
-        <div className="flex justify-between text-sm pt-2 border-t border-gray-100"><span className="font-semibold">Margen</span><span className="font-bold text-blue-600">{precio&&colab?`${margen}€`:"—"}</span></div>
-      </div>
       {pdfD&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
         <div className="flex items-center justify-between mb-3">
           <span className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Estado cliente</span>
