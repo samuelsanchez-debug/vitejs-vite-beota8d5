@@ -376,7 +376,7 @@ const partes=notas.split('|').map(n=>n.trim());
             <div className="text-[10px] text-gray-400 mt-0.5">Margen</div>
             {getPrecioCliente(t)&&getPresupColab(t)>0&&<div className="text-[10px] font-bold text-blue-500 bg-blue-50 rounded-full px-2 py-0.5 mt-1 inline-block">{Math.round((getPrecioCliente(t)-getPresupColab(t))/getPresupColab(t)*100)}%</div>}  
       </div>;
-       }
+       
       <div className="px-4 py-3 space-y-2">
         <div className="text-[10px] text-gray-400 uppercase font-bold mb-1">Acciones</div>
         {t.estado==="Solicitud"&&<button onClick={()=>onVer(t.id)} className="w-full bg-[#1E3A5F] text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-[#152d4a]">👷 Asignar colaborador</button>}
@@ -395,7 +395,6 @@ const partes=notas.split('|').map(n=>n.trim());
       </div>
     </div>
   </div>
-}
 
 function EstadoDemandas({data,setData,onBack,toast,onVer}){
   const[busca,setBusca]=useState("");
