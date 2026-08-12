@@ -897,8 +897,10 @@ function FichaTrabajo({t,cl,co,data,setData,onClose,toast,setModo}){
 
      {tab==="presupuesto"&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
         {pdfD?<div className="space-y-3">
-          <a href={pdfD} target="_blank" className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-sm text-emerald-700 font-semibold hover:bg-emerald-100 transition">📄 Ver presupuesto Domia →</a>
-          <button onClick={()=>setModo("presupuesto")} className="w-full bg-emerald-100 text-emerald-700 font-bold py-2.5 rounded-xl text-sm hover:bg-emerald-200 transition">✏️ Editar presupuesto</button>
+         <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+            <a href={pdfD} target="_blank" className="flex-1 text-sm text-emerald-700 font-semibold hover:underline">📄 Ver presupuesto Domia →</a>
+            <button onClick={()=>setModo("presupuesto")} className="text-xs bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-lg hover:bg-emerald-200 transition">✏️ Editar</button>
+          </div>
         </div>:<div className="text-center py-6 text-sm text-gray-400">Sin presupuesto generado aún<br/><button onClick={()=>setModo("presupuesto")} className="mt-2 text-purple-600 font-bold text-sm">📄 Generar presupuesto</button></div>}
       </div>}
       {tab==="archivos"&&<div className="space-y-3">
