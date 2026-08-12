@@ -317,22 +317,22 @@ const partes=notas.split('|').map(n=>n.trim());
     if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast(`→ ${nuevoEstado}`);}
   };
 
-  return<div className={`bg-white border rounded-2xl overflow-hidden shadow-sm ${alertColor||"border-gray-100"}`}>
-   <div onClick={()=>setAbierta(!abierta)} className="px-4 py-3.5 cursor-pointer hover:bg-gray-50 transition">
+ <div className="px-4 py-3.5">
       <div className="flex items-center justify-between mb-2.5">
         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${cfg.bg} ${cfg.text}`}><span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`}/>{t.estado}</span>
         <div className="flex items-center gap-2">
           {PRIO_CFG[t.prioridad]?.icon&&<span className={`text-[10px] font-bold ${PRIO_CFG[t.prioridad]?.text}`}>{PRIO_CFG[t.prioridad]?.icon}</span>}
-          <span className={`text-gray-300 text-lg transition-transform ${abierta?"rotate-180":""}`}>▾</span>
+          <button onClick={()=>setAbierta(!abierta)} className={`text-gray-300 text-lg transition-transform ${abierta?"rotate-180":""}`}>▾</button>
         </div>
       </div>
       <div className="flex items-center gap-3">
         <div className="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center text-xl flex-shrink-0">{ICONO_TIPO[t.tipo]||"📋"}</div>
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 cursor-pointer" onClick={()=>onVer(t.id)}>
           <div className="font-bold text-gray-800 text-[15px] leading-tight truncate">{t.tipo}</div>
           <div className="text-[13px] text-gray-500 truncate">{cl?.nombre}</div>
           <div className="text-[11px] text-gray-400 mt-0.5 truncate">{co?`👷 ${co.nombre}`:"Sin colaborador"} · {fmt(t.fecha)}</div>
         </div>
+        <button onClick={()=>onVer(t.id)} className="flex-shrink-0 bg-[#1E3A5F] text-white text-xs font-bold px-3 py-2 rounded-xl hover:bg-[#152d4a] transition">Ver ficha</button>
       </div>
     </div>
 
