@@ -394,6 +394,7 @@ const partes=notas.split('|').map(n=>n.trim());
         {t.estado==="En curso"&&<button onClick={()=>avanzar("Completado","Trabajo completado")} className="w-full bg-emerald-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-emerald-600">✅ Marcar completado</button>}
         <button onClick={()=>onVer(t.id)} className="w-full bg-white border border-gray-200 text-gray-600 py-2.5 rounded-xl text-sm font-semibold transition hover:border-gray-400">✏️ Ver ficha completa / Editar</button>
       </div>
+        </div>
     </div>}
   </div>;
 }
