@@ -442,8 +442,8 @@ const partes=notas.split('|').map(n=>n.trim());
         <button onClick={()=>onVer(t.id)} className="w-full bg-white border border-gray-200 text-gray-600 py-2.5 rounded-xl text-sm font-semibold transition hover:border-gray-400">✏️ Ver ficha completa / Editar</button>
       </div>
     </div>
-  </div>
-
+  </div>;
+}
 function EstadoDemandas({data,setData,onBack,toast,onVer}){
   const[busca,setBusca]=useState("");
   const[fEstado,setFEstado]=useState("Todos");
