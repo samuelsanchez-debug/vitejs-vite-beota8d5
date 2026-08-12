@@ -304,7 +304,7 @@ function TarjetaTrabajo({t,data,setData,toast,onVer,alertColor}){
   const co=data.colaboradores.find(c=>c.id===getColabId(t));
   const notas=getNotas(t);
   const disponibilidad=notas.includes('disponibilidad:')?notas.split('disponibilidad:')[1]?.split('|')[0]?.trim():null;
-const partes=notas.split('|').map(n=>n.trim());
+  const partes=notas.split('|').map(n=>n.trim());
   const fotoCliente=partes.find(p=>p.startsWith('foto:'))?.replace('foto:','');
   const presupUrl=partes.find(p=>p.startsWith('presup:'))?.replace('presup:','');
   const pdfDomiaUrl=partes.find(p=>p.startsWith('pdfdomia:'))?.replace('pdfdomia:','');
@@ -317,7 +317,8 @@ const partes=notas.split('|').map(n=>n.trim());
     if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast(`→ ${nuevoEstado}`);}
   };
 
-     return <div className="px-4 py-3.5">
+  return <div className={`bg-white border rounded-2xl overflow-hidden shadow-sm ${alertColor||"border-gray-100"}`}>
+    <div className="px-4 py-3.5">
       <div className="flex items-center justify-between mb-2.5">
         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${cfg.bg} ${cfg.text}`}><span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`}/>{t.estado}</span>
         <div className="flex items-center gap-2">
@@ -335,6 +336,7 @@ const partes=notas.split('|').map(n=>n.trim());
         <button onClick={()=>onVer(t.id)} className="flex-shrink-0 bg-[#1E3A5F] text-white text-xs font-bold px-3 py-2 rounded-xl hover:bg-[#152d4a] transition">Ver ficha</button>
       </div>
     </div>
+
     {abierta&&<div className="border-t border-gray-100">
       <div className="px-4 py-3 grid grid-cols-2 gap-3 border-b border-gray-50">
         <div><div className="text-[10px] text-gray-400 uppercase font-bold mb-0.5">Cliente</div><div className="text-sm font-medium text-gray-800">{cl?.nombre}</div><div className="text-[11px] text-gray-500">{cl?.telefono}</div></div>
@@ -348,65 +350,18 @@ const partes=notas.split('|').map(n=>n.trim());
         <div className="text-sm text-teal-800">{disponibilidad}</div>
       </div>}
 
-     {(fotoCliente || presupUrl || pdfDomiaUrl || comentCliente) && (
-  <div className="px-4 py-3 border-b border-gray-50 space-y-2">
-    
-    <div className="text-[10px] text-gray-400 uppercase font-bold">
-      📎 Archivos y notas
-    </div>
+      {(fotoCliente||presupUrl||pdfDomiaUrl||comentCliente)&&<div className="px-4 py-3 border-b border-gray-50 space-y-2">
+        <div className="text-[10px] text-gray-400 uppercase font-bold">📎 Archivos y notas</div>
+        {fotoCliente&&<a href={fotoCliente} target="_blank" className="block text-sm text-blue-700 font-semibold hover:underline">🖼️ Foto del cliente →</a>}
+        {presupUrl&&<a href={presupUrl} target="_blank" className="block text-sm text-purple-700 font-semibold hover:underline">📄 Presupuesto del colaborador →</a>}
+        {pdfDomiaUrl&&<div className="flex items-center gap-2">
+          <a href={pdfDomiaUrl} target="_blank" className="flex-1 text-sm text-emerald-700 font-semibold hover:underline">📄 Presupuesto Domia →</a>
+          <button onClick={()=>{(window as any).__abrirPresupuesto=true;onVer(t.id);}} className="text-xs bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-lg hover:bg-emerald-200 transition">✏️ Editar</button>
+        </div>}
+        {comentCliente&&<div className="text-sm text-gray-600 bg-yellow-50 border border-yellow-100 rounded-lg px-3 py-2">💬 Cliente: {comentCliente}</div>}
+      </div>}
 
-    {fotoCliente && (
-      <a
-        href={fotoCliente}
-        target="_blank"
-        className="block text-sm text-blue-700 font-semibold hover:underline"
-      >
-        🖼️ Foto del cliente →
-      </a>
-    )}
-
-    {presupUrl && (
-      <a
-        href={presupUrl}
-        target="_blank"
-        className="block text-sm text-purple-700 font-semibold hover:underline"
-      >
-        📄 Presupuesto del colaborador →
-      </a>
-    )}
-
-    {pdfDomiaUrl && (
-      <div className="flex items-center gap-2">
-        <a
-          href={pdfDomiaUrl}
-          target="_blank"
-          className="flex-1 text-sm text-emerald-700 font-semibold hover:underline"
-        >
-          📄 Presupuesto Domia →
-        </a>
-
-        <button
-          onClick={() => {
-            (window as any).__abrirPresupuesto = true;
-            onVer(t.id);
-          }}
-          className="text-xs bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-lg hover:bg-emerald-200 transition"
-        >
-          ✏️ Editar
-        </button>
-      </div>
-    )}
-
-    {comentCliente && (
-      <div className="text-sm text-gray-600 bg-yellow-50 border border-yellow-100 rounded-lg px-3 py-2">
-        💬 Cliente: {comentCliente}
-      </div>
-    )}
-
-  </div>
-)}
-
-      <div className="px-4 py-4 bg-gray-50 border-y border-gray-100">
+      <div className="px-4 py-4 bg-gray-50 border-b border-gray-100">
         <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-3">Económico</div>
         <div className="flex items-center justify-between">
           <div className="text-center flex-1">
@@ -422,106 +377,31 @@ const partes=notas.split('|').map(n=>n.trim());
           <div className="text-center flex-1">
             <div className="text-xl font-black text-blue-600">{getPrecioCliente(t)&&getPresupColab(t)?`${getPrecioCliente(t)-getPresupColab(t)}€`:"—"}</div>
             <div className="text-[10px] text-gray-400 mt-0.5">Margen</div>
-            {getPrecioCliente(t)&&getPresupColab(t)>0&&<div className="text-[10px] font-bold text-blue-500 bg-blue-50 rounded-full px-2 py-0.5 mt-1 inline-block">{Math.round((getPrecioCliente(t)-getPresupColab(t))/getPresupColab(t)*100)}%</div>}  
-      </div>;
-       
+            {getPrecioCliente(t)&&getPresupColab(t)>0&&<div className="text-[10px] font-bold text-blue-500 bg-blue-50 rounded-full px-2 py-0.5 mt-1 inline-block">{Math.round((getPrecioCliente(t)-getPresupColab(t))/getPresupColab(t)*100)}%</div>}
+          </div>
+        </div>
+      </div>
+
       <div className="px-4 py-3 space-y-2">
         <div className="text-[10px] text-gray-400 uppercase font-bold mb-1">Acciones</div>
         {t.estado==="Solicitud"&&<button onClick={()=>onVer(t.id)} className="w-full bg-[#1E3A5F] text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-[#152d4a]">👷 Asignar colaborador</button>}
         {t.estado==="Presupuestando"&&co&&<>
           <button onClick={()=>{window.open(buildWA(co,t,cl),"_blank");toast("📱 WhatsApp...");}} className="w-full bg-green-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-green-600">📱 Reenviar WhatsApp a {co.nombre.split(" ")[0]}</button>
         </>}
-{t.estado==="Colaborador disponible"&&cl?.telefono&&<button onClick={async()=>{window.open(buildWAVisitaCliente(cl,t,co),"_blank");await avanzar("Visita propuesta","Fecha propuesta al cliente por WhatsApp");}} className="w-full bg-cyan-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-cyan-600">📱 Proponer fecha al cliente</button>}
-{t.estado==="Cliente confirmó"&&co&&(
-  <button
-    onClick={async()=>{
-      window.open(buildWAConfirmacionColab(co,t,cl),"_blank");
-      await avanzar("En curso","Visita programada — colaborador avisado");
-    }}
-    className="w-full bg-teal-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-teal-600"
-  >
-    ✅ Avisar colaborador — visita programada
-  </button>
-)}
-
-<button
-  onClick={()=>{
-    (window as any).__abrirPresupuesto=true;
-    onVer(t.id);
-  }}
-  className="w-full bg-purple-600 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-purple-700"
->
-  📄 Generar presupuesto Domia
-</button>
-
-{t.estado==="Presupuesto enviado"&&(
-  <>
-    {pdfDomiaUrl&&cl?.telefono&&(
-      <button
-        onClick={()=>{
-          const msg=`Hola ${cl.nombre.split(" ")[0]} 😊
-
-Te paso el presupuesto de *Domia Services*.
-
-💶 Total: *${getPrecioCliente(t)}€* (sin IVA)
-
-📄 Verlo y aceptarlo aquí:
-https://domia-crm-two.vercel.app/aceptar/${t.id}
-
-Cualquier duda me dices. ¡Gracias!
-
-— Samuel · Domia Services · 685 917 059`;
-
-          window.open(
-            `https://wa.me/${cl.telefono.replace(/\s/g,"")}?text=${encodeURIComponent(msg)}`,
-            "_blank"
-          );
-
-          toast("📱 Reenviado");
-        }}
-        className="w-full bg-green-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-green-600"
-      >
-        📱 Reenviar presupuesto al cliente
-      </button>
-    )}
-
-    <button
-      onClick={()=>avanzar("Aceptado","Cliente aceptó el presupuesto")}
-      className="w-full bg-violet-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-violet-600"
-    >
-      🤝 Cliente aceptó
-    </button>
-  </>
-)}
-
-{t.estado==="Aceptado"&&(
-  <button
-    onClick={()=>avanzar("En curso","Trabajo iniciado")}
-    className="w-full bg-orange-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-orange-600"
-  >
-    🔧 Marcar en curso
-  </button>
-)}
-
-{t.estado==="En curso"&&(
-  <button
-    onClick={()=>avanzar("Completado","Trabajo completado")}
-    className="w-full bg-emerald-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-emerald-600"
-  >
-    ✅ Marcar completado
-  </button>
-)}
-
-<button
-  onClick={()=>onVer(t.id)}
-  className="w-full bg-white border border-gray-200 text-gray-600 py-2.5 rounded-xl text-sm font-semibold transition hover:border-gray-400"
->
-  ✏️ Ver ficha completa / Editar
-</button>
+        {t.estado==="Colaborador disponible"&&cl?.telefono&&<button onClick={async()=>{window.open(buildWAVisitaCliente(cl,t,co),"_blank");await avanzar("Visita propuesta","Fecha propuesta al cliente por WhatsApp");}} className="w-full bg-cyan-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-cyan-600">📱 Proponer fecha al cliente</button>}
+        {t.estado==="Cliente confirmó"&&co&&<button onClick={async()=>{window.open(buildWAConfirmacionColab(co,t,cl),"_blank");await avanzar("En curso","Visita programada — colaborador avisado");}} className="w-full bg-teal-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-teal-600">✅ Avisar colaborador — visita programada</button>}
+        <button onClick={()=>{(window as any).__abrirPresupuesto=true;onVer(t.id);}} className="w-full bg-purple-600 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-purple-700">📄 Generar presupuesto Domia</button>
+        {t.estado==="Presupuesto enviado"&&<>
+          {pdfDomiaUrl&&cl?.telefono&&<button onClick={()=>{const msg=`Hola ${cl.nombre.split(" ")[0]} 😊\n\nTe paso el presupuesto de *Domia Services*.\n\n💶 Total: *${getPrecioCliente(t)}€* (sin IVA)\n\n📄 Verlo y aceptarlo aquí:\nhttps://domia-crm-two.vercel.app/aceptar/${t.id}\n\nCualquier duda me dices. ¡Gracias!\n\n— Samuel · Domia Services · 685 917 059`;window.open(`https://wa.me/${cl.telefono.replace(/\s/g,"")}?text=${encodeURIComponent(msg)}`,"_blank");toast("📱 Reenviado");}} className="w-full bg-green-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-green-600">📱 Reenviar presupuesto al cliente</button>}
+          <button onClick={()=>avanzar("Aceptado","Cliente aceptó el presupuesto")} className="w-full bg-violet-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-violet-600">🤝 Cliente aceptó</button>
+        </>}
+        {t.estado==="Aceptado"&&<button onClick={()=>avanzar("En curso","Trabajo iniciado")} className="w-full bg-orange-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-orange-600">🔧 Marcar en curso</button>}
+        {t.estado==="En curso"&&<button onClick={()=>avanzar("Completado","Trabajo completado")} className="w-full bg-emerald-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-emerald-600">✅ Marcar completado</button>}
+        <button onClick={()=>onVer(t.id)} className="w-full bg-white border border-gray-200 text-gray-600 py-2.5 rounded-xl text-sm font-semibold transition hover:border-gray-400">✏️ Ver ficha completa / Editar</button>
       </div>
-    </div>
+    </div>}
   </div>;
-
+}
 function EstadoDemandas({data,setData,onBack,toast,onVer}){
   const[busca,setBusca]=useState("");
   const[fEstado,setFEstado]=useState("Todos");
