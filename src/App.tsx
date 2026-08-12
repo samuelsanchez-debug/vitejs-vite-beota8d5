@@ -897,7 +897,6 @@ function FichaTrabajo({t,cl,co,data,setData,onClose,toast,setModo}){
 
       {tab==="presupuesto"&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
         {t.partidas&&t.partidas.length?<div className="space-y-2">
-          <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">Partidas · IVA {t.iva||21}%</div>
           {t.partidas.filter(p=>p.desc).map((p,i)=><div key={i} className="flex justify-between text-sm border-b border-gray-50 py-1.5">
             <span className="text-gray-700">{p.desc}</span>
             <span className="font-semibold text-gray-800 whitespace-nowrap ml-2">{Math.round((+p.importe||0)*(1+(t.margen||30)/100))}€</span>
