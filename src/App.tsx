@@ -909,8 +909,10 @@ function FichaTrabajo({t,cl,co,data,setData,onClose,toast,setModo}){
       {tab==="archivos"&&<div className="space-y-3">
         {foto&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm"><div className="text-[10px] text-gray-400 uppercase font-bold mb-2">📷 Foto del cliente</div><img src={foto} className="w-full rounded-xl max-h-56 object-cover cursor-pointer" onClick={()=>window.open(foto,"_blank")}/></div>}
         {pres&&<a href={pres} target="_blank" className="block bg-white border border-gray-100 rounded-2xl p-4 shadow-sm text-sm text-purple-700 font-semibold hover:underline">📄 Presupuesto del colaborador →</a>}
-        {pdfD&&<a href={pdfD} target="_blank" className="block bg-white border border-gray-100 rounded-2xl p-4 shadow-sm text-sm text-emerald-700 font-semibold hover:underline">📄 Presupuesto Domia →</a>}
-        {!foto&&!pres&&!pdfD&&<div className="text-center py-6 text-sm text-gray-400">Sin archivos</div>}
+{pdfD&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex items-center gap-2">
+          <a href={pdfD} target="_blank" className="flex-1 text-sm text-emerald-700 font-semibold hover:underline">📄 Presupuesto Domia →</a>
+          <button onClick={()=>setModo("presupuesto")} className="text-xs bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-lg hover:bg-emerald-200 transition">✏️ Editar</button>
+        </div>}        {!foto&&!pres&&!pdfD&&<div className="text-center py-6 text-sm text-gray-400">Sin archivos</div>}
       </div>}
 
       {tab==="historial"&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
