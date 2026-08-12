@@ -1656,8 +1656,10 @@ function SubirPresupuesto({id,trabajo,onSubido}:{id:string,trabajo:any,onSubido:
     }
     const historial=JSON.parse(trabajo.historial||"[]");
     historial.push({ts:new Date().toLocaleString("es-ES",{hour:"2-digit",minute:"2-digit",day:"2-digit",month:"2-digit"}),txt:`Presupuesto recibido: ${importe}€${notas?' — '+notas:''}`,tipo:"presupuesto"});
-    await supabase.from('trabajos').update({
+   await supabase.from('trabajos').update({
       estado:"Presupuesto recibido",
+      atendido:false,
+      ultima_novedad:`📄 Colaborador subió presupuesto: ${importe}€`,
       presupuesto_colaborador:+importe,
       notas:(trabajo.notas?trabajo.notas+' | ':'')+(fotoUrl?'presup:'+fotoUrl:(notas?'nota-colab: '+notas:'')),
       historial:JSON.stringify(historial),
