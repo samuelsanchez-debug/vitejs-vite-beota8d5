@@ -943,7 +943,6 @@ function FichaTrabajo({t,cl,co,data,setData,onClose,toast,setModo}){
           <div className="text-xl font-black text-amber-600">{adelanto}€</div>
           <div className="text-[10px] text-amber-600">a pagar por el cliente</div>
         </div>
-        </div>}
       </div>}
       <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm space-y-2">
         <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-1">Acciones</div>
