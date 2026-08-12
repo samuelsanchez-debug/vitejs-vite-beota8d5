@@ -1485,8 +1485,7 @@ function AceptarPresupuesto({id}){
     setEstado("procesando");
     const hist=JSON.parse(trabajo.historial||"[]");
     hist.push({ts:new Date().toLocaleString("es-ES"),txt:"✅ Cliente aceptó el presupuesto online",tipo:"ok"});
-    await supabase.from('trabajos').update({estado:"Aceptado",aceptado_cliente:true,historial:JSON.stringify(hist)}).eq('id',id);
-    try{
+await supabase.from('trabajos').update({estado:"Aceptado",aceptado_cliente:true,atendido:false,ultima_novedad:"💶 Cliente aceptó el presupuesto",historial:JSON.stringify(hist)}).eq('id',id);    try{
       await fetch("https://opijkazhbktiikdzbanb.supabase.co/functions/v1/notificar-aceptacion",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
