@@ -926,9 +926,9 @@ function FichaTrabajo({t,cl,co,data,setData,onClose,toast,setModo}){
 
     <div className="space-y-3">
       {pdfD&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Estado cliente</span>
-          <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${t.aceptado_cliente?"bg-emerald-100 text-emerald-700":"bg-amber-100 text-amber-700"}`}>{t.aceptado_cliente?"Aceptado":"Pendiente"}</span>
+       <div className="flex items-center justify-between mb-2">
+          <span className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Adelanto cliente</span>
+          <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${t.aceptado_cliente?"bg-emerald-100 text-emerald-700":"bg-amber-100 text-amber-700"}`}>{t.aceptado_cliente?"✅ Aceptado":"⏳ Pendiente"}</span>
         </div>
         <div className="flex items-center justify-between mb-2">
           <span className="text-[10px] text-gray-400 uppercase font-bold">Adelanto</span>
