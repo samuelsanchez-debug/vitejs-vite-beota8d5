@@ -1719,11 +1719,13 @@ function PortalColaborador({id}:{id:string}){
     if(importe||presupUrl)historial.push({ts:now(),txt:`Presupuesto directo${importe?`: ${importe}€`:""}`,tipo:"presupuesto"});
     let notasNuevas=trabajo.notas?trabajo.notas+` | disponibilidad: ${fechaFmt} a las ${hora}`:`disponibilidad: ${fechaFmt} a las ${hora}`;
     if(presupUrl)notasNuevas+=` | presup:${presupUrl}`;
-    const update:any={
+   const update:any={
       estado:"Colaborador disponible",
       colaborador_id:trabajo.colaborador_id,
       fecha:dia,
       hora:hora,
+      atendido:false,
+      ultima_novedad:`📅 Colaborador disponible: ${fechaFmt} a las ${hora}`,
       historial:JSON.stringify(historial),
       notas:notasNuevas,
     };
