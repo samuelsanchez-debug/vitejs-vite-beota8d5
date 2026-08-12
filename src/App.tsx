@@ -397,6 +397,7 @@ const partes=notas.split('|').map(n=>n.trim());
       </div>
     </div>}
   </div>
+    );
 }
 
 function EstadoDemandas({data,setData,onBack,toast,onVer}){
