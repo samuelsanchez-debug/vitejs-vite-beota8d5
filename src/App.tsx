@@ -647,7 +647,7 @@ const[partidas,setPartidas]=useState(t.partidas&&t.partidas.length?t.partidas:[{
   const margen=margenManual!==null?margenManual:margenTramo;
   const setMargen=(v)=>setMargenManual(v);
   const totalCliente=Math.round(partidas.reduce((s,p)=>{const ml=p.margenLinea!==null&&p.margenLinea!==undefined?+p.margenLinea:margen;return s+Math.round((+p.cantidad||1)*(+p.precio||0)*(1+ml/100));},0));
-  const addPartida=()=>setPartidas(p=>[...p,{desc:"",cantidad:1,precio:0,margenLinea:null}]);
+  const addPartida=(tipo="normal")=>setPartidas(p=>[...p,{desc:"",cantidad:1,precio:0,margenLinea:null,tipo}]);
   const updPartida=(i,k,v)=>setPartidas(p=>p.map((x,idx)=>idx===i?{...x,[k]:v}:x));
   const delPartida=(i)=>setPartidas(p=>p.filter((_,idx)=>idx!==i));
   const[generando,setGenerando]=useState(false);
