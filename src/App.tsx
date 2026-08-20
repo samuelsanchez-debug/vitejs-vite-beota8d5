@@ -814,6 +814,14 @@ const saved=await dbSaveTrabajo({...t,precioCliente:totalCliente,historial:hist,
         {partidas.map((p,i)=>{
           const ml=p.margenLinea!==null&&p.margenLinea!==undefined?+p.margenLinea:margen;
           const totalLinea=Math.round((+p.cantidad||1)*(+p.precio||0)*(1+ml/100));
+          if(p.tipo==="seccion")return<div key={i} className="flex items-center gap-2 mt-2">
+            <input value={p.desc} onChange={e=>updPartida(i,"desc",e.target.value)} className="flex-1 border-b-2 border-[#1E3A5F] bg-transparent px-1 py-1 text-sm font-bold text-[#1E3A5F] focus:outline-none" placeholder="Título de sección..."/>
+            <button onClick={()=>delPartida(i)} className="text-red-400 hover:text-red-600 text-lg font-bold">×</button>
+          </div>;
+          if(p.tipo==="nota")return<div key={i} className="flex items-center gap-2">
+            <input value={p.desc} onChange={e=>updPartida(i,"desc",e.target.value)} className="flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-xs text-gray-400 italic focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]" placeholder="Nota u observación..."/>
+            <button onClick={()=>delPartida(i)} className="text-red-400 hover:text-red-600 text-lg font-bold">×</button>
+          </div>;
           return<div key={i} className="space-y-1">
             <div className="grid grid-cols-[1fr_48px_64px_48px_16px] gap-1 items-center">
               <input value={p.desc} onChange={e=>updPartida(i,"desc",e.target.value)} className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]" placeholder="Descripción"/>
@@ -826,7 +834,11 @@ const saved=await dbSaveTrabajo({...t,precioCliente:totalCliente,historial:hist,
           </div>;
         })}
       </div>
-      <button onClick={addPartida} className="mt-2 w-full border-2 border-dashed border-gray-200 text-gray-400 py-2 rounded-xl text-sm hover:border-[#1E3A5F] hover:text-[#1E3A5F] transition">+ Añadir partida</button>
+      <div className="flex gap-2 mt-2">
+        <button onClick={()=>addPartida("normal")} className="flex-1 border-2 border-dashed border-gray-200 text-gray-400 py-2 rounded-xl text-sm hover:border-[#1E3A5F] hover:text-[#1E3A5F] transition">+ Línea</button>
+        <button onClick={()=>addPartida("seccion")} className="border-2 border-dashed border-blue-200 text-blue-400 py-2 px-3 rounded-xl text-sm hover:border-[#1E3A5F] hover:text-[#1E3A5F] transition">📌 Sección</button>
+        <button onClick={()=>addPartida("nota")} className="border-2 border-dashed border-gray-200 text-gray-400 py-2 px-3 rounded-xl text-sm hover:border-[#1E3A5F] hover:text-[#1E3A5F] transition">💬 Nota</button>
+      </div>
     </div>
     <button onClick={generarPDF} className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-bold text-sm transition">📄 Generar PDF Domia ({totalCliente}€)</button>
     {pdfUrl&&cl?.telefono&&<button onClick={async()=>{
