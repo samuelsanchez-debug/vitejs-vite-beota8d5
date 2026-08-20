@@ -807,11 +807,23 @@ const saved=await dbSaveTrabajo({...t,precioCliente:totalCliente,historial:hist,
     <div>
       <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Partidas del presupuesto</div>
       <div className="space-y-2">
-        {partidas.map((p,i)=><div key={i} className="flex gap-2 items-center">
-          <input value={p.desc} onChange={e=>updPartida(i,"desc",e.target.value)} className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]" placeholder="Descripción de la partida"/>
-          <input type="number" value={p.importe||""} onChange={e=>updPartida(i,"importe",e.target.value)} className="w-20 border border-gray-200 rounded-xl px-2 py-2 text-sm text-right focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]" placeholder="€"/>
-          <button onClick={()=>delPartida(i)} className="text-red-400 hover:text-red-600 text-lg font-bold px-1">×</button>
-        </div>)}
+        <div className="grid grid-cols-[1fr_48px_64px_48px_16px] gap-1 text-[10px] text-gray-400 font-bold uppercase px-1">
+          <span>Descripción</span><span className="text-center">Cant.</span><span className="text-center">Precio</span><span className="text-center">%</span><span/>
+        </div>
+        {partidas.map((p,i)=>{
+          const ml=p.margenLinea!==null&&p.margenLinea!==undefined?+p.margenLinea:margen;
+          const totalLinea=Math.round((+p.cantidad||1)*(+p.precio||0)*(1+ml/100));
+          return<div key={i} className="space-y-1">
+            <div className="grid grid-cols-[1fr_48px_64px_48px_16px] gap-1 items-center">
+              <input value={p.desc} onChange={e=>updPartida(i,"desc",e.target.value)} className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]" placeholder="Descripción"/>
+              <input type="number" value={p.cantidad||""} onChange={e=>updPartida(i,"cantidad",e.target.value)} className="border border-gray-200 rounded-lg px-1 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]" placeholder="1"/>
+              <input type="number" value={p.precio||""} onChange={e=>updPartida(i,"precio",e.target.value)} className="border border-gray-200 rounded-lg px-1 py-1.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]" placeholder="€"/>
+              <input type="number" value={p.margenLinea!==null&&p.margenLinea!==undefined?p.margenLinea:""} onChange={e=>updPartida(i,"margenLinea",e.target.value===""?null:+e.target.value)} className="border border-gray-200 rounded-lg px-1 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]" placeholder={`${margen}`}/>
+              <button onClick={()=>delPartida(i)} className="text-red-400 hover:text-red-600 text-lg font-bold">×</button>
+            </div>
+            {(p.cantidad>1||p.precio>0)&&<div className="text-right text-xs text-gray-400 pr-5">{+p.cantidad||1} × {+p.precio||0}€ × {ml}% = <span className="font-bold text-gray-700">{totalLinea}€</span></div>}
+          </div>;
+        })}
       </div>
       <button onClick={addPartida} className="mt-2 w-full border-2 border-dashed border-gray-200 text-gray-400 py-2 rounded-xl text-sm hover:border-[#1E3A5F] hover:text-[#1E3A5F] transition">+ Añadir partida</button>
     </div>
