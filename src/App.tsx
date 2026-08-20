@@ -691,8 +691,8 @@ const[partidas,setPartidas]=useState(t.partidas&&t.partidas.length?t.partidas:[{
    let y=118;
     doc.setTextColor(60,60,60);
     doc.setFontSize(10);
-    const factor=1+margen/100;
     partidas.filter(p=>p.desc).forEach(p=>{
+      const ml=p.margenLinea!==null&&p.margenLinea!==undefined?+p.margenLinea:margen;
       const lineas=doc.splitTextToSize(p.desc,140);
       const alturaNecesaria=lineas.length*6+4;
       if(y+alturaNecesaria>260){
@@ -702,7 +702,7 @@ const[partidas,setPartidas]=useState(t.partidas&&t.partidas.length?t.partidas:[{
         doc.setTextColor(60,60,60);
       }
       doc.text(lineas,18,y);
-      const importeLinea=Math.round((+p.importe||0)*factor);
+      const importeLinea=Math.round((+p.cantidad||1)*(+p.precio||0)*(1+ml/100));
       doc.text(`${importeLinea}€`,192,y,{align:"right"});
       y+=alturaNecesaria;
       doc.setDrawColor(230,230,230);
