@@ -639,6 +639,7 @@ const existe=data.colaboradores.find(c=>c.email&&s.email&&c.email.toLowerCase().
 function EditorPresupuesto({t,cl,co,data,setData,onClose,toast}){
 const[partidas,setPartidas]=useState(t.partidas&&t.partidas.length?t.partidas:[{desc:t.descripcion||"",cantidad:1,precio:0,margenLinea:null}]);
   const[margenManual,setMargenManual]=useState(null);
+  const[iva,setIva]=useState(t.iva||21);
   const[adelantoTipo,setAdelantoTipo]=useState(t.adelanto_tipo||"porcentaje");
   const[adelantoValor,setAdelantoValor]=useState(t.adelanto_valor||30);
   const totalColab=partidas.reduce((s,p)=>s+Math.round((+p.cantidad||1)*(+p.precio||0)),0);
