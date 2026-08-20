@@ -641,7 +641,8 @@ const[partidas,setPartidas]=useState(t.partidas&&t.partidas.length?t.partidas:[{
   const[margenManual,setMargenManual]=useState(null);
   const[adelantoTipo,setAdelantoTipo]=useState(t.adelanto_tipo||"porcentaje");
   const[adelantoValor,setAdelantoValor]=useState(t.adelanto_valor||30);
-  const totalColab=partidas.reduce((s,p)=>s+(+p.importe||0),0);
+const totalColab=partidas.reduce((s,p)=>s+Math.round((+p.cantidad||1)*(+p.precio||0)),0);
+  const totalCliente=Math.round(partidas.reduce((s,p)=>{const ml=p.margenLinea!==null&&p.margenLinea!==undefined?+p.margenLinea:margen;return s+Math.round((+p.cantidad||1)*(+p.precio||0)*(1+ml/100));},0));
   const margenTramo=totalColab>=15000?20:totalColab>=5000?25:30;
   const margen=margenManual!==null?margenManual:margenTramo;
   const setMargen=(v)=>setMargenManual(v);
