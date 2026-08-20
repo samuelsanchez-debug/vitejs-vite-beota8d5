@@ -692,21 +692,38 @@ const[partidas,setPartidas]=useState(t.partidas&&t.partidas.length?t.partidas:[{
     doc.setTextColor(60,60,60);
     doc.setFontSize(10);
     partidas.filter(p=>p.desc).forEach(p=>{
-      const ml=p.margenLinea!==null&&p.margenLinea!==undefined?+p.margenLinea:margen;
-      const lineas=doc.splitTextToSize(p.desc,140);
-      const alturaNecesaria=lineas.length*6+4;
-      if(y+alturaNecesaria>260){
-        doc.addPage();
-        y=25;
+      const lineas=doc.splitTextToSize(p.desc,p.tipo==="normal"||!p.tipo?140:175);
+      const alturaNecesaria=lineas.length*6+6;
+      if(y+alturaNecesaria>260){doc.addPage();y=25;doc.setFontSize(10);}
+      if(p.tipo==="seccion"){
+        y+=2;
+        doc.setFontSize(10);
+        doc.setFont(undefined,"bold");
+        doc.setTextColor(30,58,95);
+        doc.text(lineas,18,y);
+        doc.setFont(undefined,"normal");
+        y+=alturaNecesaria;
+        doc.setDrawColor(30,58,95);
+        doc.setLineWidth(0.5);
+        doc.line(15,y-3,195,y-3);
+        doc.setLineWidth(0.2);
+      } else if(p.tipo==="nota"){
+        doc.setFontSize(8);
+        doc.setTextColor(120,120,120);
+        doc.text(lineas,18,y);
         doc.setFontSize(10);
         doc.setTextColor(60,60,60);
+        y+=alturaNecesaria;
+      } else {
+        const ml=p.margenLinea!==null&&p.margenLinea!==undefined?+p.margenLinea:margen;
+        doc.setTextColor(60,60,60);
+        doc.text(lineas,18,y);
+        const importeLinea=Math.round((+p.cantidad||1)*(+p.precio||0)*(1+ml/100));
+        doc.text(`${importeLinea}€`,192,y,{align:"right"});
+        y+=alturaNecesaria;
+        doc.setDrawColor(230,230,230);
+        doc.line(15,y-3,195,y-3);
       }
-      doc.text(lineas,18,y);
-      const importeLinea=Math.round((+p.cantidad||1)*(+p.precio||0)*(1+ml/100));
-      doc.text(`${importeLinea}€`,192,y,{align:"right"});
-      y+=alturaNecesaria;
-      doc.setDrawColor(230,230,230);
-      doc.line(15,y-3,195,y-3);
     });
     if(y>235){doc.addPage();y=25;}
 
