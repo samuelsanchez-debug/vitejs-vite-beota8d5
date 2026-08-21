@@ -831,23 +831,27 @@ const saved=await dbSaveTrabajo({...t,precioCliente:totalCliente,historial:hist,
         {partidas.map((p,i)=>{
           const ml=p.margenLinea!==null&&p.margenLinea!==undefined?+p.margenLinea:margen;
           const totalLinea=Math.round((+p.cantidad||1)*(+p.precio||0)*(1+ml/100));
+          const insertar=(tipo="normal")=>{const n=[...partidas];n.splice(i+1,0,{desc:"",cantidad:1,precio:0,margenLinea:null,tipo});setPartidas(n);};
           if(p.tipo==="seccion")return<div key={i} className="flex items-center gap-2 mt-2">
             <input value={p.desc} onChange={e=>updPartida(i,"desc",e.target.value)} className="flex-1 border-b-2 border-[#1E3A5F] bg-transparent px-1 py-1 text-sm font-bold text-[#1E3A5F] focus:outline-none" placeholder="Título de sección..."/>
+            <button onClick={()=>insertar("normal")} className="text-gray-300 hover:text-[#1E3A5F] text-lg font-bold">⊕</button>
             <button onClick={()=>delPartida(i)} className="text-red-400 hover:text-red-600 text-lg font-bold">×</button>
           </div>;
           if(p.tipo==="nota")return<div key={i} className="flex items-center gap-2">
             <input value={p.desc} onChange={e=>updPartida(i,"desc",e.target.value)} className="flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-xs text-gray-400 italic focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]" placeholder="Nota u observación..."/>
+            <button onClick={()=>insertar("normal")} className="text-gray-300 hover:text-[#1E3A5F] text-lg font-bold">⊕</button>
             <button onClick={()=>delPartida(i)} className="text-red-400 hover:text-red-600 text-lg font-bold">×</button>
           </div>;
           return<div key={i} className="space-y-1">
-            <div className="grid grid-cols-[1fr_48px_64px_48px_16px] gap-1 items-center">
+            <div className="grid grid-cols-[1fr_48px_64px_48px_16px_16px] gap-1 items-center">
               <input value={p.desc} onChange={e=>updPartida(i,"desc",e.target.value)} className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]" placeholder="Descripción"/>
               <input type="number" value={p.cantidad||""} onChange={e=>updPartida(i,"cantidad",e.target.value)} className="border border-gray-200 rounded-lg px-1 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]" placeholder="1"/>
               <input type="number" value={p.precio||""} onChange={e=>updPartida(i,"precio",e.target.value)} className="border border-gray-200 rounded-lg px-1 py-1.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]" placeholder="€"/>
               <input type="number" value={p.margenLinea!==null&&p.margenLinea!==undefined?p.margenLinea:""} onChange={e=>updPartida(i,"margenLinea",e.target.value===""?null:+e.target.value)} className="border border-gray-200 rounded-lg px-1 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]" placeholder={`${margen}`}/>
+              <button onClick={()=>insertar("normal")} className="text-gray-300 hover:text-[#1E3A5F] text-lg font-bold">⊕</button>
               <button onClick={()=>delPartida(i)} className="text-red-400 hover:text-red-600 text-lg font-bold">×</button>
             </div>
-            {(p.cantidad>1||p.precio>0)&&<div className="text-right text-xs text-gray-400 pr-5">{+p.cantidad||1} × {+p.precio||0}€ × {ml}% = <span className="font-bold text-gray-700">{totalLinea}€</span></div>}
+            {(p.cantidad>1||p.precio>0)&&<div className="text-right text-xs text-gray-400 pr-6">{+p.cantidad||1} × {+p.precio||0}€ × {ml}% = <span className="font-bold text-gray-700">{totalLinea}€</span></div>}
           </div>;
         })}
       </div>
