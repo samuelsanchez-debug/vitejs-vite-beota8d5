@@ -1012,7 +1012,8 @@ const[guardando,setGuardando]=useState(false);
       </div>}
       <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm space-y-2">
         <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-1">Acciones</div>
-        <button onClick={()=>setModo("editar")} className="w-full bg-white border border-gray-200 text-gray-600 py-2.5 rounded-xl font-bold text-sm hover:border-gray-400 transition">✏️ Editar trabajo</button>
+<button onClick={()=>setModo("editar")} className="w-full bg-white border border-gray-200 text-gray-600 py-2.5 rounded-xl font-bold text-sm hover:border-gray-400 transition">✏️ Editar trabajo</button>
+        {setSec&&<button onClick={()=>{onClose();setSec("finanzas");}} className="w-full bg-blue-50 border border-blue-200 text-blue-700 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-100 transition">💶 Ver en Finanzas</button>}
       </div>
     </div>
   </div>;
