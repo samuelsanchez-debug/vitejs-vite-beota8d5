@@ -1385,18 +1385,18 @@ const trabajosCliente=data.trabajos.filter(t=>["Aceptado","En curso","Completado
   <button onClick={()=>setTabFin("cobros")} className={`flex-1 py-2 rounded-xl text-sm font-bold transition ${tabFin==="cobros"?"bg-[#1E3A5F] text-white":"bg-white text-gray-500 border border-gray-200"}`}>💰 Cobros clientes</button>
   <button onClick={()=>setTabFin("pagos")} className={`flex-1 py-2 rounded-xl text-sm font-bold transition ${tabFin==="pagos"?"bg-[#1E3A5F] text-white":"bg-white text-gray-500 border border-gray-200"}`}>👷 Pagos colaboradores</button>
 </div>
-    <div className="grid grid-cols-3 gap-2 mb-4">
+   <div className="grid grid-cols-3 gap-2 mb-4">
       <div className="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm text-center">
         <div className="text-[10px] text-gray-400 font-bold uppercase">Total</div>
-        <div className="text-lg font-black text-gray-800">{totalDeuda}€</div>
+        <div className="text-lg font-black text-gray-800">{tabFin==="cobros"?totalClienteGlobal:totalDeuda}€</div>
       </div>
       <div className="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm text-center">
-        <div className="text-[10px] text-gray-400 font-bold uppercase">Pagado</div>
-        <div className="text-lg font-black text-emerald-600">{totalPagadoGlobal}€</div>
+        <div className="text-[10px] text-gray-400 font-bold uppercase">{tabFin==="cobros"?"Cobrado":"Pagado"}</div>
+        <div className="text-lg font-black text-emerald-600">{tabFin==="cobros"?totalCobradoGlobal:totalPagadoGlobal}€</div>
       </div>
       <div className="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm text-center">
         <div className="text-[10px] text-gray-400 font-bold uppercase">Pendiente</div>
-        <div className="text-lg font-black text-red-500">{pendienteGlobal}€</div>
+        <div className="text-lg font-black text-red-500">{tabFin==="cobros"?pendienteClienteGlobal:pendienteGlobal}€</div>
       </div>
     </div>
 
