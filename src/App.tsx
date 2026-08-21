@@ -1358,8 +1358,12 @@ function Finanzas({data,setData,onBack,toast}){
   const[modal,setModal]=useState(null);
 const[filtro,setFiltro]=useState("todos");
 const[tabFin,setTabFin]=useState("cobros");
+  const[cobros,setCobros]=useState([]);
   useEffect(()=>{
-    supabase.from('pagos_colaborador').select('*').order('fecha',{ascending:false}).then(({data})=>{setPagos(data||[]);setCargando(false);});
+    Promise.all([
+      supabase.from('pagos_colaborador').select('*').order('fecha',{ascending:false}),
+      supabase.from('cobros_cliente').select('*').order('fecha',{ascending:false})
+    ]).then(([{data:pg},{data:cb}])=>{setPagos(pg||[]);setCobros(cb||[]);setCargando(false);});
   },[]);
 
 const trabajosConColab=data.trabajos.filter(t=>getColabId(t)&&["Aceptado","En curso","Completado"].includes(t.estado));
