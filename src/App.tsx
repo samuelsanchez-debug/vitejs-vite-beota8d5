@@ -1017,8 +1017,8 @@ const[guardando,setGuardando]=useState(false);
     </div>
   </div>;
 }
-function TrabajoModal({tid,data,setData,onClose,toast}){
-  const t=data.trabajos.find(x=>x.id===tid||x.id===+tid);
+function TrabajoModal({tid,data,setData,onClose,toast,setSec}){
+const t=data.trabajos.find(x=>x.id===tid||x.id===+tid);
 const[modo,setModo]=useState<"ver"|"editar"|"presupuesto">(window.__abrirPresupuesto?"presupuesto":"ver");
   useEffect(()=>{if(window.__abrirPresupuesto)window.__abrirPresupuesto=false;},[]);  if(!t)return null;
   const cl=data.clientes.find(c=>c.id===getClienteId(t));
