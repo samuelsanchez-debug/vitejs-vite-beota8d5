@@ -1392,8 +1392,36 @@ const trabajosCliente=data.trabajos.filter(t=>t.aceptado_cliente&&["Aceptado","E
       </div>
     </div>
 
-    {cargando&&<div className="text-center py-8 text-gray-400 text-sm">Cargando...</div>}
-
+{cargando&&<div className="text-center py-8 text-gray-400 text-sm">Cargando...</div>}
+{tabFin==="cobros"&&<div className="space-y-2">
+  {trabajosCliente.length===0&&<div className="text-center py-10 text-sm text-gray-400">Sin cobros pendientes</div>}
+  {trabajosCliente.map(t=>{
+    const cl=data.clientes.find(c=>c.id===getClienteId(t));
+    const precio=getPrecioCliente(t)||0;
+    const iva=t.iva||21;
+    const totalIva=Math.round(precio*(1+iva/100));
+    const adelanto=t.adelanto_tipo==='fijo'?(t.adelanto_valor||0):Math.round(totalIva*(t.adelanto_valor||30)/100);
+    const resto=totalIva-adelanto;
+    return<div key={t.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+      <div className="flex justify-between items-start mb-2">
+        <div>
+          <div className="font-bold text-gray-800 text-sm">{t.tipo} — {cl?.nombre}</div>
+          <div className="text-[11px] text-gray-400">{fmt(t.fecha)}</div>
+        </div>
+        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${t.estado==="Completado"?"bg-emerald-100 text-emerald-700":"bg-amber-100 text-amber-700"}`}>{t.estado}</span>
+      </div>
+      <div className="grid grid-cols-3 gap-2 text-center bg-gray-50 rounded-xl p-2 mb-3">
+        <div><div className="text-sm font-bold text-gray-700">{totalIva}€</div><div className="text-[9px] text-gray-400 uppercase">Total</div></div>
+        <div><div className="text-sm font-bold text-amber-600">{adelanto}€</div><div className="text-[9px] text-gray-400 uppercase">Adelanto</div></div>
+        <div><div className="text-sm font-bold text-blue-600">{resto}€</div><div className="text-[9px] text-gray-400 uppercase">Resto</div></div>
+      </div>
+      <div className="flex gap-2">
+        <button onClick={async()=>{const v=!t.adelanto_pagado;await supabase.from('trabajos').update({adelanto_pagado:v}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,adelanto_pagado:v}:x)}));toast(v?"✅ Adelanto cobrado":"↩️ Marcado como pendiente");}} className={`flex-1 py-2 rounded-xl text-xs font-bold transition ${t.adelanto_pagado?"bg-emerald-100 text-emerald-700 border border-emerald-200":"bg-amber-50 text-amber-700 border border-amber-200"}`}>{t.adelanto_pagado?"✅ Adelanto cobrado":"⏳ Marcar adelanto cobrado"}</button>
+      </div>
+    </div>;
+  })}
+</div>}
+{tabFin==="pagos"&&<div>
    <div className="flex gap-1.5 mb-4 flex-wrap">
       {[["todos","Todos"],["pendientes","Pendientes"],["proximos","Próximos"],["pagados","Pagados"]].map(([k,label])=>(
         <button key={k} onClick={()=>setFiltro(k)} className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${filtro===k?"bg-[#1E3A5F] text-white":"bg-white text-gray-500 border border-gray-200"}`}>{label}</button>
