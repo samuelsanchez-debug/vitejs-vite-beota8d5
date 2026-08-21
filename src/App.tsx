@@ -1497,6 +1497,7 @@ if(filtro==="pendientes")return pend>0||total===0;
       {!cargando&&trabajosConColab.length===0&&<div className="text-center py-10 text-sm text-gray-400">Sin trabajos con colaborador asignado</div>}
     </div>
 </div>}
+    {modalCobro&&<RegistrarCobro modal={modalCobro} onClose={()=>setModalCobro(null)} onGuardado={(nuevo)=>{setCobros(c=>[nuevo,...c]);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===modalCobro.trabajo.id?{...x,adelanto_pagado:true}:x)}));setModalCobro(null);toast("Cobro registrado");}}/>}
 {modal&&<RegistrarPago modal={modal} onClose={()=>setModal(null)} onGuardado={(nuevo,venc)=>{setPagos(p=>[nuevo,...p]);if(venc)setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===modal.trabajo.id?{...x,vencimiento_pago:venc}:x)}));setModal(null);toast("Pago registrado");}}/>}
 </div>;
 }
