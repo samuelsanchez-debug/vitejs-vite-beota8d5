@@ -1028,8 +1028,8 @@ const[modo,setModo]=useState<"ver"|"editar"|"presupuesto">(window.__abrirPresupu
   const fotoUrl=notas.startsWith('foto:')?notas.replace('foto:',''):null;
   const iconH=tipo=>({entrada:"🟢",wa:"💬",presupuesto:"💶",cliente:"📤",ok:"✅",sistema:"·"}[tipo]||"·");
 return<Modal title={`${t.tipo} #${t.id}`} onClose={onClose} wide={modo!=="ver"} xwide={modo==="ver"}>{modo==="ver"?(
-      <FichaTrabajo t={t} cl={cl} co={co} data={data} setData={setData} onClose={onClose} toast={toast} setModo={setModo}/>
-    ):false?(    <div className="space-y-4">
+<FichaTrabajo t={t} cl={cl} co={co} data={data} setData={setData} onClose={onClose} toast={toast} setModo={setModo}/>
+):false?(    <div className="space-y-4">
       <div className="flex flex-wrap gap-1.5"><Badge text={t.estado}/><OrigenTag id={t.origen}/><span className={`text-xs font-bold ${PRIO_CFG[t.prioridad]?.text}`}>{PRIO_CFG[t.prioridad]?.icon} {t.prioridad}</span></div>
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Cliente</div><div className="font-semibold">{cl?.nombre}</div><div className="text-xs text-gray-400">{cl?.telefono}</div></div>
