@@ -1523,16 +1523,14 @@ function RegistrarCobro({modal,onClose,onGuardado}){
   const guardar=async()=>{
     if(!importe)return;
     setGuardando(true);
-    const{data,error}=await supabase.from('cobros_cliente').insert({
-      trabajo_id:modal.trabajo.id,
-      importe:+importe,
-      forma_pago:forma,
-      fecha,
-      concepto,
-      notas,
-    }).select();
+   let data,error;
+    if(modal.editId){
+      ({data,error}=await supabase.from('cobros_cliente').update({importe:+importe,forma_pago:forma,fecha,concepto,notas}).eq('id',modal.editId).select());
+    }else{
+      ({data,error}=await supabase.from('cobros_cliente').insert({trabajo_id:modal.trabajo.id,importe:+importe,forma_pago:forma,fecha,concepto,notas}).select());
+    }
     setGuardando(false);
-    if(!error&&data)onGuardado(data[0]);
+    if(!error&&data)onGuardado(data[0],!!modal.editId);
   };
   return<Modal title="Registrar cobro" onClose={onClose}>
     <div className="space-y-3">
