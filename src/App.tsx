@@ -696,7 +696,7 @@ const[menuAbierto,setMenuAbierto]=useState<number|null>(null);
       const alturaNecesaria=lineas.length*6+6;
       if(y+alturaNecesaria>260){doc.addPage();y=25;doc.setFontSize(10);}
       if(p.tipo==="seccion"){
-        y+=2;
+        
         doc.setFontSize(10);
         doc.setFont(undefined,"bold");
         doc.setTextColor(30,58,95);
