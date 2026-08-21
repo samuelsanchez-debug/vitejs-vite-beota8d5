@@ -697,16 +697,16 @@ const[menuAbierto,setMenuAbierto]=useState<number|null>(null);
       if(y+alturaNecesaria>260){doc.addPage();y=25;doc.setFontSize(10);}
       if(p.tipo==="seccion"){
         
-        doc.setFontSize(10);
+       doc.setFontSize(10);
         doc.setFont(undefined,"bold");
         doc.setTextColor(30,58,95);
         doc.text(lineas,18,y);
+        doc.setDrawColor(30,58,95);
+        doc.setLineWidth(0.5);
+        doc.line(15,y+2,195,y+2);
+        doc.setLineWidth(0.2);
         doc.setFont(undefined,"normal");
         y+=alturaNecesaria;
-        doc.setDrawColor(30,58,95);
-       doc.setLineWidth(0.5);
-        doc.line(15,y-8,195,y-8);
-        doc.setLineWidth(0.2);
       } else if(p.tipo==="nota"){
         doc.setFontSize(8);
         doc.setTextColor(120,120,120);
