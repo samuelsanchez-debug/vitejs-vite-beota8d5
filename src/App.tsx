@@ -1429,14 +1429,22 @@ const trabajosCliente=data.trabajos.filter(t=>t.aceptado_cliente&&["Aceptado","E
         </div>
         <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${t.estado==="Completado"?"bg-emerald-100 text-emerald-700":"bg-amber-100 text-amber-700"}`}>{t.estado}</span>
       </div>
-      <div className="grid grid-cols-3 gap-2 text-center bg-gray-50 rounded-xl p-2 mb-3">
+      {(()=>{const misCobros=cobros.filter(c=>c.trabajo_id===t.id);const cobrado=misCobros.reduce((s,c)=>s+(+c.importe||0),0);const pendiente=totalIva-cobrado;
+      return<>
+      <div className="grid grid-cols-3 gap-2 text-center bg-gray-50 rounded-xl p-2 mb-2">
         <div><div className="text-sm font-bold text-gray-700">{totalIva}€</div><div className="text-[9px] text-gray-400 uppercase">Total</div></div>
-        <div><div className="text-sm font-bold text-amber-600">{adelanto}€</div><div className="text-[9px] text-gray-400 uppercase">Adelanto</div></div>
-        <div><div className="text-sm font-bold text-blue-600">{resto}€</div><div className="text-[9px] text-gray-400 uppercase">Resto</div></div>
+        <div><div className="text-sm font-bold text-emerald-600">{cobrado}€</div><div className="text-[9px] text-gray-400 uppercase">Cobrado</div></div>
+        <div><div className="text-sm font-bold text-red-500">{pendiente}€</div><div className="text-[9px] text-gray-400 uppercase">Pendiente</div></div>
       </div>
-      <div className="flex gap-2">
-<button onClick={()=>setModalCobro({trabajo:t,cliente:cl,concepto:"Adelanto",importe:adelanto})} className={`flex-1 py-2 rounded-xl text-xs font-bold transition ${t.adelanto_pagado?"bg-emerald-100 text-emerald-700 border border-emerald-200":"bg-amber-50 text-amber-700 border border-amber-200"}`}>{t.adelanto_pagado?"✅ Adelanto cobrado":"+ Registrar cobro adelanto"}</button>
-      </div>
+      {misCobros.length>0&&<div className="space-y-1 mb-2">
+        {misCobros.map(c=><div key={c.id} className="flex justify-between items-center text-xs bg-emerald-50 rounded-lg px-2 py-1.5">
+          <span className="text-emerald-700 font-medium">{c.importe}€ · {c.forma_pago} · {c.concepto}</span>
+          <span className="text-gray-400">{fmt(c.fecha)}{c.notas?` · ${c.notas}`:""}</span>
+        </div>)}
+      </div>}
+      {pendiente>0&&<button onClick={()=>setModalCobro({trabajo:t,cliente:cl,concepto:cobrado===0?"Adelanto":"Pago final",importe:cobrado===0?adelanto:pendiente})} className="w-full bg-[#1E3A5F] text-white py-2 rounded-xl text-xs font-bold transition hover:bg-[#152d4a]">+ Registrar cobro</button>}
+      {pendiente<=0&&<div className="text-center text-xs text-emerald-600 font-bold py-1">Cobrado completamente</div>}
+      </>;})()}
     </div>;
   })}
   </div>
