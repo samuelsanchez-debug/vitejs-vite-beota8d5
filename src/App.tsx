@@ -1009,6 +1009,7 @@ const[guardando,setGuardando]=useState(false);
           <div className="text-xl font-black text-amber-600">{adelanto}€</div>
           <div className="text-[10px] text-amber-600">a pagar por el cliente</div>
         </div>
+        {cl?.telefono&&<button onClick={()=>{const msg=`Hola ${cl.nombre.split(" ")[0]} 😊\n\nAquí tienes el enlace para ver y aceptar tu presupuesto de *Domia Services*:\n\n👉 https://domia-crm-two.vercel.app/aceptar/${t.id}\n\nCualquier duda estamos en el 685 917 059. ¡Gracias!\n\n— Samuel · Domia Services`;window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`,"_blank");}} className="w-full bg-green-500 hover:bg-green-600 text-white py-2.5 rounded-xl font-bold text-sm transition">💳 Enviar enlace de pago</button>}
       </div>}
       <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm space-y-2">
         <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-1">Acciones</div>
