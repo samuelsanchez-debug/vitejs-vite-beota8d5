@@ -719,13 +719,8 @@ const[menuAbierto,setMenuAbierto]=useState<number|null>(null);
         const cant=+p.cantidad||1;
         const prec=+p.precio||0;
         const importeLinea=Math.round(cant*prec*(1+ml/100));
-        if(cant>1){
-          doc.setFontSize(8);
-          doc.setTextColor(120,120,120);
-          doc.text(`${cant} ud × ${prec}€`,192,y-4,{align:"right"});
-          doc.setFontSize(10);
-          doc.setTextColor(60,60,60);
-        }
+        doc.text(`${cant}`,135,y,{align:"right"});
+        doc.text(`${prec}€`,162,y,{align:"right"});
         doc.text(`${importeLinea}€`,192,y,{align:"right"});
         y+=alturaNecesaria;
         
