@@ -1420,7 +1420,7 @@ const[filtro,setFiltro]=useState("todos");
               <div className="font-bold text-gray-800 text-sm">{t.tipo} — {co?.nombre||"?"}</div>
               <div className="text-[11px] text-gray-400">{cl?.nombre} · {fmt(t.fecha)}</div>
             </div>
-            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${pendiente<=0?"bg-emerald-100 text-emerald-700":pagado>0?"bg-amber-100 text-amber-700":"bg-red-100 text-red-600"}`}>{pendiente<=0?"Pagado":pagado>0?"Parcial":"Pendiente"}</span>
+<span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${pendiente<=0&&total>0?"bg-emerald-100 text-emerald-700":pagado>0?"bg-amber-100 text-amber-700":"bg-red-100 text-red-600"}`}>{pendiente<=0&&total>0?"Pagado":pagado>0?"Parcial":"Pendiente"}</span>
           </div>
           {pendiente>0&&t.vencimiento_pago&&(()=>{
             const dias=Math.ceil((new Date(t.vencimiento_pago).getTime()-Date.now())/(1000*60*60*24));
