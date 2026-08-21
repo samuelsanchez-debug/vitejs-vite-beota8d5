@@ -721,8 +721,7 @@ const[menuAbierto,setMenuAbierto]=useState<number|null>(null);
         const importeLinea=Math.round((+p.cantidad||1)*(+p.precio||0)*(1+ml/100));
         doc.text(`${importeLinea}€`,192,y,{align:"right"});
         y+=alturaNecesaria;
-        doc.setDrawColor(230,230,230);
-        doc.line(15,y-3,195,y-3);
+        
       }
     });
     if(y>235){doc.addPage();y=25;}
