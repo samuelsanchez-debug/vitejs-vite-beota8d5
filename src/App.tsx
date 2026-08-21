@@ -1925,7 +1925,7 @@ export default function App(){
       {sec==="finanzas"&&<Finanzas data={data} setData={setData} onBack={()=>setSec("home")} toast={T}/>}
     </main>
     {showNuevo&&<Modal title="Nueva solicitud" onClose={()=>setShowNuevo(false)} wide><FormTrabajo data={data} setData={setData} onClose={()=>setShowNuevo(false)} toast={T}/></Modal>}
-    {tid&&<TrabajoModal tid={tid} data={data} setData={setData} onClose={()=>setTid(null)} toast={T}/>}
+{tid&&<TrabajoModal tid={tid} data={data} setData={setData} onClose={()=>setTid(null)} toast={T} setSec={setSec}/>}
     {toastMsg&&<Toast msg={toastMsg} clear={()=>setToastMsg(null)}/>}
   </div>;
 }
