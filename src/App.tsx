@@ -650,7 +650,7 @@ const[partidas,setPartidas]=useState(t.partidas&&t.partidas.length?t.partidas:[{
   const addPartida=(tipo="normal")=>setPartidas(p=>[...p,{desc:"",cantidad:1,precio:0,margenLinea:null,tipo}]);
   const updPartida=(i,k,v)=>setPartidas(p=>p.map((x,idx)=>idx===i?{...x,[k]:v}:x));
   const delPartida=(i)=>setPartidas(p=>p.filter((_,idx)=>idx!==i));
-  const[generando,setGenerando]=useState(false);
+const[menuAbierto,setMenuAbierto]=useState<number|null>(null);
   const[pdfUrl,setPdfUrl]=useState<string|null>(null);
 
   const generarPDF=async()=>{
