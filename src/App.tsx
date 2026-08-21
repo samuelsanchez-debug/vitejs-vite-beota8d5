@@ -691,6 +691,7 @@ const[menuAbierto,setMenuAbierto]=useState<number|null>(null);
    let y=118;
     doc.setTextColor(60,60,60);
     doc.setFontSize(10);
+    const notas_pdf:any[]=[];
     partidas.filter(p=>p.desc).forEach(p=>{
       const lineas=doc.splitTextToSize(p.desc,p.tipo==="normal"||!p.tipo?140:175);
       const alturaNecesaria=lineas.length*6+6;
