@@ -1401,8 +1401,8 @@ const[filtro,setFiltro]=useState("todos");
         const total=getPresupColab(t)||0;
         const pagado=totalPagado(t.id);
         const pend=total-pagado;
-        if(filtro==="pendientes")return pend>0;
-        if(filtro==="pagados")return pend<=0&&total>0;
+if(filtro==="pendientes")return pend>0||total===0;
+    if(filtro==="pagados")return pend<=0&&total>0;
         if(filtro==="proximos")return pend>0&&t.vencimiento_pago;
         return true;
       }).sort((a,b)=>{
