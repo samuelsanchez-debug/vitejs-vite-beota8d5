@@ -289,9 +289,10 @@ let telLimpio = (form.telefono || '').replace(/\s/g, '');
           </div>
 
           <div className="mb-3">
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Email <span className="text-gray-400 font-normal">(opcional)</span></label>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Email *</label>
             <input className={iCls('email')} placeholder="tu@email.com" type="email" value={form.email}
-              onChange={e => set('email', e.target.value)}/>
+              onChange={e => { set('email', e.target.value); setErrores(x => ({ ...x, email: null })); }}/>
+            {errores.email && <p className="text-red-500 text-xs mt-1">⚠️ {errores.email}</p>}
           </div>
 
           <div className="mb-6">
