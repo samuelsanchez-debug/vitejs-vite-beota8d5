@@ -893,7 +893,7 @@ const msg=`Hola ${cl.nombre.split(" ")[0]} 😊\n\nTu presupuesto de *Domia Serv
     <button onClick={onClose} className="w-full border border-gray-200 text-gray-500 py-2.5 rounded-xl text-sm">Cancelar</button>
   </div>;
 }
-function FichaTrabajo({t,cl,co,data,setData,onClose,toast,setModo}){
+function FichaTrabajo({t,cl,co,data,setData,onClose,toast,setModo,setSec}){
 const[tab,setTab]=useState("resumen");
 const[editEstado,setEditEstado]=useState(false);
 const[editColab,setEditColab]=useState(false);
