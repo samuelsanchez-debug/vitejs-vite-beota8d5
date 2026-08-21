@@ -1361,8 +1361,8 @@ const[filtro,setFiltro]=useState("todos");
     supabase.from('pagos_colaborador').select('*').order('fecha',{ascending:false}).then(({data})=>{setPagos(data||[]);setCargando(false);});
   },[]);
 
-  const trabajosConColab=data.trabajos.filter(t=>getColabId(t)&&["Aceptado","En curso","Completado"].includes(t.estado));
-
+const trabajosConColab=data.trabajos.filter(t=>getColabId(t)&&["Aceptado","En curso","Completado"].includes(t.estado));
+const trabajosCliente=data.trabajos.filter(t=>t.aceptado_cliente&&["Aceptado","En curso","Completado"].includes(t.estado));
   const pagosDeTrabajo=(tid)=>pagos.filter(p=>p.trabajo_id===tid);
   const totalPagado=(tid)=>pagosDeTrabajo(tid).reduce((s,p)=>s+(+p.importe||0),0);
 
