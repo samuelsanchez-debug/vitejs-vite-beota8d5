@@ -708,12 +708,12 @@ const[menuAbierto,setMenuAbierto]=useState<number|null>(null);
         doc.setFont(undefined,"normal");
         y+=alturaNecesaria;
       } else if(p.tipo==="nota"){
-        doc.setFontSize(8);
-        doc.setTextColor(120,120,120);
+        doc.setFontSize(9);
+        doc.setTextColor(80,80,80);
         doc.text(lineas,18,y);
         doc.setFontSize(10);
         doc.setTextColor(60,60,60);
-        y+=alturaNecesaria;
+        y+=lineas.length*5+2;
       } else {
         const ml=p.margenLinea!==null&&p.margenLinea!==undefined?+p.margenLinea:margen;
         doc.setTextColor(60,60,60);
