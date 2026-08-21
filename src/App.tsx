@@ -1393,9 +1393,23 @@ const trabajosCliente=data.trabajos.filter(t=>t.aceptado_cliente&&["Aceptado","E
     </div>
 
 {cargando&&<div className="text-center py-8 text-gray-400 text-sm">Cargando...</div>}
-{tabFin==="cobros"&&<div className="space-y-2">
-  {trabajosCliente.length===0&&<div className="text-center py-10 text-sm text-gray-400">Sin cobros pendientes</div>}
-  {trabajosCliente.map(t=>{
+{tabFin==="cobros"&&<div>
+  <div className="flex gap-1.5 mb-4 flex-wrap">
+    {[["todos","Todos"],["pendientes","Pendientes"],["pagados","Pagados"]].map(([k,label])=>(
+      <button key={k} onClick={()=>setFiltro(k)} className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${filtro===k?"bg-[#1E3A5F] text-white":"bg-white text-gray-500 border border-gray-200"}`}>{label}</button>
+    ))}
+  </div>
+  <div className="space-y-2">
+  {trabajosCliente.filter(t=>{
+    if(filtro==="pendientes")return !t.adelanto_pagado;
+    if(filtro==="pagados")return t.adelanto_pagado;
+    return true;
+  }).length===0&&<div className="text-center py-10 text-sm text-gray-400">Sin cobros</div>}
+  {trabajosCliente.filter(t=>{
+    if(filtro==="pendientes")return !t.adelanto_pagado;
+    if(filtro==="pagados")return t.adelanto_pagado;
+    return true;
+  }).map(t=>{
     const cl=data.clientes.find(c=>c.id===getClienteId(t));
     const precio=getPrecioCliente(t)||0;
     const iva=t.iva||21;
