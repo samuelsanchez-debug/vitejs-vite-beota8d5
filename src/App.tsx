@@ -1439,7 +1439,11 @@ const trabajosCliente=data.trabajos.filter(t=>t.aceptado_cliente&&["Aceptado","E
       {misCobros.length>0&&<div className="space-y-1 mb-2">
         {misCobros.map(c=><div key={c.id} className="flex justify-between items-center text-xs bg-emerald-50 rounded-lg px-2 py-1.5">
           <span className="text-emerald-700 font-medium">{c.importe}€ · {c.forma_pago} · {c.concepto}</span>
-          <span className="text-gray-400">{fmt(c.fecha)}{c.notas?` · ${c.notas}`:""}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-gray-400">{fmt(c.fecha)}{c.notas?` · ${c.notas}`:""}</span>
+            <button onClick={()=>setModalCobro({trabajo:t,cliente:cl,concepto:c.concepto,importe:c.importe,editId:c.id})} className="text-blue-500 font-bold hover:text-blue-700">✏️</button>
+            <button onClick={async()=>{if(!confirm("¿Eliminar este cobro?"))return;await supabase.from('cobros_cliente').delete().eq('id',c.id);setCobros(prev=>prev.filter(x=>x.id!==c.id));toast("Cobro eliminado");}} className="text-red-400 font-bold hover:text-red-600">×</button>
+          </div>
         </div>)}
       </div>}
       {pendiente>0&&<button onClick={()=>setModalCobro({trabajo:t,cliente:cl,concepto:cobrado===0?"Adelanto":"Pago final",importe:cobrado===0?adelanto:pendiente})} className="w-full bg-[#1E3A5F] text-white py-2 rounded-xl text-xs font-bold transition hover:bg-[#152d4a]">+ Registrar cobro</button>}
