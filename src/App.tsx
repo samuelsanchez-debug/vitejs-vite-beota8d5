@@ -1372,9 +1372,12 @@ const trabajosCliente=data.trabajos.filter(t=>["Aceptado","En curso","Completado
   const pagosDeTrabajo=(tid)=>pagos.filter(p=>p.trabajo_id===tid);
   const totalPagado=(tid)=>pagosDeTrabajo(tid).reduce((s,p)=>s+(+p.importe||0),0);
 
-  const totalDeuda=trabajosConColab.reduce((s,t)=>s+(getPresupColab(t)||0),0);
+ const totalDeuda=trabajosConColab.reduce((s,t)=>s+(getPresupColab(t)||0),0);
   const totalPagadoGlobal=pagos.reduce((s,p)=>s+(+p.importe||0),0);
   const pendienteGlobal=totalDeuda-totalPagadoGlobal;
+  const totalClienteGlobal=trabajosCliente.reduce((s,t)=>{const precio=getPrecioCliente(t)||0;const iva=t.iva||21;return s+Math.round(precio*(1+iva/100));},0);
+  const totalCobradoGlobal=cobros.reduce((s,c)=>s+(+c.importe||0),0);
+  const pendienteClienteGlobal=totalClienteGlobal-totalCobradoGlobal;
 
   return<div>
 <Back title="Finanzas" onBack={onBack}/>
