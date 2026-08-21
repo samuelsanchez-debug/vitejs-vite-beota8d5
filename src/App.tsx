@@ -704,8 +704,8 @@ const[menuAbierto,setMenuAbierto]=useState<number|null>(null);
         doc.setFont(undefined,"normal");
         y+=alturaNecesaria;
         doc.setDrawColor(30,58,95);
-        doc.setLineWidth(0.5);
-        doc.line(15,y-3,195,y-3);
+       doc.setLineWidth(0.5);
+        doc.line(15,y-8,195,y-8);
         doc.setLineWidth(0.2);
       } else if(p.tipo==="nota"){
         doc.setFontSize(8);
