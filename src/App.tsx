@@ -746,6 +746,16 @@ const[menuAbierto,setMenuAbierto]=useState<number|null>(null);
     doc.text(`${totalConIva}€`,192,y,{align:"right"});
     doc.setFont(undefined,"normal");
     y+=6;
+    if(notas_pdf.length>0){
+      y+=8;
+      doc.setFontSize(9);
+      doc.setTextColor(80,80,80);
+      notas_pdf.forEach(n=>{
+        if(y>270){doc.addPage();y=25;}
+        doc.text(n,18,y);
+        y+=n.length*5+2;
+      });
+    }
     y+=34;
     doc.setFontSize(10);
     doc.setTextColor(60,60,60);
