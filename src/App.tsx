@@ -948,7 +948,7 @@ const[guardando,setGuardando]=useState(false);
         </div>
         <div className="flex gap-6 pt-3 border-t border-gray-100 text-xs">
           <div><div className="text-gray-400">Fecha</div><div className="font-semibold text-gray-700">{fmt(t.fecha)} · {t.hora}</div></div>
-          <div><div className="text-gray-400">Colaborador</div><div className="font-semibold text-gray-700">{co?.nombre||"—"}</div></div>
+<div><div className="text-gray-400">Colaborador</div>{editColab?<select autoFocus className="text-xs border border-gray-200 rounded-lg px-2 py-1 text-gray-700 font-bold" defaultValue={t.colaboradorId||""} disabled={guardando} onChange={async(e)=>{setGuardando(true);const saved=await dbSaveTrabajo({...t,colaboradorId:e.target.value||null});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("✅ Colaborador actualizado");}setEditColab(false);setGuardando(false);}}><option value="">— Sin colaborador —</option>{data.colaboradores.map(c=><option key={c.id} value={c.id}>{c.nombre}</option>)}</select>:<div className="font-semibold text-gray-700 cursor-pointer hover:text-blue-600" onClick={()=>setEditColab(true)} title="Clic para editar">{co?.nombre||"—"} ✏️</div>}</div>
         </div>
       </div>
 
