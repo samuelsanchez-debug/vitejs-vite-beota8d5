@@ -719,9 +719,11 @@ const lineas=doc.splitTextToSize(p.desc,p.tipo==="normal"||!p.tipo?100:175);
         const cant=+p.cantidad||1;
         const prec=+p.precio||0;
         const importeLinea=Math.round(cant*prec*(1+ml/100));
-       doc.text(`${cant}`,125,y,{align:"right"});
+      if(prec>0){
+        doc.text(`${cant}`,125,y,{align:"right"});
         doc.text(`${prec}€`,158,y,{align:"right"});
         doc.text(`${importeLinea}€`,192,y,{align:"right"});
+        }
         y+=alturaNecesaria;
         
       }
