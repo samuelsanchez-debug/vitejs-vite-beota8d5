@@ -894,7 +894,10 @@ const msg=`Hola ${cl.nombre.split(" ")[0]} 😊\n\nTu presupuesto de *Domia Serv
   </div>;
 }
 function FichaTrabajo({t,cl,co,data,setData,onClose,toast,setModo}){
-  const[tab,setTab]=useState("resumen");
+const[tab,setTab]=useState("resumen");
+const[editEstado,setEditEstado]=useState(false);
+const[editColab,setEditColab]=useState(false);
+const[guardando,setGuardando]=useState(false);
   const notas=getNotas(t);
   const partes=notas.split('|').map(n=>n.trim());
   const foto=partes.find(p=>p.startsWith('foto:'))?.replace('foto:','');
