@@ -1012,8 +1012,23 @@ const[guardando,setGuardando]=useState(false);
         {cl?.telefono&&<button onClick={()=>{const msg=`Hola ${cl.nombre.split(" ")[0]} 😊\n\nAquí tienes el enlace para ver y aceptar tu presupuesto de *Domia Services*:\n\n👉 https://domia-crm-two.vercel.app/aceptar/${t.id}\n\nCualquier duda estamos en el 685 917 059. ¡Gracias!\n\n— Samuel · Domia Services`;window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`,"_blank");}} className="w-full bg-green-500 hover:bg-green-600 text-white py-2.5 rounded-xl font-bold text-sm transition">💳 Enviar enlace de pago</button>}
       </div>}
       <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm space-y-2">
-        <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-1">Acciones</div>
-        {setSec&&<button onClick={()=>{onClose();setSec("finanzas");}} className="w-full bg-blue-50 border border-blue-200 text-blue-700 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-100 transition">💶 Ver en Finanzas</button>}
+        <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">Económico</div>
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-[10px] text-gray-400 uppercase font-bold">Precio colaborador</span>
+          <input type="number" defaultValue={colab||""} onBlur={async e=>{const v=+e.target.value||0;const saved=await dbSaveTrabajo({...t,presupuestoColaborador:v});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Precio colaborador actualizado");}}} className="w-24 border border-gray-200 rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-1 focus:ring-[#1E3A5F]" placeholder="0€"/>
+        </div>
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-[10px] text-gray-400 uppercase font-bold">Precio cliente</span>
+          <input type="number" defaultValue={precio||""} onBlur={async e=>{const v=+e.target.value||0;const saved=await dbSaveTrabajo({...t,precioCliente:v});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Precio cliente actualizado");}}} className="w-24 border border-gray-200 rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-1 focus:ring-[#1E3A5F]" placeholder="0€"/>
+        </div>
+        {precio>0&&colab>0&&<div className="bg-gray-50 rounded-xl p-2 text-center mt-1">
+          <div className="text-xs text-gray-400">Margen</div>
+          <div className="text-base font-black text-blue-600">{margen}€ <span className="text-xs font-normal text-blue-400">({Math.round(margen/colab*100)}%)</span></div>
+        </div>}
+        <div className="border-t border-gray-100 pt-2 mt-1">
+          <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-1">Acciones</div>
+          {setSec&&<button onClick={()=>{onClose();setSec("finanzas");}} className="w-full bg-blue-50 border border-blue-200 text-blue-700 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-100 transition">💶 Ver en Finanzas</button>}
+        </div>
       </div>
     </div>
   </div>;
