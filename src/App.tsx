@@ -695,7 +695,7 @@ const[menuAbierto,setMenuAbierto]=useState<number|null>(null);
     doc.setFontSize(10);
     const notas_pdf:any[]=[];
     partidas.filter(p=>p.desc).forEach(p=>{
-      const lineas=doc.splitTextToSize(p.desc,p.tipo==="normal"||!p.tipo?140:175);
+const lineas=doc.splitTextToSize(p.desc,p.tipo==="normal"||!p.tipo?100:175);
       const alturaNecesaria=lineas.length*6+6;
       if(y+alturaNecesaria>260){doc.addPage();y=25;doc.setFontSize(10);}
       if(p.tipo==="seccion"){
