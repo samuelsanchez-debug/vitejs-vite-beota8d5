@@ -983,8 +983,8 @@ const[guardando,setGuardando]=useState(false);
 
       {tab==="historial"&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
         <div className="space-y-2 max-h-80 overflow-y-auto">
-          {getHistorial(t).slice().reverse().map((h,i)=><div key={i} className="flex gap-2 text-xs">
-            <span className="text-gray-300">•</span>
+{(Array.isArray(getHistorial(t))?getHistorial(t):[]).slice().reverse().map((h,i)=><div key={i} className="flex gap-2 text-xs">
+          <span className="text-gray-300">•</span>
             <div><div className="text-gray-700">{h.txt}</div><div className="text-gray-400">{h.ts}</div></div>
           </div>)}
           {getHistorial(t).length===0&&<div className="text-center py-4 text-sm text-gray-400">Sin historial</div>}
