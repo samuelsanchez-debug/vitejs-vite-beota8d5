@@ -1371,8 +1371,11 @@ const trabajosCliente=data.trabajos.filter(t=>t.aceptado_cliente&&["Aceptado","E
   const pendienteGlobal=totalDeuda-totalPagadoGlobal;
 
   return<div>
-    <Back title="Finanzas · Pagos a colaboradores" onBack={onBack}/>
-
+<Back title="Finanzas" onBack={onBack}/>
+<div className="flex gap-2 mb-4">
+  <button onClick={()=>setTabFin("cobros")} className={`flex-1 py-2 rounded-xl text-sm font-bold transition ${tabFin==="cobros"?"bg-[#1E3A5F] text-white":"bg-white text-gray-500 border border-gray-200"}`}>💰 Cobros clientes</button>
+  <button onClick={()=>setTabFin("pagos")} className={`flex-1 py-2 rounded-xl text-sm font-bold transition ${tabFin==="pagos"?"bg-[#1E3A5F] text-white":"bg-white text-gray-500 border border-gray-200"}`}>👷 Pagos colaboradores</button>
+</div>
     <div className="grid grid-cols-3 gap-2 mb-4">
       <div className="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm text-center">
         <div className="text-[10px] text-gray-400 font-bold uppercase">Total</div>
