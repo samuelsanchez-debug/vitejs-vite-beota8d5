@@ -1353,9 +1353,10 @@ function CalcInterna(){
   </div>;
 }
 function Finanzas({data,setData,onBack,toast}){
-  const[pagos,setPagos]=useState([]);
+ const[pagos,setPagos]=useState([]);
   const[cargando,setCargando]=useState(true);
   const[modal,setModal]=useState(null);
+  const[modalCobro,setModalCobro]=useState(null);
 const[filtro,setFiltro]=useState("todos");
 const[tabFin,setTabFin]=useState("cobros");
   const[cobros,setCobros]=useState([]);
