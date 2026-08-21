@@ -1501,7 +1501,61 @@ if(filtro==="pendientes")return pend>0||total===0;
 {modal&&<RegistrarPago modal={modal} onClose={()=>setModal(null)} onGuardado={(nuevo,venc)=>{setPagos(p=>[nuevo,...p]);if(venc)setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===modal.trabajo.id?{...x,vencimiento_pago:venc}:x)}));setModal(null);toast("Pago registrado");}}/>}
 </div>;
 }
-
+function RegistrarCobro({modal,onClose,onGuardado}){
+  const[importe,setImporte]=useState(String(modal.importe||0));
+  const[forma,setForma]=useState("Bizum");
+  const[fecha,setFecha]=useState(hoy());
+  const[concepto,setConcepto]=useState(modal.concepto||"Adelanto");
+  const[notas,setNotas]=useState("");
+  const[guardando,setGuardando]=useState(false);
+  const guardar=async()=>{
+    if(!importe)return;
+    setGuardando(true);
+    const{data,error}=await supabase.from('cobros_cliente').insert({
+      trabajo_id:modal.trabajo.id,
+      importe:+importe,
+      forma_pago:forma,
+      fecha,
+      concepto,
+      notas,
+    }).select();
+    setGuardando(false);
+    if(!error&&data)onGuardado(data[0]);
+  };
+  return<Modal title="Registrar cobro" onClose={onClose}>
+    <div className="space-y-3">
+      <div className="bg-gray-50 rounded-xl p-3 text-sm">
+        <div className="font-bold text-gray-700">{modal.trabajo.tipo} — {modal.cliente?.nombre}</div>
+        <div className="text-xs text-gray-400">Concepto: {concepto}</div>
+      </div>
+      <div>
+        <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Concepto</div>
+        <div className="flex gap-1.5">
+          {["Adelanto","Pago final","Otro"].map(c=><button key={c} onClick={()=>setConcepto(c)} className={`flex-1 py-2 rounded-xl text-xs font-bold transition ${concepto===c?"bg-[#1E3A5F] text-white":"bg-white text-gray-500 border border-gray-200"}`}>{c}</button>)}
+        </div>
+      </div>
+      <div>
+        <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Importe (€)</div>
+        <input type="number" value={importe} onChange={e=>setImporte(e.target.value)} className={S}/>
+      </div>
+      <div>
+        <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Forma de pago</div>
+        <div className="flex gap-1.5">
+          {["Bizum","Transferencia","Efectivo"].map(f=><button key={f} onClick={()=>setForma(f)} className={`flex-1 py-2 rounded-xl text-xs font-bold transition ${forma===f?"bg-[#1E3A5F] text-white":"bg-white text-gray-500 border border-gray-200"}`}>{f}</button>)}
+        </div>
+      </div>
+      <div>
+        <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Fecha</div>
+        <input type="date" value={fecha} onChange={e=>setFecha(e.target.value)} className={S}/>
+      </div>
+      <div>
+        <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Notas (opcional)</div>
+        <input value={notas} onChange={e=>setNotas(e.target.value)} className={S} placeholder="Ej: pago por Bizum confirmado"/>
+      </div>
+      <button onClick={guardar} disabled={guardando} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-xl font-bold text-sm transition disabled:opacity-50">{guardando?"Guardando...":"Registrar cobro"}</button>
+    </div>
+  </Modal>;
+}
 function RegistrarPago({modal,onClose,onGuardado}){
   const[importe,setImporte]=useState(String(modal.pendiente));
   const[forma,setForma]=useState("Efectivo");
