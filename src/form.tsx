@@ -31,7 +31,8 @@ export default function FormularioDomia() {
     if (!form.telefono.trim()) e.telefono = "Teléfono obligatorio";
     if (!form.direccion.trim()) e.direccion = "Dirección obligatoria";
     if (!form.tipos.length) e.tipos = "Selecciona al menos un servicio";
-    if (!form.descripcion.trim()) e.descripcion = "Describe el problema";
+if (!form.descripcion.trim()) e.descripcion = "Describe el problema";
+    if (!form.email.trim()) e.email = "Email obligatorio";
     setErrores(e);
     return Object.keys(e).length === 0;
   };
