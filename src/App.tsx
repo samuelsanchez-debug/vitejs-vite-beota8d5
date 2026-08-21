@@ -1434,6 +1434,7 @@ const trabajosCliente=data.trabajos.filter(t=>t.aceptado_cliente&&["Aceptado","E
       </div>
     </div>;
   })}
+  </div>
 </div>}
 {tabFin==="pagos"&&<div>
    <div className="flex gap-1.5 mb-4 flex-wrap">
