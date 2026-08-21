@@ -651,8 +651,8 @@ const[partidas,setPartidas]=useState(t.partidas&&t.partidas.length?t.partidas:[{
   const updPartida=(i,k,v)=>setPartidas(p=>p.map((x,idx)=>idx===i?{...x,[k]:v}:x));
   const delPartida=(i)=>setPartidas(p=>p.filter((_,idx)=>idx!==i));
 const[menuAbierto,setMenuAbierto]=useState<number|null>(null);
+  const[generando,setGenerando]=useState(false);
   const[pdfUrl,setPdfUrl]=useState<string|null>(null);
-
   const generarPDF=async()=>{
     setGenerando(true);
     const fecha=new Date().toLocaleDateString("es-ES",{day:"numeric",month:"long",year:"numeric"});
