@@ -939,8 +939,10 @@ const[guardando,setGuardando]=useState(false);
 
     <div className="space-y-3">
   <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${cfg.bg} ${cfg.text} mb-3`}><span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`}/>{t.estado}</span>
-        <div className="flex items-center gap-3 mb-3">
+{editEstado?<select autoFocus className="mb-3 text-xs border border-gray-200 rounded-lg px-2 py-1 text-gray-700 font-bold" defaultValue={t.estado} disabled={guardando} onChange={async(e)=>{setGuardando(true);const saved=await dbSaveTrabajo({...t,estado:e.target.value});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("✅ Estado actualizado");}setEditEstado(false);setGuardando(false);}}>
+  {["Solicitud","Presupuestando","Colaborador disponible","Visita propuesta","Cliente confirmó","Presupuesto recibido","Presupuesto enviado","Aceptado","En curso","Completado"].map(e=><option key={e}>{e}</option>)}
+</select>:<span onClick={()=>setEditEstado(true)} className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase cursor-pointer hover:opacity-70 ${cfg.bg} ${cfg.text} mb-3`} title="Clic para editar"><span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`}/>{t.estado} ✏️</span>}
+    <div className="flex items-center gap-3 mb-3">
           <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-xl">{ICONO_TIPO[t.tipo]||"📋"}</div>
           <div className="text-lg font-bold text-gray-800">{t.tipo}</div>
         </div>
