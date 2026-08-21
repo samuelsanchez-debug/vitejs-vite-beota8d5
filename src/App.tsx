@@ -1435,7 +1435,7 @@ const trabajosCliente=data.trabajos.filter(t=>t.aceptado_cliente&&["Aceptado","E
         <div><div className="text-sm font-bold text-blue-600">{resto}€</div><div className="text-[9px] text-gray-400 uppercase">Resto</div></div>
       </div>
       <div className="flex gap-2">
-        <button onClick={async()=>{const v=!t.adelanto_pagado;await supabase.from('trabajos').update({adelanto_pagado:v}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,adelanto_pagado:v}:x)}));toast(v?"✅ Adelanto cobrado":"↩️ Marcado como pendiente");}} className={`flex-1 py-2 rounded-xl text-xs font-bold transition ${t.adelanto_pagado?"bg-emerald-100 text-emerald-700 border border-emerald-200":"bg-amber-50 text-amber-700 border border-amber-200"}`}>{t.adelanto_pagado?"✅ Adelanto cobrado":"⏳ Marcar adelanto cobrado"}</button>
+<button onClick={()=>setModalCobro({trabajo:t,cliente:cl,concepto:"Adelanto",importe:adelanto})} className={`flex-1 py-2 rounded-xl text-xs font-bold transition ${t.adelanto_pagado?"bg-emerald-100 text-emerald-700 border border-emerald-200":"bg-amber-50 text-amber-700 border border-amber-200"}`}>{t.adelanto_pagado?"✅ Adelanto cobrado":"+ Registrar cobro adelanto"}</button>
       </div>
     </div>;
   })}
