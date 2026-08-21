@@ -708,12 +708,7 @@ const[menuAbierto,setMenuAbierto]=useState<number|null>(null);
         doc.setFont(undefined,"normal");
         y+=alturaNecesaria;
       } else if(p.tipo==="nota"){
-        doc.setFontSize(9);
-        doc.setTextColor(80,80,80);
-        doc.text(lineas,18,y);
-        doc.setFontSize(10);
-        doc.setTextColor(60,60,60);
-        y+=lineas.length*5+2;
+        notas_pdf.push(lineas);
       } else {
         const ml=p.margenLinea!==null&&p.margenLinea!==undefined?+p.margenLinea:margen;
         doc.setTextColor(60,60,60);
