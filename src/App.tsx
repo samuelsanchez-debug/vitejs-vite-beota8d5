@@ -777,12 +777,17 @@ const importeLinea=Math.round(prec*(1+ml/100)*100)/100*cant;
     y+=34;
     doc.setFontSize(10);
     doc.setTextColor(60,60,60);
-    doc.text("Forma de pago:",15,y);
+   doc.text("Forma de pago:",15,y);
     doc.setFontSize(9);
     doc.setTextColor(100,100,100);
-    doc.text("• Entrega inicial del 50% antes de empezar el trabajo.",18,y+7);
-    doc.text("• Entrega de un 25% a mitad del trabajo.",18,y+13);
-    doc.text("• Entrega final del 25% restante al finalizar.",18,y+19);
+    if(base<=5000){
+      doc.text(`• Entrega inicial del 50% (${eur(Math.round(totalConIva*0.5*100)/100)}) antes de empezar el trabajo.`,18,y+7);
+      doc.text(`• Entrega final del 50% (${eur(Math.round(totalConIva*0.5*100)/100)}) al finalizar.`,18,y+13);
+    }else{
+      doc.text(`• Entrega inicial del 40% (${eur(Math.round(totalConIva*0.4*100)/100)}) antes de empezar el trabajo.`,18,y+7);
+      doc.text(`• Entrega del 40% (${eur(Math.round(totalConIva*0.4*100)/100)}) a mitad del trabajo.`,18,y+13);
+      doc.text(`• Entrega final del 20% (${eur(Math.round(totalConIva*0.2*100)/100)}) al finalizar.`,18,y+19);
+    }
 
     y+=30;
     doc.setFontSize(8);
