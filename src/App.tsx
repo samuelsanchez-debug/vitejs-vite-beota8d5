@@ -731,10 +731,9 @@ const importeLinea=Math.round(prec*(1+ml/100)*100)/100*cant;
     });
     if(y>235){doc.addPage();y=25;}
 
-    const base=totalCliente;
+   const base=partidas.reduce((s,p)=>{if(p.tipo==="seccion"||p.tipo==="nota")return s;const ml=p.margenLinea!==null&&p.margenLinea!==undefined?+p.margenLinea:margen;const cant=+p.cantidad||1;const prec=+p.precio||0;return s+Math.round(prec*(1+ml/100)*100)/100*cant;},0);
     const importeIva=Math.round(base*iva/100*100)/100;
     const totalConIva=Math.round((base+importeIva)*100)/100;
-
     y+=6;
     doc.setFontSize(10);
     doc.setTextColor(90,90,90);
