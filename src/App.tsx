@@ -754,6 +754,11 @@ const importeLinea=Math.round(prec*(1+ml/100)*100)/100*cant;
     doc.text(eur(totalConIva),192,y,{align:"right"});
     doc.setFont(undefined,"normal");
     y+=6;
+    const validez=new Date();validez.setDate(validez.getDate()+30);
+    doc.setFontSize(8);
+    doc.setTextColor(150,150,150);
+    doc.text(`Válido hasta el ${validez.toLocaleDateString("es-ES",{day:"numeric",month:"long",year:"numeric"})}`,192,y,{align:"right"});
+    y+=6;
    if(notas_pdf.length>0){
       y+=10;
       doc.setFontSize(10);
