@@ -978,7 +978,7 @@ const[selectorColab,setSelectorColab]=useState(false);
   const tel=(cl?.telefono||"").replace(/\s/g,'');
 
 return<div className="space-y-3">
-  
+    {selectorColab&&<SelectorColaborador data={data} valorActual={t.colaboradorId} onCerrar={()=>setSelectorColab(false)} onSeleccionar={async(id)=>{const saved=await dbSaveTrabajo({...t,colaboradorId:id||null});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Colaborador actualizado");}setSelectorColab(false);}}/>}  
    <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
   <div className="bg-gray-50 border-b border-gray-100 px-4 py-2 flex items-center gap-2">
     <span className="text-xs">👤</span>
