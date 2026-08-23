@@ -518,8 +518,9 @@ function Colaboradores({data,setData,onBack,toast}){
   const[fEsp,setFEsp]=useState("Todas");
   const[fEst,setFEst]=useState("Todos");
   const[fZona,setFZona]=useState("Todas");
-  const[tab,setTab]=useState("activos");
+ const[tab,setTab]=useState("activos");
   const[solicitudes,setSolicitudes]=useState([]);
+  const[filtroSol,setFiltroSol]=useState("Pendiente");
   useEffect(()=>{
     supabase.from('solicitudes_colaborador').select('*').order('creado',{ascending:false}).then(({data})=>setSolicitudes(data||[]));
   },[]);
