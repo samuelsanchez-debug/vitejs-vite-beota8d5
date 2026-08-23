@@ -732,8 +732,8 @@ const importeLinea=Math.round(prec*(1+ml/100)*100)/100*cant;
     if(y>235){doc.addPage();y=25;}
 
     const base=totalCliente;
-    const importeIva=Math.round(base*iva/100);
-    const totalConIva=base+importeIva;
+    const importeIva=Math.round(base*iva/100*100)/100;
+    const totalConIva=Math.round((base+importeIva)*100)/100;
 
     y+=6;
     doc.setFontSize(10);
