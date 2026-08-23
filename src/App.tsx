@@ -1003,7 +1003,7 @@ return<div className="space-y-3">
       </div>}
     </div>
 
-    <div className="space-y-3">
+   <div className="space-y-3">
       {pdfD&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
        <div className="flex items-center justify-between mb-2">
           <span className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Adelanto cliente</span>
