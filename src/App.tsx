@@ -990,6 +990,23 @@ return<div className="space-y-3">
         {foto&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm"><div className="text-[10px] text-gray-400 uppercase font-bold mb-2">📷 Foto del cliente</div><img src={foto} className="w-full rounded-xl max-h-56 object-cover cursor-pointer" onClick={()=>window.open(foto,"_blank")}/></div>}
         {pres&&<a href={pres} target="_blank" className="block bg-white border border-gray-100 rounded-2xl p-4 shadow-sm text-sm text-purple-700 font-semibold hover:underline">📄 Presupuesto del colaborador →</a>}
         {!foto&&!pres&&!pdfD&&<div className="text-center py-6 text-sm text-gray-400">Sin archivos</div>}
+        <label className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-gray-200 rounded-2xl py-4 cursor-pointer hover:border-[#1E3A5F] hover:bg-blue-50 transition">
+          <span className="text-2xl">📷</span>
+          <span className="text-sm text-gray-500 font-semibold">Añadir foto</span>
+          <input type="file" accept="image/*" className="hidden" onChange={async e=>{
+            const archivo=e.target.files?.[0];
+            if(!archivo)return;
+            const ext=archivo.name.split('.').pop();
+            const nombre=`foto_${t.id}_${Date.now()}.${ext}`;
+            const{data:up}=await supabase.storage.from('fotos-demandas').upload(nombre,archivo,{upsert:true});
+            if(up){
+              const{data:pub}=supabase.storage.from('fotos-demandas').getPublicUrl(nombre);
+              const notasActuales=getNotas(t).split('|').filter(n=>!n.trim().startsWith('foto:')).map(n=>n.trim()).join(' | ');
+              const saved=await dbSaveTrabajo({...t,notas:(notasActuales?notasActuales+' | ':'')+`foto:${pub.publicUrl}`});
+              if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Foto añadida");}
+            }
+          }}/>
+        </label>
       </div>}
 
       {tab==="historial"&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
