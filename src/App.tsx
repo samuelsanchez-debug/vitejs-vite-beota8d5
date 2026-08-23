@@ -648,7 +648,7 @@ const[partidas,setPartidas]=useState(t.partidas&&t.partidas.length?t.partidas:[{
   const margenTramo=totalColab>=15000?20:totalColab>=5000?25:30;
   const margen=margenManual!==null?margenManual:margenTramo;
   const setMargen=(v)=>setMargenManual(v);
-  const totalCliente=Math.round(partidas.reduce((s,p)=>{const ml=p.margenLinea!==null&&p.margenLinea!==undefined?+p.margenLinea:margen;return s+Math.round((+p.cantidad||1)*(+p.precio||0)*(1+ml/100));},0));
+const totalCliente=Math.round(partidas.reduce((s,p)=>{const ml=p.margenLinea!==null&&p.margenLinea!==undefined?+p.margenLinea:margen;return s+Math.round((+p.cantidad||1)*(+p.precio||0)*(1+ml/100)*100)/100;},0)*100)/100;
   const addPartida=(tipo="normal")=>setPartidas(p=>[...p,{desc:"",cantidad:1,precio:0,margenLinea:null,tipo}]);
   const updPartida=(i,k,v)=>setPartidas(p=>p.map((x,idx)=>idx===i?{...x,[k]:v}:x));
   const delPartida=(i)=>setPartidas(p=>p.filter((_,idx)=>idx!==i));
