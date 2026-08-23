@@ -937,22 +937,33 @@ return<div className="space-y-3">
   </div>
 </div>
 
-    <div className="space-y-3">
-  <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-{editEstado?<select autoFocus className="mb-3 text-xs border border-gray-200 rounded-lg px-2 py-1 text-gray-700 font-bold" defaultValue={t.estado} disabled={guardando} onChange={async(e)=>{setGuardando(true);const saved=await dbSaveTrabajo({...t,estado:e.target.value});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("✅ Estado actualizado");}setEditEstado(false);setGuardando(false);}}>
-  {["Solicitud","Presupuestando","Colaborador disponible","Visita propuesta","Cliente confirmó","Presupuesto recibido","Presupuesto enviado","Aceptado","En curso","Completado"].map(e=><option key={e}>{e}</option>)}
-</select>:<span onClick={()=>setEditEstado(true)} className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase cursor-pointer hover:opacity-70 ${cfg.bg} ${cfg.text} mb-3`} title="Clic para editar"><span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`}/>{t.estado} ✏️</span>}
+    <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+  <div className="bg-gray-50 border-b border-gray-100 px-4 py-2 flex items-center gap-2">
+    <span className="text-xs">🔧</span>
+    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Trabajo</span>
+  </div>
+  <div className="p-4">
+    <div className="flex items-center justify-between mb-3">
+      {editEstado?<select autoFocus className="text-xs border border-gray-200 rounded-lg px-2 py-1 text-gray-700 font-bold" defaultValue={t.estado} disabled={guardando} onChange={async(e)=>{setGuardando(true);const saved=await dbSaveTrabajo({...t,estado:e.target.value});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Estado actualizado");}setEditEstado(false);setGuardando(false);}}>
+        {["Solicitud","Presupuestando","Colaborador disponible","Visita propuesta","Cliente confirmó","Presupuesto recibido","Presupuesto enviado","Aceptado","En curso","Completado"].map(e=><option key={e}>{e}</option>)}
+      </select>:<span onClick={()=>setEditEstado(true)} className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase cursor-pointer hover:opacity-70 ${cfg.bg} ${cfg.text}`} title="Clic para editar"><span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`}/>{t.estado} ✏️</span>}
+    </div>
     <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-xl">{ICONO_TIPO[t.tipo]||"📋"}</div>
-          <div className="text-lg font-bold text-gray-800">{t.tipo}</div>
-        </div>
-       <div className="flex gap-6 pt-3 border-t border-gray-100 text-xs">
-          <div><div className="text-gray-400">Fecha</div><input type="date" defaultValue={t.fecha} onBlur={async e=>{if(e.target.value===t.fecha)return;const hist=[...getHistorial(t),{ts:now(),txt:`Fecha actualizada: ${e.target.value}`,tipo:"sistema"}];const saved=await dbSaveTrabajo({...t,fecha:e.target.value,historial:hist});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("✅ Fecha actualizada");}}} className="border border-gray-200 rounded-lg px-1 py-0.5 text-xs text-gray-700 font-semibold focus:outline-none focus:ring-1 focus:ring-[#1E3A5F]"/></div>
-<div><div className="text-gray-400">Colaborador</div>{editColab?<select autoFocus className="text-xs border border-gray-200 rounded-lg px-2 py-1 text-gray-700 font-bold" defaultValue={t.colaboradorId||""} disabled={guardando} onChange={async(e)=>{setGuardando(true);const saved=await dbSaveTrabajo({...t,colaboradorId:e.target.value||null});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("✅ Colaborador actualizado");}setEditColab(false);setGuardando(false);}}><option value="">— Sin colaborador —</option>{data.colaboradores.map(c=><option key={c.id} value={c.id}>{c.nombre}</option>)}</select>:<div className="font-semibold text-gray-700 cursor-pointer hover:text-blue-600" onClick={()=>setEditColab(true)} title="Clic para editar">{co?.nombre||"—"} ✏️</div>}</div>
-        </div>
+      <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-xl">{ICONO_TIPO[t.tipo]||"📋"}</div>
+      <div className="text-lg font-bold text-gray-800">{t.tipo}</div>
+    </div>
+    <div className="grid grid-cols-2 gap-2 pt-3 border-t border-gray-100">
+      <div className="bg-gray-50 rounded-xl p-2">
+        <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Fecha</div>
+        <input type="date" defaultValue={t.fecha} onBlur={async e=>{if(e.target.value===t.fecha)return;const hist=[...getHistorial(t),{ts:now(),txt:`Fecha actualizada: ${e.target.value}`,tipo:"sistema"}];const saved=await dbSaveTrabajo({...t,fecha:e.target.value,historial:hist});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Fecha actualizada");}}} className="w-full border border-gray-200 rounded-lg px-1 py-0.5 text-xs text-gray-700 font-semibold focus:outline-none focus:ring-1 focus:ring-[#1E3A5F] bg-white"/>
       </div>
-
-      <div className="flex gap-1 border-b border-gray-200">
+      <div className="bg-gray-50 rounded-xl p-2">
+        <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Colaborador</div>
+        {editColab?<select autoFocus className="w-full text-xs border border-gray-200 rounded-lg px-1 py-0.5 text-gray-700 font-bold" defaultValue={t.colaboradorId||""} disabled={guardando} onChange={async(e)=>{setGuardando(true);const saved=await dbSaveTrabajo({...t,colaboradorId:e.target.value||null});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Colaborador actualizado");}setEditColab(false);setGuardando(false);}}><option value="">— Sin colaborador —</option>{data.colaboradores.map(c=><option key={c.id} value={c.id}>{c.nombre}</option>)}</select>:<div className="text-xs font-semibold text-blue-600 cursor-pointer" onClick={()=>setEditColab(true)}>{co?.nombre||"— Asignar ✏️"}</div>}
+      </div>
+    </div>
+  </div>
+  <div className="flex gap-1 border-t border-gray-200">
         {[["resumen","Resumen"],["presupuesto","Presupuesto"],["archivos","Archivos"],["historial","Historial"]].map(([k,label])=>(
           <button key={k} onClick={()=>setTab(k)} className={`px-3 py-2 text-sm font-semibold transition border-b-2 -mb-px ${tab===k?"border-[#1E3A5F] text-[#1E3A5F]":"border-transparent text-gray-400 hover:text-gray-600"}`}>{label}</button>
         ))}
