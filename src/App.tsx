@@ -1025,22 +1025,26 @@ return<div className="space-y-3">
     <span className="text-xs">💶</span>
     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Económico</span>
   </div>
-  <div className="p-4 space-y-3">
-    <div className="grid grid-cols-2 gap-2">
-      <div className="bg-gray-50 rounded-xl p-2">
-        <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Precio colab.</div>
-        <input type="number" defaultValue={colab||""} onBlur={async e=>{const v=+e.target.value||0;const saved=await dbSaveTrabajo({...t,presupuestoColaborador:v});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Precio colaborador actualizado");}}} className="w-full border border-gray-200 rounded-lg px-2 py-1 text-sm text-right bg-white focus:outline-none focus:ring-1 focus:ring-[#1E3A5F]" placeholder="0€"/>
-      </div>
-      <div className="bg-gray-50 rounded-xl p-2">
-        <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Precio cliente</div>
-        <input type="number" defaultValue={precio||""} onBlur={async e=>{const v=+e.target.value||0;const saved=await dbSaveTrabajo({...t,precioCliente:v});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Precio cliente actualizado");}}} className="w-full border border-gray-200 rounded-lg px-2 py-1 text-sm text-right bg-white focus:outline-none focus:ring-1 focus:ring-[#1E3A5F]" placeholder="0€"/>
-      </div>
-    </div>
-    {precio>0&&colab>0&&<div className="bg-blue-50 rounded-xl p-2 text-center">
-      <div className="text-xs text-blue-400">Margen</div>
-      <div className="text-base font-black text-blue-600">{margen}€ <span className="text-xs font-normal">({Math.round(margen/colab*100)}%)</span></div>
+ <div className="p-4 space-y-3">
+    {!pdfD&&<div className="text-center py-4">
+      <div className="text-sm text-gray-400 mb-2">Sin presupuesto generado</div>
+      <button onClick={()=>setModo("presupuesto")} className="text-purple-600 font-bold text-sm">📄 Generar presupuesto</button>
     </div>}
     {pdfD&&<>
+      <div className="grid grid-cols-3 gap-2">
+        <div className="bg-gray-50 rounded-xl p-2 text-center">
+          <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Colaborador</div>
+          <div className="text-sm font-black text-red-500">{colab>0?`${colab}€`:"—"}</div>
+        </div>
+        <div className="bg-gray-50 rounded-xl p-2 text-center">
+          <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Cliente</div>
+          <div className="text-sm font-black text-emerald-600">{precio>0?`${precio}€`:"—"}</div>
+        </div>
+        <div className="bg-gray-50 rounded-xl p-2 text-center">
+          <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Margen</div>
+          <div className="text-sm font-black text-blue-600">{precio>0&&colab>0?`${margen}€`:"—"}</div>
+        </div>
+      </div>
       <div className="flex items-center justify-between pt-2 border-t border-gray-100">
         <span className="text-[10px] text-gray-400 uppercase font-bold">Adelanto</span>
         <div className="flex items-center gap-1">
@@ -1056,6 +1060,7 @@ return<div className="space-y-3">
         <div className="text-xl font-black text-amber-600">{adelanto}€</div>
         <div className="text-[10px] text-amber-600">a pagar por el cliente</div>
       </div>
+      <button onClick={()=>setModo("presupuesto")} className="w-full border border-purple-200 bg-purple-50 text-purple-700 py-2 rounded-xl font-bold text-sm hover:bg-purple-100 transition">✏️ Editar presupuesto</button>
     </>}
   </div>
 </div>
