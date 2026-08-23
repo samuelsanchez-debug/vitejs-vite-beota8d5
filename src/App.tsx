@@ -885,8 +885,8 @@ const saved=await dbSaveTrabajo({...t,precioCliente:totalCliente,historial:hist,
             <button onClick={()=>delPartida(i)} className="text-red-400 hover:text-red-600 text-lg font-bold">×</button>
           </div>;
           return<div key={i} className="space-y-1">
-            <div className="grid grid-cols-[1fr_48px_64px_48px_24px_16px] gap-1 items-center">
-              <input value={p.desc} onChange={e=>updPartida(i,"desc",e.target.value)} className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]" placeholder="Descripción"/>
+<div className="grid grid-cols-[1fr_36px_52px_36px_20px_16px] gap-1 items-center">
+            <input value={p.desc} onChange={e=>updPartida(i,"desc",e.target.value)} className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]" placeholder="Descripción"/>
               <input type="number" value={p.cantidad||""} onChange={e=>updPartida(i,"cantidad",e.target.value)} className="border border-gray-200 rounded-lg px-1 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]" placeholder="1"/>
               <input type="number" value={p.precio||""} onChange={e=>updPartida(i,"precio",e.target.value)} className="border border-gray-200 rounded-lg px-1 py-1.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]" placeholder="€"/>
               <input type="number" value={p.margenLinea!==null&&p.margenLinea!==undefined?p.margenLinea:""} onChange={e=>updPartida(i,"margenLinea",e.target.value===""?null:+e.target.value)} className="border border-gray-200 rounded-lg px-1 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]" placeholder={`${margen}`}/>
