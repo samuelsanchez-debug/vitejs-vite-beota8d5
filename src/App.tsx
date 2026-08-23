@@ -988,10 +988,15 @@ return<div className="space-y-3">
      {tab==="presupuesto"&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
         {pdfD?<div className="space-y-3">
          <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl p-3">
-            <a href={pdfD} target="_blank" className="flex-1 text-sm text-emerald-700 font-semibold hover:underline">📄 Ver presupuesto Domia →</a>
+           <a href={pdfD} target="_blank" className="flex-1 text-sm text-emerald-700 font-semibold hover:underline">📄 Ver presupuesto Domia →</a>
             <button onClick={()=>setModo("presupuesto")} className="text-xs bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-lg hover:bg-emerald-200 transition">✏️ Editar</button>
           </div>
-        </div>:<div className="text-center py-6 text-sm text-gray-400">Sin presupuesto generado aún<br/><button onClick={()=>setModo("presupuesto")} className="mt-2 text-purple-600 font-bold text-sm">📄 Generar presupuesto</button></div>}
+          {(()=>{const historicos=partes.filter(p=>p.startsWith('pdfhist:')).map(p=>p.replace('pdfhist:',''));return historicos.length>0?<div className="border-t border-gray-100 pt-3 mt-3">
+            <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">Versiones anteriores</div>
+            <div className="space-y-1.5">{historicos.slice().reverse().map((url,i)=><a key={i} href={url} target="_blank" className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition">📄 Versión {historicos.length-i} →</a>)}</div>
+          </div>:null;})()}
+        </div>
+           :<div className="text-center py-6 text-sm text-gray-400">Sin presupuesto generado aún<br/><button onClick={()=>setModo("presupuesto")} className="mt-2 text-purple-600 font-bold text-sm">📄 Generar presupuesto</button></div>}
       </div>}
       {tab==="archivos"&&<div className="space-y-3">
         {foto&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm"><div className="text-[10px] text-gray-400 uppercase font-bold mb-2">📷 Foto del cliente</div><img src={foto} className="w-full rounded-xl max-h-56 object-cover cursor-pointer" onClick={()=>window.open(foto,"_blank")}/></div>}
