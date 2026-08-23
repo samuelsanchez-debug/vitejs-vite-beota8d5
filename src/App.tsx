@@ -916,8 +916,8 @@ const[guardando,setGuardando]=useState(false);
   const linkAceptar=`https://domia-crm-two.vercel.app/aceptar/${t.id}`;
   const tel=(cl?.telefono||"").replace(/\s/g,'');
 
-  return<div className="grid grid-cols-1 lg:grid-cols-[0.85fr_1.3fr_0.85fr] gap-3">
-
+return<div className="space-y-3">
+  
     <div className="space-y-3">
       <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
         <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-3">Cliente</div>
