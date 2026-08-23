@@ -721,7 +721,7 @@ const lineas=doc.splitTextToSize(p.desc,p.tipo==="normal"||!p.tipo?118:175);
         const cant=+p.cantidad||1;
         const prec=+p.precio||0;
 const importeLinea=Math.round(prec*(1+ml/100))*cant;
-       const precioUnitCliente=Math.round(prec*(1+ml/100));
+const precioUnitCliente=Math.round(prec*(1+ml/100)*100)/100;
         doc.text(`${cant}`,156,y,{align:"right"});
         doc.text(eur(precioUnitCliente),174,y,{align:"right"});
         doc.text(eur(importeLinea),192,y,{align:"right"});
