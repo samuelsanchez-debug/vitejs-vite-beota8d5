@@ -804,6 +804,13 @@ const importeLinea=Math.round(prec*(1+ml/100)*100)/100*cant;
     doc.setTextColor(150,150,150);
     doc.text("DOMIA SERVICES · 685 917 059 · Elche, Alicante",105,285,{align:"center"});
 
+    const totalPaginas=doc.internal.getNumberOfPages();
+    for(let p=1;p<=totalPaginas;p++){
+      doc.setPage(p);
+      doc.setFontSize(8);
+      doc.setTextColor(150,150,150);
+      doc.text(`Página ${p} de ${totalPaginas}`,105,292,{align:"center"});
+    }
     const blob=doc.output("blob");
     const nombre=`domia_presupuesto_${t.id}_${Date.now()}.pdf`;
     window.open(URL.createObjectURL(blob),"_blank");
