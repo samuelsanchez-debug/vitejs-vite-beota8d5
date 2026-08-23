@@ -913,6 +913,47 @@ const msg=`Hola ${cl.nombre.split(" ")[0]} 😊\n\nTu presupuesto de *Domia Serv
     <button onClick={onClose} className="w-full border border-gray-200 text-gray-500 py-2.5 rounded-xl text-sm">Cancelar</button>
   </div>;
 }
+function SelectorColaborador({data,valorActual,onSeleccionar,onCerrar}){
+  const[busca,setBusca]=useState("");
+  const activos=data.colaboradores.filter(c=>c.activo);
+  const filtrados=busca.trim()?activos.filter(c=>c.nombre.toLowerCase().includes(busca.toLowerCase())||c.especialidades?.some(e=>e.toLowerCase().includes(busca.toLowerCase()))||c.zona?.toLowerCase().includes(busca.toLowerCase())):activos;
+  const porOficio={};
+  filtrados.forEach(c=>{(c.especialidades||["Otros"]).forEach(e=>{if(!porOficio[e])porOficio[e]=[];if(!porOficio[e].find(x=>x.id===c.id))porOficio[e].push(c);});});
+  const oficios=Object.keys(porOficio).sort();
+  return<Modal title="Seleccionar colaborador" onClose={onCerrar} wide>
+    <input className={S+" mb-4"} placeholder="🔍 Buscar por nombre, oficio o zona..." value={busca} onChange={e=>setBusca(e.target.value)} autoFocus/>
+    <div className="mb-3">
+      <button onClick={()=>onSeleccionar("")} className={`w-full text-left px-3 py-2.5 rounded-xl text-sm border transition ${!valorActual?"bg-[#1E3A5F] text-white border-[#1E3A5F]":"bg-white text-gray-500 border-gray-200 hover:border-gray-400"}`}>— Sin colaborador —</button>
+    </div>
+    {oficios.length===0&&<div className="text-center py-8 text-sm text-gray-400">Sin colaboradores</div>}
+    <div className="space-y-4 max-h-[55vh] overflow-y-auto">
+      {oficios.map(oficio=><div key={oficio}>
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-lg">{ICONO_TIPO[oficio]||"📋"}</span>
+          <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">{oficio}</span>
+          <span className="text-[10px] text-gray-400">({porOficio[oficio].length})</span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+          {porOficio[oficio].map(c=>{
+            const activos=data.trabajos.filter(t=>getColabId(t)===c.id&&["Presupuestando","Aceptado","En curso"].includes(t.estado)).length;
+            const sel=String(valorActual)===String(c.id);
+            return<button key={c.id} onClick={()=>onSeleccionar(c.id)} className={`text-left p-3 rounded-xl border transition ${sel?"bg-blue-50 border-[#1E3A5F]":"bg-white border-gray-200 hover:border-[#1E3A5F] hover:shadow-sm"}`}>
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-bold text-gray-800 text-sm">{c.nombre}</span>
+                {sel&&<span className="text-[#1E3A5F]">✓</span>}
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-bold">⭐ {c.valoracion||5}</span>
+                {activos>0&&<span className="text-[10px] bg-violet-100 text-violet-700 px-1.5 py-0.5 rounded-full font-bold">{activos} en curso</span>}
+                {c.zona&&<span className="text-[10px] text-gray-400">📍 {c.zona}</span>}
+              </div>
+            </button>;
+          })}
+        </div>
+      </div>)}
+    </div>
+  </Modal>;
+}
 function FichaTrabajo({t,cl,co,data,setData,onClose,toast,setModo,setSec}){
 const[tab,setTab]=useState("resumen");
 const[editEstado,setEditEstado]=useState(false);
