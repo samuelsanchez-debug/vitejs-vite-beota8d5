@@ -752,7 +752,7 @@ const importeLinea=Math.round(prec*(1+ml/100))*cant;
     doc.setTextColor(30,58,95);
     doc.setFont(undefined,"bold");
     doc.text("TOTAL",150,y,{align:"right"});
-    doc.text(`${totalConIva}€`,192,y,{align:"right"});
+    doc.text(eur(totalConIva),192,y,{align:"right"});
     doc.setFont(undefined,"normal");
     y+=6;
    if(notas_pdf.length>0){
