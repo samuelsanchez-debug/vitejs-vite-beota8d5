@@ -866,8 +866,8 @@ const saved=await dbSaveTrabajo({...t,precioCliente:totalCliente,historial:hist,
     <div>
       <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Partidas del presupuesto</div>
       <div className="space-y-2">
-        <div className="grid grid-cols-[1fr_48px_64px_48px_16px] gap-1 text-[10px] text-gray-400 font-bold uppercase px-1">
-          <span>Descripción</span><span className="text-center">Cant.</span><span className="text-center">Precio</span><span className="text-center">%</span><span/>
+<div className="grid grid-cols-[1fr_36px_52px_36px_16px] gap-1 text-[10px] text-gray-400 font-bold uppercase px-1">
+        <span>Descripción</span><span className="text-center">Cant.</span><span className="text-center">Precio</span><span className="text-center">%</span><span/>
         </div>
         {partidas.map((p,i)=>{
           const ml=p.margenLinea!==null&&p.margenLinea!==undefined?+p.margenLinea:margen;
