@@ -558,8 +558,11 @@ function Colaboradores({data,setData,onBack,toast}){
         <button onClick={()=>setTab("solicitudes")} className={`flex-1 py-2 rounded-xl text-sm font-bold transition relative ${tab==="solicitudes"?"bg-[#1E3A5F] text-white":"bg-white text-gray-500 border border-gray-200"}`}>Solicitudes{pendientes>0&&<span className="absolute -top-1.5 -right-1.5 bg-amber-500 text-white text-[10px] font-black min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center">{pendientes}</span>}</button>
       </div>
       {tab==="solicitudes"&&<div className="space-y-2">
-        {solicitudes.length===0&&<div className="text-center py-10 text-sm text-gray-400">Sin solicitudes</div>}
-        {solicitudes.map(s=><div key={s.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+        <div className="flex gap-1.5 mb-3 flex-wrap">
+          {["Pendiente","Validado","Rechazado","Todas"].map(f=><Pill key={f} label={f==="Pendiente"?"Pendientes":f==="Validado"?"Validadas":f==="Rechazado"?"Rechazadas":"Todas"} active={filtroSol===f} onClick={()=>setFiltroSol(f)}/>)}
+        </div>
+        {solicitudes.filter(s=>filtroSol==="Todas"||s.estado===filtroSol).length===0&&<div className="text-center py-10 text-sm text-gray-400">Sin solicitudes</div>}
+        {solicitudes.filter(s=>filtroSol==="Todas"||s.estado===filtroSol).map(s=><div key={s.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
           <div className="flex items-start justify-between mb-2">
             <div><div className="font-bold text-gray-800">{s.nombre}</div><div className="text-xs text-gray-500">{s.telefono} · {s.email}</div></div>
             <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${s.estado==="Pendiente"?"bg-amber-100 text-amber-700":s.estado==="Validado"?"bg-emerald-100 text-emerald-700":"bg-gray-100 text-gray-400"}`}>{s.estado}</span>
