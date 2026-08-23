@@ -1003,45 +1003,56 @@ return<div className="space-y-3">
       </div>}
     </div>
 
-   <div className="space-y-3">
-      {pdfD&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-       <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Adelanto cliente</span>
-          <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${t.aceptado_cliente?"bg-emerald-100 text-emerald-700":"bg-amber-100 text-amber-700"}`}>{t.aceptado_cliente?"✅ Aceptado":"⏳ Pendiente"}</span>
-        </div>
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] text-gray-400 uppercase font-bold">Adelanto</span>
-          <div className="flex items-center gap-1">
-            <input type="number" defaultValue={t.adelanto_valor||30} onBlur={async e=>{const v=+e.target.value||0;await supabase.from('trabajos').update({adelanto_valor:v}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,adelanto_valor:v}:x)}));toast("✅ Adelanto actualizado");}} className="w-16 border border-gray-200 rounded-lg px-2 py-1 text-sm text-right"/>
-            <button onClick={async()=>{const nuevo=t.adelanto_tipo==='fijo'?'porcentaje':'fijo';await supabase.from('trabajos').update({adelanto_tipo:nuevo}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,adelanto_tipo:nuevo}:x)}));toast(`Adelanto en ${nuevo==='fijo'?'€ fijo':'%'}`);}} className="text-xs bg-gray-100 px-2 py-1 rounded-lg font-bold">{t.adelanto_tipo==='fijo'?'€':'%'}</button>
-          </div>
-        </div>
-        <div className="text-center bg-amber-50 rounded-xl py-2 mb-3">
-          <div className="text-xl font-black text-amber-600">{adelanto}€</div>
-          <div className="text-[10px] text-amber-600">a pagar por el cliente</div>
-        </div>
-        {cl?.telefono&&<button onClick={()=>{const msg=`Hola ${cl.nombre.split(" ")[0]} 😊\n\nAquí tienes el enlace para ver y aceptar tu presupuesto de *Domia Services*:\n\n👉 https://domia-crm-two.vercel.app/aceptar/${t.id}\n\nCualquier duda estamos en el 685 917 059. ¡Gracias!\n\n— Samuel · Domia Services`;window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`,"_blank");}} className="w-full bg-green-500 hover:bg-green-600 text-white py-2.5 rounded-xl font-bold text-sm transition">💳 Enviar enlace de pago</button>}
-      </div>}
-      <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm space-y-2">
-        <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">Económico</div>
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-[10px] text-gray-400 uppercase font-bold">Precio colaborador</span>
-          <input type="number" defaultValue={colab||""} onBlur={async e=>{const v=+e.target.value||0;const saved=await dbSaveTrabajo({...t,presupuestoColaborador:v});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Precio colaborador actualizado");}}} className="w-24 border border-gray-200 rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-1 focus:ring-[#1E3A5F]" placeholder="0€"/>
-        </div>
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-[10px] text-gray-400 uppercase font-bold">Precio cliente</span>
-          <input type="number" defaultValue={precio||""} onBlur={async e=>{const v=+e.target.value||0;const saved=await dbSaveTrabajo({...t,precioCliente:v});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Precio cliente actualizado");}}} className="w-24 border border-gray-200 rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-1 focus:ring-[#1E3A5F]" placeholder="0€"/>
-        </div>
-        {precio>0&&colab>0&&<div className="bg-gray-50 rounded-xl p-2 text-center mt-1">
-          <div className="text-xs text-gray-400">Margen</div>
-          <div className="text-base font-black text-blue-600">{margen}€ <span className="text-xs font-normal text-blue-400">({Math.round(margen/colab*100)}%)</span></div>
-        </div>}
-        <div className="border-t border-gray-100 pt-2 mt-1">
-          <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-1">Acciones</div>
-          {setSec&&<button onClick={()=>{onClose();setSec("finanzas");}} className="w-full bg-blue-50 border border-blue-200 text-blue-700 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-100 transition">💶 Ver en Finanzas</button>}
-        </div>
+   <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+  <div className="bg-gray-50 border-b border-gray-100 px-4 py-2 flex items-center gap-2">
+    <span className="text-xs">💶</span>
+    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Económico</span>
+  </div>
+  <div className="p-4 space-y-3">
+    <div className="grid grid-cols-2 gap-2">
+      <div className="bg-gray-50 rounded-xl p-2">
+        <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Precio colab.</div>
+        <input type="number" defaultValue={colab||""} onBlur={async e=>{const v=+e.target.value||0;const saved=await dbSaveTrabajo({...t,presupuestoColaborador:v});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Precio colaborador actualizado");}}} className="w-full border border-gray-200 rounded-lg px-2 py-1 text-sm text-right bg-white focus:outline-none focus:ring-1 focus:ring-[#1E3A5F]" placeholder="0€"/>
+      </div>
+      <div className="bg-gray-50 rounded-xl p-2">
+        <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Precio cliente</div>
+        <input type="number" defaultValue={precio||""} onBlur={async e=>{const v=+e.target.value||0;const saved=await dbSaveTrabajo({...t,precioCliente:v});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Precio cliente actualizado");}}} className="w-full border border-gray-200 rounded-lg px-2 py-1 text-sm text-right bg-white focus:outline-none focus:ring-1 focus:ring-[#1E3A5F]" placeholder="0€"/>
       </div>
     </div>
+    {precio>0&&colab>0&&<div className="bg-blue-50 rounded-xl p-2 text-center">
+      <div className="text-xs text-blue-400">Margen</div>
+      <div className="text-base font-black text-blue-600">{margen}€ <span className="text-xs font-normal">({Math.round(margen/colab*100)}%)</span></div>
+    </div>}
+    {pdfD&&<>
+      <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+        <span className="text-[10px] text-gray-400 uppercase font-bold">Adelanto</span>
+        <div className="flex items-center gap-1">
+          <input type="number" defaultValue={t.adelanto_valor||30} onBlur={async e=>{const v=+e.target.value||0;await supabase.from('trabajos').update({adelanto_valor:v}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,adelanto_valor:v}:x)}));toast("Adelanto actualizado");}} className="w-16 border border-gray-200 rounded-lg px-2 py-1 text-sm text-right"/>
+          <button onClick={async()=>{const nuevo=t.adelanto_tipo==='fijo'?'porcentaje':'fijo';await supabase.from('trabajos').update({adelanto_tipo:nuevo}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,adelanto_tipo:nuevo}:x)}));toast(`Adelanto en ${nuevo==='fijo'?'€ fijo':'%'}`);}} className="text-xs bg-gray-100 px-2 py-1 rounded-lg font-bold">{t.adelanto_tipo==='fijo'?'€':'%'}</button>
+        </div>
+      </div>
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] text-gray-400 uppercase font-bold">Estado pago</span>
+        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${t.aceptado_cliente?"bg-emerald-100 text-emerald-700":"bg-amber-100 text-amber-700"}`}>{t.aceptado_cliente?"✅ Aceptado":"⏳ Pendiente"}</span>
+      </div>
+      <div className="text-center bg-amber-50 rounded-xl py-2">
+        <div className="text-xl font-black text-amber-600">{adelanto}€</div>
+        <div className="text-[10px] text-amber-600">a pagar por el cliente</div>
+      </div>
+    </>}
+  </div>
+</div>
+<div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+  <div className="bg-gray-50 border-b border-gray-100 px-4 py-2 flex items-center gap-2">
+    <span className="text-xs">⚡</span>
+    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Acciones</span>
+  </div>
+  <div className="p-4 space-y-2">
+    {cl?.telefono&&precio>0&&<button onClick={()=>{const msg=`Hola ${cl.nombre.split(" ")[0]} 😊\n\nAquí tienes el enlace para ver y aceptar tu presupuesto de *Domia Services*:\n\n👉 https://domia-crm-two.vercel.app/aceptar/${t.id}\n\nCualquier duda estamos en el 685 917 059. ¡Gracias!\n\n— Samuel · Domia Services`;window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`,"_blank");}} className="w-full bg-green-500 hover:bg-green-600 text-white py-2.5 rounded-xl font-bold text-sm transition">💳 Enviar enlace de pago</button>}
+    {setSec&&<button onClick={()=>{onClose();setSec("finanzas");}} className="w-full bg-blue-50 border border-blue-200 text-blue-700 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-100 transition">💶 Ver en Finanzas</button>}
+    <button onClick={async()=>{if(!confirm("¿Eliminar este trabajo?"))return;await dbDeleteTrabajo(t.id);setData(d=>({...d,trabajos:d.trabajos.filter(x=>x.id!==t.id)}));onClose();toast("Trabajo eliminado");}} className="w-full bg-red-50 border border-red-200 text-red-500 py-2.5 rounded-xl font-bold text-sm hover:bg-red-100 transition">🗑 Eliminar trabajo</button>
+  </div>
+</div>
   </div>;
 }
 function TrabajoModal({tid,data,setData,onClose,toast,setSec}){
