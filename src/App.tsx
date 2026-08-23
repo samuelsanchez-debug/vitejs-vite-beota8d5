@@ -1020,7 +1020,7 @@ return<div className="space-y-3">
       </div>
       <div className="bg-gray-50 rounded-xl p-2">
         <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Colaborador</div>
-        {editColab?<select autoFocus className="w-full text-xs border border-gray-200 rounded-lg px-1 py-0.5 text-gray-700 font-bold" defaultValue={t.colaboradorId||""} disabled={guardando} onChange={async(e)=>{setGuardando(true);const saved=await dbSaveTrabajo({...t,colaboradorId:e.target.value||null});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Colaborador actualizado");}setEditColab(false);setGuardando(false);}}><option value="">— Sin colaborador —</option>{data.colaboradores.map(c=><option key={c.id} value={c.id}>{c.nombre}</option>)}</select>:<div className="text-xs font-semibold text-blue-600 cursor-pointer" onClick={()=>setEditColab(true)}>{co?.nombre||"— Asignar ✏️"}</div>}
+<div className="text-xs font-semibold text-blue-600 cursor-pointer" onClick={()=>setSelectorColab(true)}>{co?.nombre||"— Asignar ✏️"}</div>
       </div>
     </div>
   </div>
