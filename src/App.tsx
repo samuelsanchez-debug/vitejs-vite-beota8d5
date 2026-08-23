@@ -918,25 +918,24 @@ const[guardando,setGuardando]=useState(false);
 
 return<div className="space-y-3">
   
-    <div className="space-y-3">
-      <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-        <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-3">Cliente</div>
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold">{cl?.nombre?.[0]||"?"}</div>
-          <div className="min-w-0"><div className="font-semibold text-gray-800 truncate">{cl?.nombre}</div><div className="text-xs text-gray-500">{cl?.telefono}</div></div>
-        </div>
-        <div className="flex gap-2">
-          {tel&&<a href={`https://wa.me/${tel.replace('+','')}`} target="_blank" className="flex-1 text-center py-2 rounded-lg bg-green-50 text-green-600 text-sm">💬</a>}
-          {tel&&<a href={`tel:${tel}`} className="flex-1 text-center py-2 rounded-lg bg-gray-50 text-gray-600 text-sm">📞</a>}
-          {cl?.email&&<a href={`mailto:${cl.email}`} className="flex-1 text-center py-2 rounded-lg bg-gray-50 text-gray-600 text-sm">✉️</a>}
-        </div>
-      </div>
-      <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-        <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">Dirección</div>
-        <div className="text-sm text-gray-700">{cl?.direccion||"—"}</div>
-        {cl?.direccion&&<a href={`https://maps.google.com/?q=${encodeURIComponent(cl.direccion)}`} target="_blank" className="text-xs text-blue-600 mt-2 inline-block">📍 Ver en mapa</a>}
-      </div>
+   <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+  <div className="bg-gray-50 border-b border-gray-100 px-4 py-2 flex items-center gap-2">
+    <span className="text-xs">👤</span>
+    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Cliente</span>
+  </div>
+  <div className="p-4">
+    <div className="flex items-center gap-3 mb-3">
+      <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold flex-shrink-0">{cl?.nombre?.[0]||"?"}</div>
+      <div className="min-w-0"><div className="font-semibold text-gray-800 truncate">{cl?.nombre}</div><div className="text-xs text-gray-500">{cl?.telefono}</div>{cl?.direccion&&<div className="text-xs text-gray-400 truncate">📍 {cl.direccion}</div>}</div>
     </div>
+    <div className="flex gap-2">
+      {tel&&<a href={`https://wa.me/${tel.replace('+','')}`} target="_blank" className="flex-1 text-center py-2 rounded-lg bg-green-50 text-green-600 text-sm">💬</a>}
+      {tel&&<a href={`tel:${tel}`} className="flex-1 text-center py-2 rounded-lg bg-gray-50 text-gray-600 text-sm">📞</a>}
+      {cl?.email&&<a href={`mailto:${cl.email}`} className="flex-1 text-center py-2 rounded-lg bg-gray-50 text-gray-600 text-sm">✉️</a>}
+      {cl?.direccion&&<a href={`https://maps.google.com/?q=${encodeURIComponent(cl.direccion)}`} target="_blank" className="flex-1 text-center py-2 rounded-lg bg-gray-50 text-gray-600 text-sm">🗺️</a>}
+    </div>
+  </div>
+</div>
 
     <div className="space-y-3">
   <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
