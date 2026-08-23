@@ -918,7 +918,7 @@ function SelectorColaborador({data,valorActual,onSeleccionar,onCerrar}){
   const activos=data.colaboradores.filter(c=>c.activo);
   const filtrados=busca.trim()?activos.filter(c=>c.nombre.toLowerCase().includes(busca.toLowerCase())||c.especialidades?.some(e=>e.toLowerCase().includes(busca.toLowerCase()))||c.zona?.toLowerCase().includes(busca.toLowerCase())):activos;
   const porOficio={};
-  filtrados.forEach(c=>{(c.especialidades||["Otros"]).forEach(e=>{if(!porOficio[e])porOficio[e]=[];if(!porOficio[e].find(x=>x.id===c.id))porOficio[e].push(c);});});
+  filtrados.forEach(c=>{const e=(c.especialidades&&c.especialidades[0])||"Otros";if(!porOficio[e])porOficio[e]=[];porOficio[e].push(c);});
   const oficios=Object.keys(porOficio).sort();
   return<Modal title="Seleccionar colaborador" onClose={onCerrar} wide>
     <input className={S+" mb-4"} placeholder="🔍 Buscar por nombre, oficio o zona..." value={busca} onChange={e=>setBusca(e.target.value)} autoFocus/>
