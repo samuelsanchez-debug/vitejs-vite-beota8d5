@@ -43,7 +43,7 @@ const PRIO_CFG = {
 };
 
 const fmt = d=>d?new Date(d+"T00:00:00").toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"}):"—";
-const eur = n=>Number(n||0).toLocaleString("es-ES",{minimumFractionDigits:0,maximumFractionDigits:2})+"€";
+const eur = n=>{const num=Number(n||0);const partes=num.toFixed(2).split(".");partes[0]=partes[0].replace(/\B(?=(\d{3})+(?!\d))/g,".");const dec=partes[1]==="00"?"":","+partes[1];return partes[0]+dec+"€";};
 const hoy = ()=>new Date().toISOString().slice(0,10);
 const now = ()=>new Date().toLocaleString("es-ES",{hour:"2-digit",minute:"2-digit",day:"2-digit",month:"2-digit"});
 const orCfg = id=>ORIGENES.find(o=>o.id===id)||ORIGENES[ORIGENES.length-1];
