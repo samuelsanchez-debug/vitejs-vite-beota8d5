@@ -210,8 +210,11 @@ function Home({data,setData,go,setTid,toast}){
   const ingresos=data.trabajos.filter(t=>t.estado==="Completado").reduce((s,t)=>s+(getPrecioCliente(t)||0),0);
   const costes=data.trabajos.filter(t=>t.estado==="Completado").reduce((s,t)=>s+(getPresupColab(t)||0),0);
   const sinAsignar=data.trabajos.filter(t=>t.estado==="Solicitud");
-  const proximas=[...data.trabajos].filter(t=>["Aceptado","En curso"].includes(t.estado)&&t.fecha>=hoy()).sort((a,b)=>a.fecha.localeCompare(b.fecha)).slice(0,4);
-
+const proximas=[...data.trabajos].filter(t=>["Aceptado","En curso"].includes(t.estado)&&t.fecha>=hoy()).sort((a,b)=>a.fecha.localeCompare(b.fecha)).slice(0,4);
+  const estadosVivos=["Solicitud","Presupuestando","Colaborador disponible","Visita propuesta","Cliente confirmó","Presupuesto recibido","Presupuesto enviado"];
+  const parados=data.trabajos.filter(t=>{if(!estadosVivos.includes(t.estado))return false;const ref=t.fecha_ultimo_estado?new Date(t.fecha_ultimo_estado).getTime():null;if(!ref)return false;const horas=(Date.now()-ref)/(1000*60*60);return horas>=48;});
+  const adelantosPendientes=data.trabajos.filter(t=>["Aceptado","En curso"].includes(t.estado)&&!t.adelanto_pagado&&getPrecioCliente(t)>0);
+  const visitasHoy=data.trabajos.filter(t=>["Cliente confirmó","Aceptado","En curso"].includes(t.estado)&&t.fecha===hoy());
   return<div className="space-y-4">
     <div className="grid grid-cols-3 gap-3">
       <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
