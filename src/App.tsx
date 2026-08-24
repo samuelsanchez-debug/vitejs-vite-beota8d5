@@ -215,7 +215,24 @@ const proximas=[...data.trabajos].filter(t=>["Aceptado","En curso"].includes(t.e
   const parados=data.trabajos.filter(t=>{if(!estadosVivos.includes(t.estado))return false;const ref=t.fecha_ultimo_estado?new Date(t.fecha_ultimo_estado).getTime():null;if(!ref)return false;const horas=(Date.now()-ref)/(1000*60*60);return horas>=48;});
   const adelantosPendientes=data.trabajos.filter(t=>["Aceptado","En curso"].includes(t.estado)&&!t.adelanto_pagado&&getPrecioCliente(t)>0);
   const visitasHoy=data.trabajos.filter(t=>["Cliente confirmó","Aceptado","En curso"].includes(t.estado)&&t.fecha===hoy());
-  return<div className="space-y-4">
+ return<div className="space-y-4">
+    {(parados.length>0||adelantosPendientes.length>0||visitasHoy.length>0)&&<div className="bg-white border-2 border-gray-100 rounded-2xl p-4 shadow-sm">
+      <div className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3">🔔 Resumen del día</div>
+      <div className="grid grid-cols-3 gap-2">
+        <button onClick={()=>go("demandas")} className={`rounded-xl p-3 text-center transition ${parados.length>0?"bg-red-50 hover:bg-red-100":"bg-gray-50"}`}>
+          <div className={`text-2xl font-black ${parados.length>0?"text-red-600":"text-gray-300"}`}>{parados.length}</div>
+          <div className="text-[10px] text-gray-500 mt-0.5 leading-tight">🔴 Parados +48h</div>
+        </button>
+        <button onClick={()=>go("finanzas")} className={`rounded-xl p-3 text-center transition ${adelantosPendientes.length>0?"bg-amber-50 hover:bg-amber-100":"bg-gray-50"}`}>
+          <div className={`text-2xl font-black ${adelantosPendientes.length>0?"text-amber-600":"text-gray-300"}`}>{adelantosPendientes.length}</div>
+          <div className="text-[10px] text-gray-500 mt-0.5 leading-tight">💶 Adelantos por cobrar</div>
+        </button>
+        <button onClick={()=>go("demandas")} className={`rounded-xl p-3 text-center transition ${visitasHoy.length>0?"bg-blue-50 hover:bg-blue-100":"bg-gray-50"}`}>
+          <div className={`text-2xl font-black ${visitasHoy.length>0?"text-blue-600":"text-gray-300"}`}>{visitasHoy.length}</div>
+          <div className="text-[10px] text-gray-500 mt-0.5 leading-tight">📅 Visitas hoy</div>
+        </button>
+      </div>
+    </div>}
     <div className="grid grid-cols-3 gap-3">
       <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
         <div className="text-[11px] text-gray-400 font-medium mb-1 flex items-center gap-1">💰 Facturado</div>
