@@ -48,7 +48,7 @@ export default function AltaColaborador() {
 
   return <div className="min-h-screen bg-[#F0F2F5]" style={{fontFamily:"'Inter',system-ui,sans-serif"}}>
     <div className="bg-[#1E3A5F] px-5 py-6 text-white text-center">
-      <img src="/logo-domia.png" alt="Domia" className="w-20 mx-auto mb-2"/>
+<div className="bg-white rounded-2xl p-3 inline-block mb-3 shadow-lg"><img src="/logo-domia.png" alt="Domia" className="w-24 mx-auto object-contain"/></div>
       <div className="text-lg font-black">Únete a Domia Services</div>
       <div className="text-blue-200 text-xs mt-1">Regístrate como colaborador profesional</div>
     </div>
