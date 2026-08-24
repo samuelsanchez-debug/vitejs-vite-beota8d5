@@ -885,7 +885,7 @@ const saved=await dbSaveTrabajo({...t,precioCliente:totalCliente,historial:hist,
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <input type="number" value={adelantoValor} onChange={e=>setAdelantoValor(+e.target.value||0)} className="w-24 bg-gray-800 border border-gray-700 rounded-lg px-2 py-1 text-sm text-white text-right focus:outline-none"/>
+<input type="number" value={adelantoValor!==null?adelantoValor:adelantoEfectivo} onChange={e=>setAdelantoValor(+e.target.value||0)} className="w-24 bg-gray-800 border border-gray-700 rounded-lg px-2 py-1 text-sm text-white text-right focus:outline-none"/>
           <span className="text-gray-400 text-sm">{adelantoTipo==="porcentaje"?"% del total":"€ fijos"}</span>
         </div>
       </div>
