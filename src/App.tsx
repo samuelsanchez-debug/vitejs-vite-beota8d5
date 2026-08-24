@@ -105,8 +105,12 @@ const dbSaveTrabajo = async(trabajo) => {
     atendido: trabajo.atendido||false,
     ultima_novedad: trabajo.ultima_novedad||null,
   };
-  if (trabajo.id) { const {data} = await supabase.from('trabajos').update(row).eq('id',trabajo.id).select(); return data?.[0]; }
-  else { const {data} = await supabase.from('trabajos').insert(row).select(); return data?.[0]; }
+  if (trabajo.id) {
+    const {data:actual}=await supabase.from('trabajos').select('estado').eq('id',trabajo.id).single();
+    if(actual&&actual.estado!==trabajo.estado){row.fecha_ultimo_estado=new Date().toISOString();}
+    const {data} = await supabase.from('trabajos').update(row).eq('id',trabajo.id).select(); return data?.[0];
+  }
+  else { row.fecha_ultimo_estado=new Date().toISOString(); const {data} = await supabase.from('trabajos').insert(row).select(); return data?.[0]; }
 };
 const dbDeleteTrabajo = async(id) => await supabase.from('trabajos').delete().eq('id',id);
 const dbSaveColab = async(colab) => {
