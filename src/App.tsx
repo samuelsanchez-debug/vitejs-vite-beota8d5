@@ -635,7 +635,8 @@ const existe=data.colaboradores.find(c=>c.email&&s.email&&c.email.toLowerCase().
         <div className="bg-emerald-50 rounded-xl p-2 text-center"><div className="font-black text-emerald-700">{done}</div><div className="text-[10px] text-emerald-600">Completados</div></div>
         <div className="bg-red-50 rounded-xl p-2 text-center"><div className="font-black text-red-600">{pag}€</div><div className="text-[10px] text-red-500">Pagado</div></div>
       </div>
-      {co?.whatsapp&&<button onClick={()=>window.open(`https://wa.me/${co.whatsapp}`,"_blank")} className="w-full mt-3 bg-green-500 hover:bg-green-600 text-white text-sm font-bold py-2.5 rounded-xl transition">📱 Abrir WhatsApp</button>}
+{co?.whatsapp&&<button onClick={()=>window.open(`https://wa.me/${co.whatsapp}`,"_blank")} className="w-full mt-3 bg-green-500 hover:bg-green-600 text-white text-sm font-bold py-2.5 rounded-xl transition">📱 Abrir WhatsApp</button>}
+      {co?.email&&<button onClick={async()=>{if(!confirm(`¿Enviar acceso al portal a ${co.email}?`))return;try{const r=await fetch("https://opijkazhbktiikdzbanb.supabase.co/functions/v1/invitar-colaborador",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:co.email,nombre:co.nombre})});if(r.ok)toast("📧 Acceso enviado por email");else toast("Error al enviar el acceso");}catch(err){toast("Error al enviar el acceso");}}} className="w-full mt-2 bg-[#1E3A5F] hover:bg-[#152d4a] text-white text-sm font-bold py-2.5 rounded-xl transition">📧 Enviar acceso al portal</button>}
     </div>
     <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Trabajos asignados</div>
     {ts.length===0&&<p className="text-sm text-gray-400 text-center py-6">Sin trabajos asignados</p>}
