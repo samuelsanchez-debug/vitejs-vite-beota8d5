@@ -1105,7 +1105,7 @@ return<div className="space-y-3">
           <span className="text-sm">🔒</span>
           <span className="text-[10px] text-amber-700 uppercase font-bold tracking-widest">Notas internas · solo visible para ti</span>
         </div>
-        <textarea defaultValue={t.notas_internas||""} onBlur={async e=>{const v=e.target.value;await supabase.from('trabajos').update({notas_internas:v}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,notas_internas:v}:x)}));toast("Nota guardada");}} rows={6} className="w-full border border-amber-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none" placeholder="Ej: Ojo con este cliente, es un figura... (solo lo ves tú y tu equipo, nunca el cliente ni el colaborador)"/>
+        <textarea defaultValue={t.notas_internas||""} onBlur={async e=>{const v=e.target.value;await supabase.from('trabajos').update({notas_internas:v}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,notas_internas:v}:x)}));toast("Nota guardada");}} rows={6} className="w-full border border-amber-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none" placeholder="Escribe aquí notas privadas sobre este trabajo. Solo las veis tú y tu equipo, nunca el cliente ni el colaborador."/>
       </div>}
       {tab==="historial"&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
         <div className="space-y-2 max-h-80 overflow-y-auto">
