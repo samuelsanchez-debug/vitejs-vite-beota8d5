@@ -669,7 +669,7 @@ const[partidas,setPartidas]=useState(t.partidas&&t.partidas.length?t.partidas:[{
   const[margenManual,setMargenManual]=useState(null);
   const[iva,setIva]=useState(t.iva||21);
   const[adelantoTipo,setAdelantoTipo]=useState(t.adelanto_tipo||"porcentaje");
-  const[adelantoValor,setAdelantoValor]=useState(t.adelanto_valor||30);
+const[adelantoValor,setAdelantoValor]=useState(t.adelanto_valor||null);
   const totalColab=partidas.reduce((s,p)=>s+Math.round((+p.cantidad||1)*(+p.precio||0)),0);
   const margenTramo=totalColab>=15000?20:totalColab>=5000?25:30;
   const margen=margenManual!==null?margenManual:margenTramo;
