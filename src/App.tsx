@@ -1051,8 +1051,8 @@ return<div className="space-y-3">
     </div>
   </div>
   <div className="flex gap-1 border-t border-gray-200">
-        {[["resumen","Resumen"],["presupuesto","Presupuesto"],["archivos","Archivos"],["historial","Historial"]].map(([k,label])=>(
-          <button key={k} onClick={()=>setTab(k)} className={`px-3 py-2 text-sm font-semibold transition border-b-2 -mb-px ${tab===k?"border-[#1E3A5F] text-[#1E3A5F]":"border-transparent text-gray-400 hover:text-gray-600"}`}>{label}</button>
+{[["resumen","Resumen"],["presupuesto","Presupuesto"],["archivos","Archivos"],["notas","Notas"],["historial","Historial"]].map(([k,label])=>(
+    <button key={k} onClick={()=>setTab(k)} className={`px-3 py-2 text-sm font-semibold transition border-b-2 -mb-px ${tab===k?"border-[#1E3A5F] text-[#1E3A5F]":"border-transparent text-gray-400 hover:text-gray-600"}`}>{label}</button>
         ))}
       </div>
 
