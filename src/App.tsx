@@ -1054,17 +1054,17 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
         "En curso":"Trabajo en marcha. Márcalo completado cuando termine.",
         "Completado":"Trabajo terminado. Cobra el resto pendiente si lo hay.",
       }[t.estado]||"Gestiona este trabajo con las acciones de abajo.";
-      const waCli=(txt)=>tel?`https://wa.me/${tel.replace('+','')}?text=${encodeURIComponent(txt)}`:null;
-      return<>
+           return<>
         <Guia texto={recomendacion}/>
         {!getColabId(t)&&<Btn onClick={()=>setSelectorColab(true)}>👷 Asignar colaborador</Btn>}
-        {waColab&&<Btn onClick={()=>window.open(waColab,"_blank")} color="bg-green-500">📱 Enviar trabajo al colaborador</Btn>}
+        {co2&&cl&&<Btn onClick={()=>window.open(buildWA(co2,t,cl),"_blank")} color="bg-green-500">📱 Enviar trabajo al colaborador</Btn>}
         <button onClick={()=>setAccionesAbiertas(v=>!v)} className="w-full text-[11px] font-bold text-gray-400 uppercase tracking-widest py-1.5 flex items-center justify-center gap-1 hover:text-gray-600">{accionesAbiertas?"▲ Ocultar acciones":"▼ Todas las acciones"}</button>
         {accionesAbiertas&&<div className="space-y-2">
           {getColabId(t)&&<Btn onClick={()=>setSelectorColab(true)} color="bg-gray-400">👷 Cambiar colaborador</Btn>}
-          {waCli(`Hola ${cl?.nombre?.split(" ")[0]||""} 😊, ¿te vendría bien una visita para valorar el trabajo?`)&&<Btn onClick={()=>window.open(waCli(`Hola ${cl?.nombre?.split(" ")[0]||""} 😊, ¿te vendría bien una visita para valorar el trabajo?`),"_blank")} color="bg-green-600">📱 Proponer visita al cliente</Btn>}
+          {cl&&<Btn onClick={()=>window.open(buildWAVisitaCliente(cl,t,co2),"_blank")} color="bg-green-600">📱 Proponer visita al cliente</Btn>}
+          {co2&&cl&&<Btn onClick={()=>window.open(buildWAConfirmacionColab(co2,t,cl),"_blank")} color="bg-green-700">📱 Avisar al colaborador (visita confirmada)</Btn>}
           <Btn onClick={()=>setModo("presupuesto")} color="bg-purple-600">📄 Generar / editar presupuesto</Btn>
-          {pdfD&&waCli(`Hola ${cl?.nombre?.split(" ")[0]||""} 😊, aquí tienes tu presupuesto: ${linkAceptar}`)&&<Btn onClick={()=>window.open(waCli(`Hola ${cl?.nombre?.split(" ")[0]||""} 😊, aquí tienes tu presupuesto: ${linkAceptar}`),"_blank")} color="bg-green-500">📱 Enviar presupuesto al cliente</Btn>}
+          {pdfD&&tel&&<Btn onClick={()=>window.open(`https://wa.me/${tel.replace('+','')}?text=${encodeURIComponent(`Hola ${cl?.nombre?.split(" ")[0]||""} 😊, aquí tienes tu presupuesto de Domia Services:\n\n👉 ${linkAceptar}\n\nCualquier duda estamos en el 685 917 059. ¡Gracias!\n\n— Samuel · Domia Services`)}`,"_blank")} color="bg-green-500">📱 Enviar presupuesto al cliente</Btn>}
           {setSec&&<Btn onClick={()=>{onClose();setSec("finanzas");}} color="bg-amber-500">💶 Ir a Finanzas (cobros)</Btn>}
           <div className="pt-2 border-t border-gray-100">
             <div className="text-[10px] text-gray-400 font-bold uppercase mb-1.5">Cambiar estado</div>
