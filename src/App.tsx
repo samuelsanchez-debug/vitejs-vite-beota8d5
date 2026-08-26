@@ -1025,7 +1025,62 @@ return<div className="space-y-3">
     </div>
   </div>
 </div>
+<div className="bg-white border-2 border-[#1E3A5F]/10 rounded-2xl overflow-hidden shadow-sm">
+  <div className="bg-[#1E3A5F] px-4 py-2 flex items-center gap-2">
+    <span className="text-xs">👉</span>
+    <span className="text-[10px] font-bold text-white uppercase tracking-widest">Siguiente paso</span>
+  </div>
+  <div className="p-4 space-y-2">
+    {(()=>{
+      const co2=data.colaboradores.find(c=>c.id===getColabId(t));
+      const waColab=co2?.whatsapp?`https://wa.me/${co2.whatsapp}?text=${encodeURIComponent(`Hola ${co2.nombre.split(" ")[0]} 👋, tenemos un trabajo de ${t.tipo} para ${cl?.nombre||"un cliente"} en ${cl?.direccion||""}. ¿Puedes encargarte?`)}`:null;
+      const avanzar=async(nuevoEstado,msg)=>{const hist=[...getHistorial(t),{ts:now(),txt:msg||`Estado: ${nuevoEstado}`,tipo:"sistema"}];const saved=await dbSaveTrabajo({...t,estado:nuevoEstado,historial:hist});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast(`✅ ${nuevoEstado}`);}};
+      const Guia=({texto})=><div className="text-sm text-gray-600 bg-blue-50 rounded-lg px-3 py-2 mb-1">{texto}</div>;
+      const Btn=({onClick,children,color="bg-[#1E3A5F]"})=><button onClick={onClick} className={`w-full ${color} text-white py-2.5 rounded-xl font-bold text-sm transition hover:opacity-90`}>{children}</button>;
 
+      switch(t.estado){
+        case "Solicitud":
+          return<><Guia texto="Asigna un colaborador para este trabajo."/>
+            <Btn onClick={()=>setSelectorColab(true)}>👷 Asignar colaborador</Btn></>;
+        case "Presupuestando":
+          return<><Guia texto="Esperando presupuesto del colaborador. Puedes reenviarle el aviso."/>
+            {waColab&&<Btn onClick={()=>window.open(waColab,"_blank")} color="bg-green-500">📱 Recordar al colaborador</Btn>}
+            <Btn onClick={()=>avanzar("Presupuesto recibido","Presupuesto del colaborador recibido")}>✓ Marcar presupuesto recibido</Btn></>;
+        case "Colaborador disponible":
+          return<><Guia texto="Propón fecha de visita al cliente."/>
+            {tel&&<Btn onClick={()=>window.open(`https://wa.me/${tel.replace('+','')}?text=${encodeURIComponent(`Hola ${cl?.nombre?.split(" ")[0]||""} 😊, ¿te vendría bien una visita para valorar el trabajo?`)}`,"_blank")} color="bg-green-500">📱 Proponer visita al cliente</Btn>}
+            <Btn onClick={()=>avanzar("Visita propuesta","Visita propuesta al cliente")}>✓ Marcar visita propuesta</Btn></>;
+        case "Visita propuesta":
+          return<><Guia texto="Esperando que el cliente confirme la fecha de visita."/>
+            <Btn onClick={()=>avanzar("Cliente confirmó","Cliente confirmó la visita")}>✓ Cliente confirmó</Btn></>;
+        case "Cliente confirmó":
+          return<><Guia texto="Avisa al colaborador de la visita confirmada."/>
+            {waColab&&<Btn onClick={()=>window.open(waColab,"_blank")} color="bg-green-500">📱 Avisar al colaborador</Btn>}
+            <Btn onClick={()=>avanzar("Presupuesto recibido","Presupuesto recibido")}>✓ Presupuesto recibido</Btn></>;
+        case "Presupuesto recibido":
+          return<><Guia texto="Genera el presupuesto de Domia para el cliente."/>
+            <Btn onClick={()=>setModo("presupuesto")} color="bg-purple-600">📄 Generar presupuesto</Btn></>;
+        case "Presupuesto enviado":
+          return<><Guia texto="Esperando que el cliente acepte. Puedes reenviarle el enlace."/>
+            {tel&&<Btn onClick={()=>window.open(`https://wa.me/${tel.replace('+','')}?text=${encodeURIComponent(`Hola ${cl?.nombre?.split(" ")[0]||""} 😊, aquí tienes tu presupuesto: ${linkAceptar}`)}`,"_blank")} color="bg-green-500">📱 Reenviar enlace</Btn>}
+            <Btn onClick={()=>avanzar("Aceptado","Presupuesto aceptado manualmente")}>✓ Marcar como aceptado</Btn></>;
+        case "Aceptado":
+          return<><Guia texto="El cliente aceptó. Cobra el adelanto, avisa al colaborador e inicia el trabajo."/>
+            {setSec&&<Btn onClick={()=>{onClose();setSec("finanzas");}} color="bg-amber-500">💶 Registrar cobro del adelanto</Btn>}
+            {waColab&&<Btn onClick={()=>window.open(waColab,"_blank")} color="bg-green-500">📱 Avisar al colaborador</Btn>}
+            <Btn onClick={()=>avanzar("En curso","Trabajo iniciado")}>▶️ Marcar en curso</Btn></>;
+        case "En curso":
+          return<><Guia texto="Trabajo en marcha. Márcalo completado cuando termine."/>
+            <Btn onClick={()=>avanzar("Completado","Trabajo completado")} color="bg-emerald-600">✓ Marcar completado</Btn></>;
+        case "Completado":
+          return<><Guia texto="Trabajo terminado. Cobra el resto pendiente si lo hay."/>
+            {setSec&&<Btn onClick={()=>{onClose();setSec("finanzas");}} color="bg-amber-500">💶 Ver cobros en Finanzas</Btn>}</>;
+        default:
+          return<div className="text-sm text-gray-400 text-center py-2">Sin acciones para este estado</div>;
+      }
+    })()}
+  </div>
+</div>
     <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
   <div className="bg-gray-50 border-b border-gray-100 px-4 py-2 flex items-center gap-2">
     <span className="text-xs">🔧</span>
