@@ -2188,7 +2188,7 @@ function PortalColaborador({id}:{id:string}){
         </div>
         {estado==="disponibilidad"&&<div className="border-t border-gray-100 pt-4">
           <div className="text-[10px] text-gray-400 font-bold uppercase mb-2">Indica tu disponibilidad</div>
-          <DisponibilidadSelector onConfirmar={(dia,hora)=>confirmarConDisponibilidad(dia,hora)}/>
+<DisponibilidadSelector onConfirmar={(dia,hora,importe,archivo)=>confirmarConDisponibilidad(dia,hora,importe,archivo)}/>
         </div>}
         {estado==="nopuedo"&&<div className="border-t border-gray-100 pt-4">
           <div className="text-[10px] text-gray-400 font-bold uppercase mb-2">¿Puedes en otra fecha? (opcional)</div>
