@@ -2180,19 +2180,12 @@ function PortalColaborador({id}:{id:string}){
         {(()=>{const foto=(trabajo.notas||'').split('|').map(n=>n.trim()).find(n=>n.startsWith('foto:'))?.replace('foto:','');return foto?<div className="flex items-start gap-3"><span className="text-xl mt-0.5">📷</span><div className="flex-1"><div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Foto del trabajo</div><img src={foto} alt="Foto del trabajo" className="w-full rounded-xl object-cover max-h-64 cursor-pointer" onClick={()=>window.open(foto,"_blank")}/></div></div>:null;})()}
       </div>
       <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">¿Puedes encargarte de este trabajo?</div>
-        <div className="flex gap-3 mb-4">
-          <button onClick={()=>setEstado("disponibilidad")} disabled={estado==="cargando"} className="flex-1 bg-green-500 hover:bg-green-600 active:scale-95 text-white rounded-2xl py-4 flex flex-col items-center gap-2 font-bold text-base transition disabled:opacity-50">
-            <span className="text-3xl">✅</span>Sí, puedo
-          </button>
-          <button onClick={()=>setEstado("nopuedo")} disabled={estado==="cargando"} className="flex-1 bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-600 rounded-2xl py-4 flex flex-col items-center gap-2 font-bold text-base transition disabled:opacity-50">
-            <span className="text-3xl">❌</span>No puedo
-          </button>
-        </div>
-        {estado==="disponibilidad"&&<div className="border-t border-gray-100 pt-4">
-          <div className="text-[10px] text-gray-400 font-bold uppercase mb-2">Indica tu disponibilidad</div>
-<DisponibilidadSelector onConfirmar={(dia,hora,importe,archivo)=>confirmarConDisponibilidad(dia,hora,importe,archivo)}/>
+       
+       <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">¿Puedes encargarte? Indica fecha y/o precio</div>
+        {estado!=="nopuedo"&&<div className="mb-4">
+          <DisponibilidadSelector onConfirmar={(dia,hora,importe,archivo)=>confirmarConDisponibilidad(dia,hora,importe,archivo)}/>
         </div>}
+        {estado!=="nopuedo"&&<button onClick={()=>setEstado("nopuedo")} disabled={estado==="cargando"} className="w-full bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-xl py-2.5 font-bold text-sm transition disabled:opacity-50">❌ No puedo encargarme</button>} 
         {estado==="nopuedo"&&<div className="border-t border-gray-100 pt-4">
           <div className="text-[10px] text-gray-400 font-bold uppercase mb-2">¿Puedes en otra fecha? (opcional)</div>
           <DisponibilidadSelector onConfirmar={(dia,hora)=>{
