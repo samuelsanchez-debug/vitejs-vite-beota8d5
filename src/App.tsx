@@ -1037,8 +1037,8 @@ return<div className="space-y-3">
   <div className="p-4 space-y-2">
     {(()=>{
       const co2=data.colaboradores.find(c=>c.id===getColabId(t));
-      const waColab=co2?.whatsapp?`https://wa.me/${co2.whatsapp}?text=${encodeURIComponent(`Hola ${co2.nombre.split(" ")[0]} 👋, tenemos un trabajo de ${t.tipo} para ${cl?.nombre||"un cliente"} en ${cl?.direccion||""}. ¿Puedes encargarte?`)}`:null;
-      const avanzar=async(nuevoEstado,msg)=>{const hist=[...getHistorial(t),{ts:now(),txt:msg||`Estado: ${nuevoEstado}`,tipo:"sistema"}];const saved=await dbSaveTrabajo({...t,estado:nuevoEstado,historial:hist});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast(`✅ ${nuevoEstado}`);}};
+const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
+  const avanzar=async(nuevoEstado,msg)=>{const hist=[...getHistorial(t),{ts:now(),txt:msg||`Estado: ${nuevoEstado}`,tipo:"sistema"}];const saved=await dbSaveTrabajo({...t,estado:nuevoEstado,historial:hist});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast(`✅ ${nuevoEstado}`);}};
       const Guia=({texto})=><div className="text-sm text-gray-600 bg-blue-50 rounded-lg px-3 py-2 mb-1">{texto}</div>;
       const Btn=({onClick,children,color="bg-[#1E3A5F]"})=><button onClick={onClick} className={`w-full ${color} text-white py-2.5 rounded-xl font-bold text-sm transition hover:opacity-90`}>{children}</button>;
 
