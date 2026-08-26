@@ -441,10 +441,10 @@ function EstadoDemandas({data,setData,onBack,toast,onVer}){
 
 const atencion=items.filter(t=>["Solicitud","Colaborador disponible","Cliente confirmó","Presupuesto recibido","Aceptado"].includes(t.estado)&&!t.atendido);  const esperandoColab=items.filter(t=>t.estado==="Presupuestando");
   const esperandoCliente=items.filter(t=>["Visita propuesta","Presupuesto enviado"].includes(t.estado));
-  const activos=items.filter(t=>["Aceptado","En curso"].includes(t.estado));
+  const enGestion=items.filter(t=>["Solicitud","Colaborador disponible","Cliente confirmó","Presupuesto recibido","Aceptado"].includes(t.estado)&&t.atendido);
+  const activos=items.filter(t=>["En curso"].includes(t.estado));
   const completados=items.filter(t=>t.estado==="Completado");
   const cancelados=items.filter(t=>t.estado==="Cancelado");
-
   const Seccion=({titulo,items:its,color})=>its.length===0?null:<div className="mb-4">
     <div className="flex items-center gap-2 mb-2">
       <span className={`w-2 h-2 rounded-full ${color}`}/>
