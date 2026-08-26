@@ -990,6 +990,7 @@ const[tab,setTab]=useState("resumen");
 const[editEstado,setEditEstado]=useState(false);
 const[editColab,setEditColab]=useState(false);
 const[selectorColab,setSelectorColab]=useState(false);
+const[accionesAbiertas,setAccionesAbiertas]=useState(false);
   const[guardando,setGuardando]=useState(false);
   const notas=getNotas(t);
   const partes=notas.split('|').map(n=>n.trim());
