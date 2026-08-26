@@ -2183,12 +2183,7 @@ function PortalColaborador({id}:{id:string}){
         {estado!=="nopuedo"&&<button onClick={()=>setEstado("nopuedo")} disabled={estado==="cargando"} className="w-full bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-xl py-2.5 font-bold text-sm transition disabled:opacity-50">❌ No puedo encargarme</button>} 
         {estado==="nopuedo"&&<div className="border-t border-gray-100 pt-4">
           <div className="text-[10px] text-gray-400 font-bold uppercase mb-2">¿Puedes en otra fecha? (opcional)</div>
-          <DisponibilidadSelector onConfirmar={(dia,hora)=>{
-            const fechaFmt=new Date(dia+"T00:00:00").toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"});
-            const msg=`❌ Trabajo #${id} · ${trabajo.tipo}\nEl colaborador NO puede en la fecha inicial.\n\nPodría el ${fechaFmt} a las ${hora}\n\nDirección: ${cliente?.direccion}`;
-            window.open(`https://wa.me/34661121413?text=${encodeURIComponent(msg)}`,"_blank");
-            setEstado("no");
-          }}/>
+          <DisponibilidadSelector onConfirmar={(dia,hora,importe,archivo)=>confirmarConDisponibilidad(dia,hora,importe,archivo)}/>
           <button onClick={()=>confirmar(false)} className="w-full mt-2 border border-gray-200 text-gray-500 py-2.5 rounded-xl text-sm">No puedo en ninguna fecha</button>
         </div>}
       </div>
