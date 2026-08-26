@@ -1032,7 +1032,7 @@ return<div className="space-y-3">
 <div className="bg-white border-2 border-[#1E3A5F]/10 rounded-2xl overflow-hidden shadow-sm">
   <div className="bg-[#1E3A5F] px-4 py-2 flex items-center gap-2">
     <span className="text-xs">👉</span>
-    <span className="text-[10px] font-bold text-white uppercase tracking-widest">Siguiente paso</span>
+<span className="text-[10px] font-bold text-white uppercase tracking-widest flex-1">Siguiente paso</span>
   </div>
   <div className="p-4 space-y-2">
     {(()=>{
