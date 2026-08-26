@@ -2206,7 +2206,7 @@ function PortalColaborador({id}:{id:string}){
       </div>
       <div className="text-center text-xs text-gray-400 pb-4">Solo tú tienes acceso a este enlace</div>
     </div>
-  </div>;
+  ;
 }
 export default function App(){
   const path=window.location.pathname;
