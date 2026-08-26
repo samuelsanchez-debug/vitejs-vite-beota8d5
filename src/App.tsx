@@ -2098,7 +2098,7 @@ function PortalColaborador({id}:{id:string}){
   };
   const confirmarConDisponibilidad=async(dia:string,hora:string,importe:string,archivo:File|null)=>{
     setEstado("cargando");
-    const fechaFmt=new Date(dia+"T00:00:00").toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"});
+    const fechaFmt=dia?new Date(dia+"T00:00:00").toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"}):"";
     let presupUrl="";
     if(archivo){
       const ext=archivo.name.split('.').pop();
@@ -2107,23 +2107,25 @@ function PortalColaborador({id}:{id:string}){
       if(up){const{data:pub}=supabase.storage.from('fotos-demandas').getPublicUrl(nombre);presupUrl=pub.publicUrl;}
     }
     const historial=JSON.parse(trabajo.historial||"[]");
-    historial.push({ts:now(),txt:`Colaborador disponible: ${fechaFmt} a las ${hora}`,tipo:"ok"});
+    if(dia)historial.push({ts:now(),txt:`Colaborador disponible: ${fechaFmt} a las ${hora}`,tipo:"ok"});
     if(importe||presupUrl)historial.push({ts:now(),txt:`Presupuesto directo${importe?`: ${importe}€`:""}`,tipo:"presupuesto"});
-    let notasNuevas=trabajo.notas?trabajo.notas+` | disponibilidad: ${fechaFmt} a las ${hora}`:`disponibilidad: ${fechaFmt} a las ${hora}`;
-    if(presupUrl)notasNuevas+=` | presup:${presupUrl}`;
-   const update:any={
+    let notasNuevas=trabajo.notas||"";
+    if(dia)notasNuevas=notasNuevas?notasNuevas+` | disponibilidad: ${fechaFmt} a las ${hora}`:`disponibilidad: ${fechaFmt} a las ${hora}`;
+    if(presupUrl)notasNuevas+=(notasNuevas?" | ":"")+`presup:${presupUrl}`;
+    const novedad=dia?`📅 Colaborador disponible: ${fechaFmt} a las ${hora}`:`💶 Presupuesto recibido${importe?`: ${importe}€`:""}`;
+    const update:any={
       estado:"Colaborador disponible",
       colaborador_id:trabajo.colaborador_id,
-      fecha:dia,
-      hora:hora,
       atendido:false,
-      ultima_novedad:`📅 Colaborador disponible: ${fechaFmt} a las ${hora}`,
+      ultima_novedad:novedad,
       historial:JSON.stringify(historial),
       notas:notasNuevas,
     };
+    if(dia){update.fecha=dia;update.hora=hora;}
     if(importe)update.presupuesto_colaborador=+importe;
     await supabase.from('trabajos').update(update).eq('id',id);
-    let msg=`✅ Trabajo #${id} · ${trabajo.tipo}\nEl colaborador puede encargarse.\n\nFecha propuesta: ${fechaFmt} a las ${hora}`;
+    let msg=`✅ Trabajo #${id} · ${trabajo.tipo}\nEl colaborador puede encargarse.`;
+    if(dia)msg+=`\n\nFecha propuesta: ${fechaFmt} a las ${hora}`;
     if(importe||presupUrl)msg+=`\n\n💶 Presupuesto directo${importe?`: ${importe}€`:" adjunto"}`;
     window.open(`https://wa.me/34661121413?text=${encodeURIComponent(msg)}`,"_blank");
     setEstado("ok");
