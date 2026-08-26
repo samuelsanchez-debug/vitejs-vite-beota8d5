@@ -2106,7 +2106,7 @@ function PortalColaborador({id}:{id:string}){
       const{data:up}=await supabase.storage.from('fotos-demandas').upload(nombre,archivo,{upsert:true});
       if(up){const{data:pub}=supabase.storage.from('fotos-demandas').getPublicUrl(nombre);presupUrl=pub.publicUrl;}
     }
-    const historial=JSON.parse(trabajo.historial||"[]");
+    let historial=[];try{historial=Array.isArray(trabajo.historial)?trabajo.historial:JSON.parse(trabajo.historial||"[]");}catch(e){historial=[];}if(!Array.isArray(historial))historial=[];
     if(dia)historial.push({ts:now(),txt:`Colaborador disponible: ${fechaFmt} a las ${hora}`,tipo:"ok"});
     if(importe||presupUrl)historial.push({ts:now(),txt:`Presupuesto directo${importe?`: ${importe}€`:""}`,tipo:"presupuesto"});
     let notasNuevas=trabajo.notas||"";
