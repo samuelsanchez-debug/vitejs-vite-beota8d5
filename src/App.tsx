@@ -2123,11 +2123,7 @@ function PortalColaborador({id}:{id:string}){
     };
     if(dia){update.fecha=dia;update.hora=hora;}
     if(importe)update.presupuesto_colaborador=+importe;
-    await supabase.from('trabajos').update(update).eq('id',id);
-    let msg=`✅ Trabajo #${id} · ${trabajo.tipo}\nEl colaborador puede encargarse.`;
-    if(dia)msg+=`\n\nFecha propuesta: ${fechaFmt} a las ${hora}`;
-    if(importe||presupUrl)msg+=`\n\n💶 Presupuesto directo${importe?`: ${importe}€`:" adjunto"}`;
-    window.open(`https://wa.me/34661121413?text=${encodeURIComponent(msg)}`,"_blank");
+       await supabase.from('trabajos').update(update).eq('id',id);
     setEstado("ok");
   };
   if(cargando)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-center"><div className="text-4xl mb-3">⚙️</div><div className="font-bold text-gray-700">Cargando...</div></div></div>;
