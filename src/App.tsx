@@ -2093,7 +2093,6 @@ function PortalColaborador({id}:{id:string}){
     const historial=JSON.parse(trabajo.historial||"[]");
     historial.push({ts:now(),txt:puede?"Colaborador confirmó la visita":"Colaborador no puede ir",tipo:puede?"ok":"sistema"});
     await supabase.from('trabajos').update({estado:nuevoEstado,colaborador_id:puede?trabajo.colaborador_id:null,historial:JSON.stringify(historial)}).eq('id',id);
-    if(puede){const msg='✅ Confirmado — Trabajo #'+id+' · '+trabajo.tipo+'\n📍 '+(cliente?.direccion)+'\n📅 '+fmt(trabajo.fecha)+' · '+trabajo.hora+'\nEl colaborador ha confirmado la visita.';window.open('https://wa.me/34661121413?text='+encodeURIComponent(msg),'_blank');}
     setEstado(puede?"ok":"no");
   };
   const confirmarConDisponibilidad=async(dia:string,hora:string,importe:string,archivo:File|null)=>{
