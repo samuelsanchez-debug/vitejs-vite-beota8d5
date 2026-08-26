@@ -468,6 +468,7 @@ const atencion=items.filter(t=>["Solicitud","Colaborador disponible","Cliente co
       <div className="space-y-2">{atencion.map(t=><TarjetaTrabajo key={t.id} t={t} data={data} setData={setData} toast={toast} onVer={onVer} alertColor="border-red-200"/>)}</div>
     </div>}
 
+       <Seccion titulo="En gestión" items={enGestion} color="bg-indigo-500"/>
     <Seccion titulo="Esperando colaborador" items={esperandoColab} color="bg-amber-400"/>
     <Seccion titulo="Esperando cliente" items={esperandoCliente} color="bg-cyan-500"/>
     <Seccion titulo="Activos" items={activos} color="bg-orange-500"/>
