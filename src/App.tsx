@@ -1114,9 +1114,13 @@ return<div className="space-y-3">
       </div>
 
       {tab==="resumen"&&<div className="space-y-3">
-        <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-          <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">Descripción</div>
+       <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+          <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">Descripción del cliente</div>
           <div className="text-sm text-gray-700 leading-relaxed">{t.descripcion}</div>
+        </div>
+        <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+          <div className="text-[10px] text-blue-500 uppercase font-bold tracking-widest mb-2">📋 Instrucciones para el colaborador</div>
+          <textarea defaultValue={t.instrucciones_colaborador||""} onBlur={async e=>{const v=e.target.value;await supabase.from('trabajos').update({instrucciones_colaborador:v}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,instrucciones_colaborador:v}:x)}));toast("Instrucciones guardadas");}} rows={2} className="w-full border border-blue-200 rounded-xl px-3 py-2 text-sm bg-blue-50/40 focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none" placeholder="Ej: El cliente pone su material. (Esto lo verá el colaborador)"/>
         </div>
         {disp&&<div className="bg-teal-50 border border-teal-100 rounded-2xl p-4"><div className="text-[10px] text-teal-600 uppercase font-bold mb-1">📅 Disponibilidad colaborador</div><div className="text-sm text-teal-800">{disp}</div></div>}
         {comentCli&&<div className="bg-yellow-50 border border-yellow-100 rounded-2xl p-4"><div className="text-[10px] text-yellow-700 uppercase font-bold mb-1">💬 Nota del cliente</div><div className="text-sm text-gray-700">{comentCli}</div></div>}
