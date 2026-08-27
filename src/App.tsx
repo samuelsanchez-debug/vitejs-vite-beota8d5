@@ -1057,15 +1057,24 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
       }[t.estado]||"Gestiona este trabajo con las acciones de abajo.";
            return<>
         <Guia texto={recomendacion}/>
-        {!getColabId(t)&&<Btn onClick={()=>setSelectorColab(true)}>👷 Asignar colaborador</Btn>}
-        {co2&&cl&&<Btn onClick={()=>window.open(buildWA(co2,t,cl),"_blank")} color="bg-green-500">📱 Enviar trabajo al colaborador</Btn>}
+        {t.estado==="Solicitud"&&!getColabId(t)&&<Btn onClick={()=>setSelectorColab(true)}>👷 Asignar colaborador</Btn>}
+        {t.estado==="Solicitud"&&getColabId(t)&&co2&&cl&&<Btn onClick={()=>window.open(buildWA(co2,t,cl),"_blank")} color="bg-green-500">📱 Enviar trabajo al colaborador</Btn>}
+        {t.estado==="Presupuestando"&&co2&&cl&&<Btn onClick={()=>window.open(buildWA(co2,t,cl),"_blank")} color="bg-green-500">📱 Reenviar WhatsApp a {co2.nombre.split(" ")[0]}</Btn>}
+        {t.estado==="Colaborador disponible"&&cl?.telefono&&<Btn onClick={async()=>{window.open(buildWAVisitaCliente(cl,t,co2),"_blank");await avanzar("Visita propuesta","Fecha propuesta al cliente por WhatsApp");}} color="bg-cyan-500">📱 Proponer fecha al cliente</Btn>}
+        {t.estado==="Cliente confirmó"&&co2&&<Btn onClick={async()=>{window.open(buildWAConfirmacionColab(co2,t,cl),"_blank");await avanzar("En curso","Visita programada — colaborador avisado");}} color="bg-teal-500">✅ Avisar colaborador — visita programada</Btn>}
+        {t.estado==="Presupuesto recibido"&&<Btn onClick={()=>setModo("presupuesto")} color="bg-purple-600">📄 Generar presupuesto Domia</Btn>}
+        {t.estado==="Presupuesto enviado"&&pdfD&&tel&&<Btn onClick={()=>window.open(`https://wa.me/${tel.replace('+','')}?text=${encodeURIComponent(`Hola ${cl?.nombre?.split(" ")[0]||""} 😊\n\nTe paso el presupuesto de *Domia Services*.\n\n📄 Verlo y aceptarlo aquí:\nhttps://domia-crm-two.vercel.app/aceptar/${t.id}\n\nCualquier duda me dices. ¡Gracias!\n\n— Samuel · Domia Services · 685 917 059`)}`,"_blank")} color="bg-green-500">📱 Reenviar presupuesto al cliente</Btn>}
+        {t.estado==="Presupuesto enviado"&&<Btn onClick={()=>avanzar("Aceptado","Cliente aceptó el presupuesto")} color="bg-violet-500">🤝 Cliente aceptó</Btn>}
+        {t.estado==="Aceptado"&&<Btn onClick={()=>avanzar("En curso","Trabajo iniciado")} color="bg-orange-500">🔧 Marcar en curso</Btn>}
+        {t.estado==="En curso"&&<Btn onClick={()=>avanzar("Completado","Trabajo completado")} color="bg-emerald-600">✅ Marcar completado</Btn>}
         <button onClick={()=>setAccionesAbiertas(v=>!v)} className="w-full text-[11px] font-bold text-gray-400 uppercase tracking-widest py-1.5 flex items-center justify-center gap-1 hover:text-gray-600">{accionesAbiertas?"▲ Ocultar acciones":"▼ Todas las acciones"}</button>
         {accionesAbiertas&&<div className="space-y-2">
-          {getColabId(t)&&<Btn onClick={()=>setSelectorColab(true)} color="bg-gray-400">👷 Cambiar colaborador</Btn>}
-          {cl&&<Btn onClick={()=>window.open(buildWAVisitaCliente(cl,t,co2),"_blank")} color="bg-green-600">📱 Proponer visita al cliente</Btn>}
-          {co2&&cl&&<Btn onClick={()=>window.open(buildWAConfirmacionColab(co2,t,cl),"_blank")} color="bg-green-700">📱 Avisar al colaborador (visita confirmada)</Btn>}
+          {getColabId(t)?<Btn onClick={()=>setSelectorColab(true)} color="bg-gray-400">👷 Cambiar colaborador</Btn>:<Btn onClick={()=>setSelectorColab(true)}>👷 Asignar colaborador</Btn>}
+          {co2&&cl&&<Btn onClick={()=>window.open(buildWA(co2,t,cl),"_blank")} color="bg-green-500">📱 Enviar trabajo al colaborador</Btn>}
+          {cl&&<Btn onClick={()=>window.open(buildWAVisitaCliente(cl,t,co2),"_blank")} color="bg-cyan-500">📱 Proponer visita al cliente</Btn>}
+          {co2&&cl&&<Btn onClick={()=>window.open(buildWAConfirmacionColab(co2,t,cl),"_blank")} color="bg-teal-500">📱 Avisar al colaborador (visita confirmada)</Btn>}
           <Btn onClick={()=>setModo("presupuesto")} color="bg-purple-600">📄 Generar / editar presupuesto</Btn>
-          {pdfD&&tel&&<Btn onClick={()=>window.open(`https://wa.me/${tel.replace('+','')}?text=${encodeURIComponent(`Hola ${cl?.nombre?.split(" ")[0]||""} 😊, aquí tienes tu presupuesto de Domia Services:\n\n👉 ${linkAceptar}\n\nCualquier duda estamos en el 685 917 059. ¡Gracias!\n\n— Samuel · Domia Services`)}`,"_blank")} color="bg-green-500">📱 Enviar presupuesto al cliente</Btn>}
+          {pdfD&&tel&&<Btn onClick={()=>window.open(`https://wa.me/${tel.replace('+','')}?text=${encodeURIComponent(`Hola ${cl?.nombre?.split(" ")[0]||""} 😊\n\nTe paso el presupuesto de *Domia Services*.\n\n📄 Verlo y aceptarlo aquí:\nhttps://domia-crm-two.vercel.app/aceptar/${t.id}\n\nCualquier duda me dices. ¡Gracias!\n\n— Samuel · Domia Services · 685 917 059`)}`,"_blank")} color="bg-green-500">📱 Enviar presupuesto al cliente</Btn>}
           {setSec&&<Btn onClick={()=>{onClose();setSec("finanzas");}} color="bg-amber-500">💶 Ir a Finanzas (cobros)</Btn>}
           <div className="pt-2 border-t border-gray-100">
             <div className="text-[10px] text-gray-400 font-bold uppercase mb-1.5">Cambiar estado</div>
