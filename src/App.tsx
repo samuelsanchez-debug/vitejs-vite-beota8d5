@@ -1935,6 +1935,7 @@ await supabase.from('trabajos').update({estado:"Aceptado",aceptado_cliente:true,
       {pdfUrl&&<a href={pdfUrl} target="_blank" className="block bg-white rounded-2xl p-4 border border-gray-100 shadow-sm text-center text-sm text-[#1E3A5F] font-bold hover:bg-gray-50 transition">📄 Ver presupuesto detallado (PDF)</a>}
 
       {estado==="ver"&&<button onClick={aceptar} className="w-full bg-green-500 hover:bg-green-600 text-white py-4 rounded-2xl font-black text-base transition shadow-lg">✅ Acepto el presupuesto</button>}
+      {estado==="ver"&&<button onClick={()=>{const msg=`Hola, soy ${cliente?.nombre||""} 👋\nTengo una duda sobre el presupuesto del trabajo de ${trabajo.tipo} (#${id}).`;window.open(`https://wa.me/34685917059?text=${encodeURIComponent(msg)}`,"_blank");}} className="w-full bg-white border border-gray-200 text-gray-600 py-3 rounded-2xl font-bold text-sm transition hover:border-[#1E3A5F] hover:text-[#1E3A5F]">💬 Tengo una duda</button>}
       {estado==="procesando"&&<div className="text-center py-4 text-gray-400">Procesando...</div>}
 
       {estado==="aceptado"&&<>
