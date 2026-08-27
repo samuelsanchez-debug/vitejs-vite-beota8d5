@@ -1340,9 +1340,10 @@ function DisponibilidadSelector({onConfirmar}:{onConfirmar:(dia:string,hora:stri
     <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 space-y-2">
       <div className="text-[10px] text-blue-700 font-bold uppercase">¿Trabajo sencillo? Puedes presupuestar ya (opcional)</div>
       <input type="number" value={importe} onChange={e=>setImporte(e.target.value)} placeholder="Importe €" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"/>
-      <input type="file" accept="image/*,application/pdf" onChange={e=>setArchivo(e.target.files?.[0]||null)} className="w-full text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-2 file:rounded-lg file:border-0 file:bg-[#1E3A5F] file:text-white file:text-xs file:font-bold"/>
+            <input type="file" accept="image/*,application/pdf" onChange={e=>setArchivo(e.target.files?.[0]||null)} className="w-full text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-2 file:rounded-lg file:border-0 file:bg-[#1E3A5F] file:text-white file:text-xs file:font-bold"/>
     </div>
-<button onClick={()=>{if(dia||importe)onConfirmar(dia,hora,importe,archivo);}} disabled={!dia&&!importe} className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-bold text-sm transition disabled:opacity-50">✅ Enviar respuesta</button>
+    <textarea value={nota} onChange={e=>setNota(e.target.value)} rows={2} placeholder="¿Quieres añadir alguna nota? (opcional) Ej: a falta de medir la pared" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F] resize-none"/>
+<button onClick={()=>{if(dia||importe)onConfirmar(dia,hora,importe,archivo,nota);}} disabled={!dia&&!importe} className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-bold text-sm transition disabled:opacity-50">✅ Enviar respuesta</button>
   </div>;
 }
 function LoginScreen({onLogin}:{onLogin:()=>void}){
