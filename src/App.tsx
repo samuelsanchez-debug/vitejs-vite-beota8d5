@@ -2127,6 +2127,7 @@ const confirmarConDisponibilidad=async(dia:string,hora:string,importe:string,arc
   let notasNuevas=trabajo.notas||"";
     if(dia)notasNuevas=notasNuevas?notasNuevas+` | disponibilidad: ${fechaFmt} a las ${hora}`:`disponibilidad: ${fechaFmt} a las ${hora}`;
     if(presupUrl)notasNuevas+=(notasNuevas?" | ":"")+`presup:${presupUrl}`;
+    notasNuevas=notasNuevas.split('|').map(n=>n.trim()).filter(n=>!n.startsWith('notacolab:')).join(' | ');
     if(nota&&nota.trim())notasNuevas+=(notasNuevas?" | ":"")+`notacolab:${nota.trim()}`;
   const novedad=dia?`📅 Colaborador disponible: ${fechaFmt} a las ${hora}`:`💶 Presupuesto recibido${importe?`: ${importe}€`:""}`;
     const update:any={
