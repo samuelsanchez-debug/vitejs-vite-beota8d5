@@ -1152,6 +1152,7 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
       {tab==="archivos"&&<div className="space-y-3">
         {foto&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm"><div className="text-[10px] text-gray-400 uppercase font-bold mb-2">📷 Foto del cliente</div><img src={foto} className="w-full rounded-xl max-h-56 object-cover cursor-pointer" onClick={()=>window.open(foto,"_blank")}/></div>}
         {pres&&<a href={pres} target="_blank" className="block bg-white border border-gray-100 rounded-2xl p-4 shadow-sm text-sm text-purple-700 font-semibold hover:underline">📄 Presupuesto del colaborador →</a>}
+        {justificante&&<a href={justificante} target="_blank" className="block bg-emerald-50 border border-emerald-200 rounded-2xl p-4 shadow-sm text-sm text-emerald-700 font-semibold hover:underline">🧾 Justificante de pago del cliente →</a>}
         {!foto&&!pres&&!pdfD&&<div className="text-center py-6 text-sm text-gray-400">Sin archivos</div>}
         <label className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-gray-200 rounded-2xl py-4 cursor-pointer hover:border-[#1E3A5F] hover:bg-blue-50 transition">
           <span className="text-2xl">📷</span>
