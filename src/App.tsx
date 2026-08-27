@@ -1230,22 +1230,36 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
           <div className="text-sm font-black text-blue-600">{precio>0&&colab>0?`${margen}€`:"—"}</div>
         </div>
       </div>
-      <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-        <span className="text-[10px] text-gray-400 uppercase font-bold">Adelanto</span>
+     {(()=>{
+        const totalCobrado=cobrosTrabajo.reduce((s,c)=>s+(+c.importe||0),0);
+        const tramos=totalIva>5000?[{lbl:"Adelanto (40%)",imp:Math.round(totalIva*0.4)},{lbl:"2º pago (40%)",imp:Math.round(totalIva*0.4)},{lbl:"Final (20%)",imp:Math.round(totalIva*0.2)}]:[{lbl:"Adelanto (50%)",imp:Math.round(totalIva*0.5)},{lbl:"Final (50%)",imp:Math.round(totalIva*0.5)}];
+        let acumulado=0;
+        return<div className="pt-2 border-t border-gray-100 space-y-2">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[10px] text-gray-400 uppercase font-bold">Cobros del cliente</span>
+            <span className="text-[10px] text-gray-500 font-bold">{totalCobrado}€ / {totalIva}€</span>
+          </div>
+          {tramos.map((tr,i)=>{
+            acumulado+=tr.imp;
+            const pagado=totalCobrado>=acumulado-1;
+            return<div key={i} className="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2">
+              <div>
+                <div className="text-xs text-gray-500">{tr.lbl}</div>
+                <div className="text-sm font-black text-gray-800">{tr.imp}€</div>
+              </div>
+              <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 ${pagado?"bg-emerald-100 text-emerald-700":"bg-amber-100 text-amber-700"}`}>{pagado?"✅ Cobrado":"⏳ Pendiente"}</span>
+            </div>;
+          })}
+        </div>;
+      })()}
+      <div className="flex items-center justify-between pt-1">
+        <span className="text-[10px] text-gray-400 uppercase font-bold">Forma de pago</span>
         <div className="flex items-center gap-1">
-          <input type="number" defaultValue={t.adelanto_valor||30} onBlur={async e=>{const v=+e.target.value||0;await supabase.from('trabajos').update({adelanto_valor:v}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,adelanto_valor:v}:x)}));toast("Adelanto actualizado");}} className="w-16 border border-gray-200 rounded-lg px-2 py-1 text-sm text-right"/>
+          <input type="number" defaultValue={t.adelanto_valor||30} onBlur={async e=>{const v=+e.target.value||0;await supabase.from('trabajos').update({adelanto_valor:v}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,adelanto_valor:v}:x)}));toast("Adelanto actualizado");}} className="w-14 border border-gray-200 rounded-lg px-2 py-1 text-sm text-right"/>
           <button onClick={async()=>{const nuevo=t.adelanto_tipo==='fijo'?'porcentaje':'fijo';await supabase.from('trabajos').update({adelanto_tipo:nuevo}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,adelanto_tipo:nuevo}:x)}));toast(`Adelanto en ${nuevo==='fijo'?'€ fijo':'%'}`);}} className="text-xs bg-gray-100 px-2 py-1 rounded-lg font-bold">{t.adelanto_tipo==='fijo'?'€':'%'}</button>
         </div>
       </div>
-      <div className="flex items-center justify-between">
-        <span className="text-[10px] text-gray-400 uppercase font-bold">Estado pago</span>
-        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${t.aceptado_cliente?"bg-emerald-100 text-emerald-700":"bg-amber-100 text-amber-700"}`}>{t.aceptado_cliente?"✅ Aceptado":"⏳ Pendiente"}</span>
-      </div>
-      <div className="text-center bg-amber-50 rounded-xl py-2">
-        <div className="text-xl font-black text-amber-600">{adelanto}€</div>
-        <div className="text-[10px] text-amber-600">a pagar por el cliente</div>
-      </div>
-      <button onClick={()=>setModo("presupuesto")} className="w-full border border-purple-200 bg-purple-50 text-purple-700 py-2 rounded-xl font-bold text-sm hover:bg-purple-100 transition">✏️ Editar presupuesto</button>
+      <button onClick={()=>setModo("presupuesto")} className="w-full border border-purple-200 bg-purple-50 text-purple-700 py-2 rounded-xl font-bold text-sm hover:bg-purple-100 transition mt-1">✏️ Editar presupuesto</button>
     </>}
   </div>
 </div>
