@@ -1966,9 +1966,8 @@ await supabase.from('trabajos').update({estado:"Aceptado",aceptado_cliente:true,
             <div className="text-xs text-amber-700 mb-1">Para iniciar el trabajo</div>
             <div className="text-3xl font-black text-amber-600">{adelanto}€</div>
           </div>
-          <div className="space-y-2 text-sm text-gray-600">
-            <div className="flex items-center gap-2"><span>📱</span> <span><strong>Bizum:</strong> [tu número aquí]</span></div>
-            <div className="flex items-center gap-2"><span>🏦</span> <span><strong>Transferencia:</strong> [tu IBAN aquí]</span></div>
+                    <div className="space-y-2 text-sm text-gray-600">
+            <div className="flex items-start gap-2"><span>🏦</span> <span><strong>Transferencia:</strong><br/><span className="font-mono text-gray-800 select-all">ES43 2100 5129 4102 0005 0515</span></span></div>
             <div className="text-xs text-gray-400 mt-2">Concepto: {trabajo.tipo} #{id}</div>
           </div>
         </div>
