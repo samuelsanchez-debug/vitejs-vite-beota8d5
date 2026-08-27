@@ -2122,8 +2122,9 @@ const confirmarConDisponibilidad=async(dia:string,hora:string,importe:string,arc
     }
     let historial=[];try{historial=Array.isArray(trabajo.historial)?trabajo.historial:JSON.parse(trabajo.historial||"[]");}catch(e){historial=[];}if(!Array.isArray(historial))historial=[];
     if(dia)historial.push({ts:now(),txt:`Colaborador disponible: ${fechaFmt} a las ${hora}`,tipo:"ok"});
-    if(importe||presupUrl)historial.push({ts:now(),txt:`Presupuesto directo${importe?`: ${importe}€`:""}`,tipo:"presupuesto"});
-    let notasNuevas=trabajo.notas||"";
+    const nombreCol=colabInfo?.nombre?` · ${colabInfo.nombre}`:"";
+    if(importe||presupUrl)historial.push({ts:now(),txt:`Presupuesto${importe?`: ${importe}€`:" (adjunto)"}${nombreCol}${nota?` — 📝 ${nota}`:""}`,tipo:"presupuesto"});
+  let notasNuevas=trabajo.notas||"";
     if(dia)notasNuevas=notasNuevas?notasNuevas+` | disponibilidad: ${fechaFmt} a las ${hora}`:`disponibilidad: ${fechaFmt} a las ${hora}`;
     if(presupUrl)notasNuevas+=(notasNuevas?" | ":"")+`presup:${presupUrl}`;
     if(nota&&nota.trim())notasNuevas+=(notasNuevas?" | ":"")+`notacolab:${nota.trim()}`;
