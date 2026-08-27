@@ -1193,9 +1193,15 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Económico</span>
   </div>
  <div className="p-4 space-y-3">
-    {!pdfD&&<div className="text-center py-4">
-      <div className="text-sm text-gray-400 mb-2">Sin presupuesto generado</div>
-      <button onClick={()=>setModo("presupuesto")} className="text-purple-600 font-bold text-sm">📄 Generar presupuesto</button>
+   {!pdfD&&<div className="space-y-3">
+      {colab>0&&<div className="bg-purple-50 border border-purple-200 rounded-xl p-3 text-center">
+        <div className="text-[10px] text-purple-700 font-bold uppercase mb-1">💶 Precio del colaborador</div>
+        <div className="text-2xl font-black text-purple-700">{colab}€</div>
+      </div>}
+      <div className="text-center py-2">
+        <div className="text-sm text-gray-400 mb-2">Presupuesto Domia sin generar</div>
+        <button onClick={()=>setModo("presupuesto")} className="text-purple-600 font-bold text-sm">📄 Generar presupuesto</button>
+      </div>
     </div>}
     {pdfD&&<>
       <div className="grid grid-cols-3 gap-2">
