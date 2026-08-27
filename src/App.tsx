@@ -1890,7 +1890,8 @@ function AceptarPresupuesto({id}){
   const[cliente,setCliente]=useState(null);
   const[cargando,setCargando]=useState(true);
   const[estado,setEstado]=useState("ver");
-
+  const[justif,setJustif]=useState<string|null>(null);
+  const[subiendo,setSubiendo]=useState(false);
   useEffect(()=>{
     (async()=>{
       const{data:t}=await supabase.from('trabajos').select('*').eq('id',id).single();
