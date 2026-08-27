@@ -1193,14 +1193,25 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Económico</span>
   </div>
  <div className="p-4 space-y-3">
-   {!pdfD&&<div className="space-y-3">
-      {colab>0&&<div className="bg-purple-50 border border-purple-200 rounded-xl p-3 text-center">
-        <div className="text-[10px] text-purple-700 font-bold uppercase mb-1">💶 Precio del colaborador</div>
-        <div className="text-2xl font-black text-purple-700">{colab}€</div>
-      </div>}
-      <div className="text-center py-2">
-        <div className="text-sm text-gray-400 mb-2">Presupuesto Domia sin generar</div>
-        <button onClick={()=>setModo("presupuesto")} className="text-purple-600 font-bold text-sm">📄 Generar presupuesto</button>
+ {!pdfD&&<div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="text-center flex-1">
+          <div className="text-xl font-black text-emerald-600">{precio>0?`${precio}€`:"—"}</div>
+          <div className="text-[10px] text-gray-400 mt-0.5">Cliente</div>
+        </div>
+        <div className="text-gray-300 text-lg font-bold px-1">−</div>
+        <div className="text-center flex-1">
+          <div className="text-xl font-black text-red-500">{colab>0?`${colab}€`:"—"}</div>
+          <div className="text-[10px] text-gray-400 mt-0.5">Colaborador</div>
+        </div>
+        <div className="text-gray-300 text-lg font-bold px-1">=</div>
+        <div className="text-center flex-1">
+          <div className="text-xl font-black text-blue-600">{precio>0&&colab>0?`${margen}€`:"—"}</div>
+          <div className="text-[10px] text-gray-400 mt-0.5">Margen</div>
+        </div>
+      </div>
+      <div className="text-center py-1">
+        <button onClick={()=>setModo("presupuesto")} className="text-purple-600 font-bold text-sm">📄 Generar presupuesto Domia</button>
       </div>
     </div>}
     {pdfD&&<>
