@@ -2191,12 +2191,12 @@ function PortalColaborador({id}:{id:string}){
        
        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">¿Puedes encargarte? Indica fecha y/o precio</div>
         {estado!=="nopuedo"&&<div className="mb-4">
-          <DisponibilidadSelector onConfirmar={(dia,hora,importe,archivo)=>confirmarConDisponibilidad(dia,hora,importe,archivo)}/>
+          <DisponibilidadSelector onConfirmar={(dia,hora,importe,archivo,nota)=>confirmarConDisponibilidad(dia,hora,importe,archivo,nota)}/>
         </div>}
         {estado!=="nopuedo"&&<button onClick={()=>setEstado("nopuedo")} disabled={estado==="cargando"} className="w-full bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-xl py-2.5 font-bold text-sm transition disabled:opacity-50">❌ No puedo encargarme</button>} 
         {estado==="nopuedo"&&<div className="border-t border-gray-100 pt-4">
           <div className="text-[10px] text-gray-400 font-bold uppercase mb-2">¿Puedes en otra fecha? (opcional)</div>
-          <DisponibilidadSelector onConfirmar={(dia,hora,importe,archivo)=>confirmarConDisponibilidad(dia,hora,importe,archivo)}/>
+          <DisponibilidadSelector onConfirmar={(dia,hora,importe,archivo,nota)=>confirmarConDisponibilidad(dia,hora,importe,archivo,nota)}/>
           <button onClick={()=>confirmar(false)} className="w-full mt-2 border border-gray-200 text-gray-500 py-2.5 rounded-xl text-sm">No puedo en ninguna fecha</button>
         </div>}
       </div>
