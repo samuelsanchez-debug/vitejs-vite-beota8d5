@@ -1128,7 +1128,8 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
           <div className="text-[10px] text-blue-500 uppercase font-bold tracking-widest mb-2">📋 Instrucciones para el colaborador</div>
           <textarea defaultValue={t.instrucciones_colaborador||""} onBlur={async e=>{const v=e.target.value;await supabase.from('trabajos').update({instrucciones_colaborador:v}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,instrucciones_colaborador:v}:x)}));toast("Instrucciones guardadas");}} rows={2} className="w-full border border-blue-200 rounded-xl px-3 py-2 text-sm bg-blue-50/40 focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none" placeholder="Ej: El cliente pone su material. (Esto lo verá el colaborador)"/>
         </div>
-        {disp&&<div className="bg-teal-50 border border-teal-100 rounded-2xl p-4"><div className="text-[10px] text-teal-600 uppercase font-bold mb-1">📅 Disponibilidad colaborador</div><div className="text-sm text-teal-800">{disp}</div></div>}
+{disp&&<div className="bg-teal-50 border border-teal-100 rounded-2xl p-4"><div className="text-[10px] text-teal-600 uppercase font-bold mb-1">📅 Disponibilidad colaborador</div><div className="text-sm text-teal-800">{disp}</div></div>}
+        {getPresupColab(t)>0&&<div className="bg-purple-50 border border-purple-200 rounded-2xl p-4"><div className="text-[10px] text-purple-700 uppercase font-bold mb-1">💶 Precio propuesto por el colaborador</div><div className="text-2xl font-black text-purple-700">{getPresupColab(t)}€</div>{pres&&<a href={pres} target="_blank" className="text-xs text-purple-600 font-semibold hover:underline mt-1 inline-block">📄 Ver presupuesto del colaborador →</a>}</div>}
         {comentCli&&<div className="bg-yellow-50 border border-yellow-100 rounded-2xl p-4"><div className="text-[10px] text-yellow-700 uppercase font-bold mb-1">💬 Nota del cliente</div><div className="text-sm text-gray-700">{comentCli}</div></div>}
       </div>}
 
