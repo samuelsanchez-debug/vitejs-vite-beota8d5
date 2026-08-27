@@ -2125,8 +2125,8 @@ const confirmarConDisponibilidad=async(dia:string,hora:string,importe:string,arc
     const nombreCol=colabInfo?.nombre?` · ${colabInfo.nombre}`:"";
     if(importe||presupUrl)historial.push({ts:now(),txt:`Presupuesto${importe?`: ${importe}€`:" (adjunto)"}${nombreCol}${nota?` — 📝 ${nota}`:""}`,tipo:"presupuesto"});
   let notasNuevas=trabajo.notas||"";
-    if(dia)notasNuevas=notasNuevas?notasNuevas+` | disponibilidad: ${fechaFmt} a las ${hora}`:`disponibilidad: ${fechaFmt} a las ${hora}`;
-    if(presupUrl)notasNuevas+=(notasNuevas?" | ":"")+`presup:${presupUrl}`;
+    if(dia){notasNuevas=notasNuevas.split('|').map(n=>n.trim()).filter(n=>!n.startsWith('disponibilidad:')).join(' | ');notasNuevas=notasNuevas?notasNuevas+` | disponibilidad: ${fechaFmt} a las ${hora}`:`disponibilidad: ${fechaFmt} a las ${hora}`;}
+  if(presupUrl)notasNuevas+=(notasNuevas?" | ":"")+`presup:${presupUrl}`;
     notasNuevas=notasNuevas.split('|').map(n=>n.trim()).filter(n=>!n.startsWith('notacolab:')).join(' | ');
     if(nota&&nota.trim())notasNuevas+=(notasNuevas?" | ":"")+`notacolab:${nota.trim()}`;
   const novedad=dia?`📅 Colaborador disponible: ${fechaFmt} a las ${hora}`:`💶 Presupuesto recibido${importe?`: ${importe}€`:""}`;
