@@ -991,6 +991,8 @@ const[editEstado,setEditEstado]=useState(false);
 const[editColab,setEditColab]=useState(false);
 const[selectorColab,setSelectorColab]=useState(false);
 const[accionesAbiertas,setAccionesAbiertas]=useState(false);
+const[cobrosTrabajo,setCobrosTrabajo]=useState([]);
+useEffect(()=>{supabase.from('cobros_cliente').select('*').eq('trabajo_id',t.id).then(({data})=>setCobrosTrabajo(data||[]));},[t.id]);
   const[guardando,setGuardando]=useState(false);
   const notas=getNotas(t);
   const partes=notas.split('|').map(n=>n.trim());
