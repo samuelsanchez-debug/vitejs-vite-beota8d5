@@ -1969,7 +1969,34 @@ await supabase.from('trabajos').update({estado:"Aceptado",aceptado_cliente:true,
           </div>
                     <div className="space-y-2 text-sm text-gray-600">
             <div className="flex items-start gap-2"><span>🏦</span> <span><strong>Transferencia:</strong><br/><span className="font-mono text-gray-800 select-all">ES43 2100 5129 4102 0005 0515</span></span></div>
-            <div className="text-xs text-gray-400 mt-2">Concepto: {trabajo.tipo} #{id}</div>
+                       <div className="text-xs text-gray-400 mt-2">Concepto: {trabajo.tipo} #{id}</div>
+          </div>
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            {justif?<div className="text-center bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+              <div className="text-2xl mb-1">✅</div>
+              <div className="text-sm font-bold text-emerald-700">Justificante enviado</div>
+              <div className="text-xs text-gray-400 mt-0.5">Lo revisaremos y confirmaremos el pago</div>
+            </div>:<label className="flex flex-col items-center justify-center gap-2 w-full border-2 border-dashed border-gray-200 rounded-xl py-4 cursor-pointer hover:border-[#1E3A5F] hover:bg-blue-50 transition">
+              <span className="text-2xl">📎</span>
+              <span className="text-sm text-gray-600 font-semibold">{subiendo?"Subiendo...":"Adjuntar justificante de pago"}</span>
+              <span className="text-[11px] text-gray-400">Foto o PDF del Bizum / transferencia</span>
+              <input type="file" accept="image/*,application/pdf" className="hidden" disabled={subiendo} onChange={async e=>{
+                const archivo=e.target.files?.[0];
+                if(!archivo)return;
+                setSubiendo(true);
+                const ext=archivo.name.split('.').pop();
+                const nombre=`justif_${id}_${Date.now()}.${ext}`;
+                const{data:up}=await supabase.storage.from('fotos-demandas').upload(nombre,archivo,{upsert:true});
+                if(up){
+                  const{data:pub}=supabase.storage.from('fotos-demandas').getPublicUrl(nombre);
+                  const url=pub.publicUrl;
+                  const nuevasNotas=(trabajo.notas||"")+` | justificante:${url}`;
+                  await supabase.from('trabajos').update({notas:nuevasNotas,atendido:false,ultima_novedad:"📎 Cliente adjuntó justificante de pago"}).eq('id',id);
+                  setJustif(url);
+                }
+                setSubiendo(false);
+              }}/>
+            </label>}
           </div>
         </div>
         <div className="text-center text-xs text-gray-400">Te contactaremos para coordinar el inicio del trabajo</div>
