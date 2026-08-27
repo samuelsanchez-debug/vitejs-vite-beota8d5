@@ -2108,8 +2108,8 @@ function PortalColaborador({id}:{id:string}){
     await supabase.from('trabajos').update({estado:nuevoEstado,colaborador_id:puede?trabajo.colaborador_id:null,historial:JSON.stringify(historial)}).eq('id',id);
     setEstado(puede?"ok":"no");
   };
-  const confirmarConDisponibilidad=async(dia:string,hora:string,importe:string,archivo:File|null)=>{
-    setEstado("cargando");
+const confirmarConDisponibilidad=async(dia:string,hora:string,importe:string,archivo:File|null,nota:string="")=>{
+  setEstado("cargando");
     const fechaFmt=dia?new Date(dia+"T00:00:00").toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"}):"";
     let presupUrl="";
     if(archivo){
