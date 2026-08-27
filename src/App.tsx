@@ -1001,7 +1001,8 @@ useEffect(()=>{supabase.from('cobros_cliente').select('*').eq('trabajo_id',t.id)
   const pdfD=partes.find(p=>p.startsWith('pdfdomia:'))?.replace('pdfdomia:','');
   const disp=partes.find(p=>p.startsWith('disponibilidad:'))?.replace('disponibilidad:','').trim();
 const comentCli=partes.find(p=>p.startsWith('cliente:'))?.replace('cliente:','').trim();
-  const notaColab=partes.find(p=>p.startsWith('notacolab:'))?.replace('notacolab:','').trim();
+const notaColab=partes.find(p=>p.startsWith('notacolab:'))?.replace('notacolab:','').trim();
+  const justificante=partes.find(p=>p.startsWith('justificante:'))?.replace('justificante:','').trim();
   const cfg=ESTADO_CFG[t.estado]||{bg:"bg-gray-100",text:"text-gray-500",dot:"bg-gray-300"};
   const precio=getPrecioCliente(t)||0;
   const colab=getPresupColab(t)||0;
