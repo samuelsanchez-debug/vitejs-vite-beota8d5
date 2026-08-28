@@ -263,7 +263,8 @@ const proximas=[...data.trabajos].filter(t=>["Aceptado","En curso"].includes(t.e
         {s:"demandas",icon:"📋",label:"Pipeline",desc:"Todos los estados",badge:activos},
         {s:"clientes",icon:"👤",label:"Clientes",desc:"Base de datos",badge:0},
        {s:"colaboradores",icon:"🔧",label:"Colaboradores",desc:"Equipo",badge:0},
-        {s:"finanzas",icon:"💶",label:"Finanzas",desc:"Cobros y pagos",badge:0},
+               {s:"finanzas",icon:"💶",label:"Finanzas",desc:"Cobros y pagos",badge:0},
+        {s:"incidencias",icon:"⚠️",label:"Incidencias",desc:"Garantías y quejas",badge:(data.incidencias||[]).filter(i=>i.estado==="Abierta").length},
       ].map(m=>(
         <button key={m.s} onClick={()=>go(m.s)} className="bg-white border border-gray-100 rounded-2xl p-4 text-left shadow-sm hover:border-gray-300 hover:shadow-md active:scale-95 transition relative">
           {m.badge>0&&<span className="absolute top-3 right-3 bg-amber-500 text-white text-[10px] font-bold min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center">{m.badge}</span>}
