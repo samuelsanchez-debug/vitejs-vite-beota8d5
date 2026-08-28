@@ -2271,6 +2271,80 @@ const confirmarConDisponibilidad=async(dia:string,hora:string,importe:string,arc
     </div>
   ;
 }
+function Incidencias({data,setData,onBack,toast}){
+  const[filtro,setFiltro]=useState("Abierta");
+  const[nueva,setNueva]=useState(false);
+  const incidencias=data.incidencias||[];
+  const filtradas=filtro==="Todas"?incidencias:incidencias.filter(i=>i.estado===filtro);
+  const cfgEstado={"Abierta":"bg-red-100 text-red-700","En proceso":"bg-amber-100 text-amber-700","Resuelta":"bg-emerald-100 text-emerald-700"};
+  const cfgTipo={"Garantía":"🛡️","Queja":"😠","Repetición":"🔁","Otro":"📋"};
+  return<div>
+    <Back title="Incidencias" onBack={onBack} right={<button onClick={()=>setNueva(true)} className="bg-[#1E3A5F] text-white text-xs font-bold px-3 py-1.5 rounded-xl hover:bg-[#152d4a] transition">+ Nueva</button>}/>
+    <div className="flex gap-1.5 flex-wrap mb-4">
+      {["Abierta","En proceso","Resuelta","Todas"].map(f=><Pill key={f} label={f} active={filtro===f} onClick={()=>setFiltro(f)}/>)}
+    </div>
+    {filtradas.length===0&&<div className="text-center py-16 text-gray-400 text-sm">Sin incidencias {filtro!=="Todas"?`en estado "${filtro}"`:""}</div>}
+    <div className="space-y-2">
+      {filtradas.map(inc=>{
+        const cl=data.clientes.find(c=>c.id===inc.cliente_id);
+        const trab=data.trabajos.find(t=>t.id===inc.trabajo_id);
+        return<div key={inc.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+          <div className="flex items-start justify-between gap-2 mb-2">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">{cfgTipo[inc.tipo]||"📋"}</span>
+              <div>
+                <div className="font-bold text-gray-800 text-sm">{inc.tipo}</div>
+                <div className="text-xs text-gray-500">{cl?.nombre||"—"}{trab?` · ${trab.tipo} #${trab.id}`:""}</div>
+              </div>
+            </div>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${cfgEstado[inc.estado]||"bg-gray-100 text-gray-500"}`}>{inc.estado}</span>
+          </div>
+          {inc.descripcion&&<div className="text-sm text-gray-600 bg-gray-50 rounded-lg p-2 mb-2">{inc.descripcion}</div>}
+          {inc.resolucion&&<div className="text-sm text-emerald-700 bg-emerald-50 rounded-lg p-2 mb-2">✅ {inc.resolucion}</div>}
+          <div className="flex gap-2 mt-2">
+            {inc.estado==="Abierta"&&<button onClick={async()=>{await supabase.from('incidencias').update({estado:"En proceso"}).eq('id',inc.id);setData(d=>({...d,incidencias:d.incidencias.map(x=>x.id===inc.id?{...x,estado:"En proceso"}:x)}));toast("→ En proceso");}} className="flex-1 bg-amber-50 text-amber-700 text-xs font-bold py-2 rounded-lg hover:bg-amber-100 transition">▶️ En proceso</button>}
+            {inc.estado!=="Resuelta"&&<button onClick={async()=>{const res=prompt("¿Cómo se resolvió? (opcional)");await supabase.from('incidencias').update({estado:"Resuelta",resolucion:res||"",fecha_cierre:new Date().toISOString()}).eq('id',inc.id);setData(d=>({...d,incidencias:d.incidencias.map(x=>x.id===inc.id?{...x,estado:"Resuelta",resolucion:res||""}:x)}));toast("✅ Resuelta");}} className="flex-1 bg-emerald-50 text-emerald-700 text-xs font-bold py-2 rounded-lg hover:bg-emerald-100 transition">✅ Resolver</button>}
+            <button onClick={async()=>{if(!confirm("¿Eliminar esta incidencia?"))return;await supabase.from('incidencias').delete().eq('id',inc.id);setData(d=>({...d,incidencias:d.incidencias.filter(x=>x.id!==inc.id)}));toast("Eliminada");}} className="bg-red-50 text-red-500 text-xs font-bold px-3 py-2 rounded-lg hover:bg-red-100 transition">🗑</button>
+          </div>
+        </div>;
+      })}
+    </div>
+    {nueva&&<Modal title="Nueva incidencia" onClose={()=>setNueva(false)} wide><FormIncidencia data={data} setData={setData} onClose={()=>setNueva(false)} toast={toast}/></Modal>}
+  </div>;
+}
+function FormIncidencia({data,setData,onClose,toast,trabajoPre}){
+  const[trabajoId,setTrabajoId]=useState(trabajoPre||"");
+  const[tipo,setTipo]=useState("Garantía");
+  const[descripcion,setDescripcion]=useState("");
+  const trabajosOrden=[...data.trabajos].sort((a,b)=>b.id-a.id);
+  const guardar=async()=>{
+    if(!trabajoId){toast("Selecciona un trabajo");return;}
+    const trab=data.trabajos.find(t=>t.id===+trabajoId);
+    const row={trabajo_id:+trabajoId,cliente_id:trab?getClienteId(trab):null,colaborador_id:trab?getColabId(trab):null,tipo,descripcion,estado:"Abierta"};
+    const{data:saved}=await supabase.from('incidencias').insert(row).select();
+    if(saved&&saved[0]){setData(d=>({...d,incidencias:[saved[0],...(d.incidencias||[])]}));toast("✅ Incidencia creada");onClose();}
+  };
+  return<div className="space-y-3">
+    <div>
+      <label className="text-[10px] text-gray-400 font-bold uppercase">Trabajo relacionado</label>
+      <select value={trabajoId} onChange={e=>setTrabajoId(e.target.value)} className={S}>
+        <option value="">— Selecciona un trabajo —</option>
+        {trabajosOrden.map(t=>{const cl=data.clientes.find(c=>c.id===getClienteId(t));return<option key={t.id} value={t.id}>#{t.id} · {t.tipo} · {cl?.nombre||"—"}</option>;})}
+      </select>
+    </div>
+    <div>
+      <label className="text-[10px] text-gray-400 font-bold uppercase">Tipo</label>
+      <div className="flex gap-1.5 flex-wrap mt-1">
+        {["Garantía","Queja","Repetición","Otro"].map(tp=><button key={tp} onClick={()=>setTipo(tp)} className={`text-xs font-bold px-3 py-1.5 rounded-lg transition ${tipo===tp?"bg-[#1E3A5F] text-white":"bg-gray-100 text-gray-500"}`}>{tp}</button>)}
+      </div>
+    </div>
+    <div>
+      <label className="text-[10px] text-gray-400 font-bold uppercase">Descripción</label>
+      <textarea value={descripcion} onChange={e=>setDescripcion(e.target.value)} rows={3} className={S+" resize-none"} placeholder="¿Qué ha pasado?"/>
+    </div>
+    <button onClick={guardar} className="w-full bg-[#1E3A5F] text-white py-3 rounded-xl font-bold text-sm">Crear incidencia</button>
+  </div>;
+}
 export default function App(){
   const path=window.location.pathname;
   const trabajoMatch=path.match(/^\/trabajo\/(\d+)$/);
