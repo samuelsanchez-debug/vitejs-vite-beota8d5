@@ -2306,7 +2306,7 @@ export default function App(){
   if(cargando)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-center"><div className="text-4xl mb-3">⚙️</div><div className="font-bold text-gray-700">Cargando Domia CRM...</div></div></div>;
   const sinAsignar=data.trabajos.filter(t=>t.estado==="Solicitud").length;
   const sinPrecio=data.trabajos.filter(t=>t.estado==="Presupuestando"&&!getPresupColab(t)).length;
-  const TITULO={home:"Inicio",nuevas:"Nuevas demandas",demandas:"Pipeline",clientes:"Clientes",colaboradores:"Colaboradores"};
+const TITULO={home:"Inicio",nuevas:"Nuevas demandas",demandas:"Pipeline",clientes:"Clientes",colaboradores:"Colaboradores",incidencias:"Incidencias"};
   return<div className="min-h-screen flex flex-col" style={{background:"#F0F2F5",fontFamily:"'Inter',system-ui,sans-serif"}}>
     <header className="bg-[#1E3A5F] text-white px-4 py-3 flex items-center gap-3 sticky top-0 z-40 shadow-lg">
       {sec!=="home"&&<button onClick={()=>setSec("home")} className="w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 transition text-xl leading-none">‹</button>}
