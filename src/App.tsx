@@ -2371,9 +2371,8 @@ const[data,setData]=useState({clientes:[],colaboradores:[],trabajos:[],incidenci
   const T=msg=>setToastMsg(msg);
   useEffect(()=>{
     const cargar=async()=>{
-     const[c,col,t]=await Promise.all([supabase.from('clientes').select('*').order('id'),supabase.from('colaboradores').select('*').order('id'),supabase.from('trabajos').select('*').order('id')]);
-      let incData=[];try{const inc=await supabase.from('incidencias').select('*').order('id',{ascending:false});incData=inc.data||[];}catch(e){incData=[];}
-      setData({clientes:c.data||[],colaboradores:col.data||[],trabajos:(t.data||[]).map(x=>({...x,clienteId:x.cliente_id,colaboradorId:x.colaborador_id,presupuestoColaborador:x.presupuesto_colaborador,precioCliente:x.precio_cliente})),incidencias:incData});
+    const[c,col,t]=await Promise.all([supabase.from('clientes').select('*').order('id'),supabase.from('colaboradores').select('*').order('id'),supabase.from('trabajos').select('*').order('id')]);
+      setData({clientes:c.data||[],colaboradores:col.data||[],trabajos:(t.data||[]).map(x=>({...x,clienteId:x.cliente_id,colaboradorId:x.colaborador_id,presupuestoColaborador:x.presupuesto_colaborador,precioCliente:x.precio_cliente})),incidencias:[]});
     };
     cargar();
   },[]);
