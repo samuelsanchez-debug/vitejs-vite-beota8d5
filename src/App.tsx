@@ -2287,7 +2287,7 @@ export default function App(){
   useEffect(()=>{
     supabase.auth.getSession().then(({data})=>setAutenticado(!!data.session));
   },[]);
-  const[data,setData]=useState({clientes:[],colaboradores:[],trabajos:[]});
+const[data,setData]=useState({clientes:[],colaboradores:[],trabajos:[],incidencias:[]});
   const[cargando,setCargando]=useState(true);
   const[sec,setSec]=useState("home");
   const[tid,setTid]=useState(null);
