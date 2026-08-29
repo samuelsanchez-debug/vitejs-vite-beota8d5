@@ -82,6 +82,11 @@ const buildWAVisitaCliente=(cliente,trabajo,colab)=>{
   const msg=`Hola ${nombre} 😊\n\nSoy Samuel de *Domia Services*.\n\nTe escribo porque hemos organizado una visita de nuestro técnico para revisar el trabajo de *${trabajo.tipo}*.\n\n📅 *${fmt(trabajo.fecha)} a las ${trabajo.hora}*\n\n👇 Confirma aquí si te viene bien (solo un clic):\n${enlace}\n\nSi necesitas cambiar la fecha, también puedes indicarlo ahí. Cualquier duda estamos en el 685 917 059 🙏\n\n— Samuel · Domia Services`;
   return `https://wa.me/${cliente.telefono?.replace(/\s/g,'')}?text=${encodeURIComponent(msg)}`;
 };
+const buildWAIncidencia=(colab,trabajo,cliente,incidencia)=>{
+  const enlace=`${BASE_URL}/trabajo/${trabajo.id}`;
+  const msg=`Hola ${colab.nombre.split(" ")[0]} 👋\n\n⚠️ Hay una incidencia en un trabajo que hiciste:\n\n📍 ${cliente?.direccion||""}\n🔧 ${trabajo.tipo} · ${cliente?.nombre||""}\n\n📋 *${incidencia.tipo}:* ${incidencia.descripcion||"(sin detalles)"}\n\n¿Puedes pasarte a revisarlo? Los datos del trabajo aquí:\n👉 ${enlace}\n\nGracias 🙏`;
+  return `https://wa.me/${colab.whatsapp}?text=${encodeURIComponent(msg)}`;
+};
 const buildWAConfirmacionColab=(colab,trabajo,cliente)=>{
   const msg=`Hola ${colab.nombre.split(" ")[0]} 👋\n\n✅ El cliente ha confirmado la visita.\n\n📍 ${cliente.direccion}\n📅 *${fmt(trabajo.fecha)} a las ${trabajo.hora}*\n👤 ${cliente.nombre} · ${cliente.telefono}\n\nTras la visita, sube el presupuesto aquí:\n${BASE_URL}/trabajo/${trabajo.id}\n\nGracias 🙏`;
   return `https://wa.me/${colab.whatsapp}?text=${encodeURIComponent(msg)}`;
