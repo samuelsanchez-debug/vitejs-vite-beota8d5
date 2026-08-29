@@ -2342,8 +2342,24 @@ function Incidencias({data,setData,onBack,toast}){
   const filtradas=filtro==="Todas"?incidencias:incidencias.filter(i=>i.estado===filtro);
   const cfgEstado={"Abierta":"bg-red-100 text-red-700","En proceso":"bg-amber-100 text-amber-700","Resuelta":"bg-emerald-100 text-emerald-700"};
   const cfgTipo={"Garantía":"🛡️","Queja":"😠","Repetición":"🔁","Otro":"📋"};
+   const atencion=incidencias.filter(i=>i.atendida===false&&i.estado!=="Resuelta");
   return<div>
     <Back title="Incidencias" onBack={onBack} right={<button onClick={()=>setNueva(true)} className="bg-[#1E3A5F] text-white text-xs font-bold px-3 py-1.5 rounded-xl hover:bg-[#152d4a] transition">+ Nueva</button>}/>
+    {atencion.length>0&&<div className="bg-red-50 border-2 border-red-200 rounded-2xl p-3 mb-4">
+      <div className="font-bold text-red-700 text-sm mb-2 flex items-center gap-2">🔔 Requiere tu atención ({atencion.length})</div>
+      <div className="space-y-2">{atencion.map(inc=>{
+        const cl=data.clientes.find(c=>c.id===inc.cliente_id);
+        const co=data.colaboradores.find(c=>c.id===inc.colaborador_id);
+        return<div key={inc.id} className="bg-white border border-red-200 rounded-xl p-3">
+          <div className="flex items-center justify-between gap-2 mb-1">
+            <div className="text-sm font-bold text-gray-800">{inc.tipo} · {cl?.nombre||"—"}</div>
+            <button onClick={async()=>{await supabase.from('incidencias').update({atendida:true}).eq('id',inc.id);setData(d=>({...d,incidencias:d.incidencias.map(x=>x.id===inc.id?{...x,atendida:true}:x)}));toast("✓ Atendido");}} className="bg-gray-100 text-gray-500 text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-emerald-100 hover:text-emerald-600 transition">✓</button>
+          </div>
+          {inc.fecha_propuesta&&<div className="text-sm text-teal-700">📅 {co?.nombre?.split(" ")[0]||"Colaborador"} disponible: {new Date(inc.fecha_propuesta+"T00:00:00").toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"})} a las {inc.hora_propuesta}</div>}
+          {inc.nota_colaborador&&<div className="text-xs text-gray-500 mt-0.5">📝 {inc.nota_colaborador}</div>}
+        </div>;
+      })}</div>
+    </div>}
     <div className="flex gap-1.5 flex-wrap mb-4">
       {["Abierta","En proceso","Resuelta","Todas"].map(f=><Pill key={f} label={f} active={filtro===f} onClick={()=>setFiltro(f)}/>)}
     </div>
