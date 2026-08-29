@@ -2391,7 +2391,10 @@ function Incidencias({data,setData,onBack,toast}){
         return<div key={inc.id} className="bg-white border border-red-200 rounded-xl p-3">
           <div className="flex items-center justify-between gap-2 mb-1">
             <div className="text-sm font-bold text-gray-800">{inc.tipo} · {cl?.nombre||"—"}</div>
-            <button onClick={async()=>{await supabase.from('incidencias').update({atendida:true}).eq('id',inc.id);setData(d=>({...d,incidencias:d.incidencias.map(x=>x.id===inc.id?{...x,atendida:true}:x)}));toast("✓ Atendido");}} className="bg-gray-100 text-gray-500 text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-emerald-100 hover:text-emerald-600 transition">✓</button>
+            <div className="flex gap-1.5">
+              <button onClick={()=>setVerInc(inc)} className="bg-[#1E3A5F] text-white text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-[#152d4a] transition">Ver</button>
+              <button onClick={async()=>{await supabase.from('incidencias').update({atendida:true}).eq('id',inc.id);setData(d=>({...d,incidencias:d.incidencias.map(x=>x.id===inc.id?{...x,atendida:true}:x)}));toast("✓ Atendido");}} className="bg-gray-100 text-gray-500 text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-emerald-100 hover:text-emerald-600 transition">✓</button>
+            </div>
           </div>
           {inc.fecha_propuesta&&<div className="text-sm text-teal-700">📅 {co?.nombre?.split(" ")[0]||"Colaborador"} disponible: {new Date(inc.fecha_propuesta+"T00:00:00").toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"})} a las {inc.hora_propuesta}</div>}
           {inc.nota_colaborador&&<div className="text-xs text-gray-500 mt-0.5">📝 {inc.nota_colaborador}</div>}
