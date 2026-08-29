@@ -1458,8 +1458,10 @@ const[pagos,setPagos]=useState([]);
       if(col){
         const{data:tr}=await supabase.from('trabajos').select('*').eq('colaborador_id',col.id).order('id',{ascending:false});
         setTrabajos(tr||[]);
-        const{data:pg}=await supabase.from('pagos_colaborador').select('*').eq('colaborador_id',col.id).order('fecha',{ascending:false});
+               const{data:pg}=await supabase.from('pagos_colaborador').select('*').eq('colaborador_id',col.id).order('fecha',{ascending:false});
         setPagos(pg||[]);
+        const{data:inc}=await supabase.from('incidencias').select('*').eq('colaborador_id',col.id).order('id',{ascending:false});
+        setIncidencias(inc||[]);
       }
     })();
   },[sesion]);
