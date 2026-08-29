@@ -2229,11 +2229,12 @@ const confirmarConDisponibilidad=async(dia:string,hora:string,importe:string,arc
     setEstado("cargando");
     const fechaFmt=dia?new Date(dia+"T00:00:00").toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"}):"";
     const detalle=`Colaborador disponible para la incidencia: ${fechaFmt} a las ${hora}${nota?` · Nota: ${nota}`:""}`;
-    await supabase.from('incidencias').update({
+      await supabase.from('incidencias').update({
       estado:"En proceso",
       fecha_propuesta:dia,
       hora_propuesta:hora,
       nota_colaborador:nota||"",
+      atendida:false,
     }).eq('id',incidencia.id);
     setEstado("ok");
   };
