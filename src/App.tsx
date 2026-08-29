@@ -1387,6 +1387,19 @@ function DisponibilidadSelector({onConfirmar}:{onConfirmar:(dia:string,hora:stri
 <button onClick={()=>{if(dia||importe)onConfirmar(dia,hora,importe,archivo,nota);}} disabled={!dia&&!importe} className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-bold text-sm transition disabled:opacity-50">✅ Enviar respuesta</button>
   </div>;
 }
+function DisponibilidadIncidencia({onConfirmar}:{onConfirmar:(dia:string,hora:string,importe:string,archivo:File|null,nota:string)=>void}){
+  const[dia,setDia]=useState("");
+  const[hora,setHora]=useState("09:00");
+  const[nota,setNota]=useState("");
+  return<div className="space-y-3">
+    <div className="flex gap-2">
+      <input type="date" value={dia} onChange={e=>setDia(e.target.value)} className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"/>
+      <input type="time" value={hora} onChange={e=>setHora(e.target.value)} className="w-28 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"/>
+    </div>
+    <textarea value={nota} onChange={e=>setNota(e.target.value)} rows={2} placeholder="¿Alguna nota? (opcional)" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F] resize-none"/>
+    <button onClick={()=>{if(dia)onConfirmar(dia,hora,"",null,nota);}} disabled={!dia} className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-bold text-sm transition disabled:opacity-50">✅ Enviar disponibilidad</button>
+  </div>;
+}
 function LoginScreen({onLogin}:{onLogin:()=>void}){
   const[email,setEmail]=useState("");
   const[pass,setPass]=useState("");
