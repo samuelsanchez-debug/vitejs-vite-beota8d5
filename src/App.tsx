@@ -1519,8 +1519,8 @@ if(modoPass&&sesion)return<CrearPassword onListo={()=>{setModoPass(false);window
     </div>
 
     <div className="flex gap-1 px-4 pt-4 max-w-lg mx-auto">
-      {[["trabajos","Trabajos"],["cobros","Cobros"],["calc","Calculadora"]].map(([k,label])=>(
-        <button key={k} onClick={()=>setTab(k)} className={`flex-1 py-2 rounded-xl text-sm font-bold transition ${tab===k?"bg-[#1E3A5F] text-white":"bg-white text-gray-500 border border-gray-200"}`}>{label}</button>
+      {[["trabajos","Trabajos"],["cobros","Cobros"],["incidencias","Incidencias"],["calc","Calculadora"]].map(([k,label])=>(
+      <button key={k} onClick={()=>setTab(k)} className={`flex-1 py-2 rounded-xl text-sm font-bold transition ${tab===k?"bg-[#1E3A5F] text-white":"bg-white text-gray-500 border border-gray-200"}`}>{label}</button>
       ))}
     </div>
 
