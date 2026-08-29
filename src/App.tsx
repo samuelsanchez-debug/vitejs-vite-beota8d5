@@ -1540,7 +1540,23 @@ if(modoPass&&sesion)return<CrearPassword onListo={()=>{setModoPass(false);window
           {t.presupuesto_colaborador&&<div className="text-sm font-bold text-emerald-600">{t.presupuesto_colaborador}€</div>}
         </div>)}
       </>}
-
+      {tab==="incidencias"&&<>
+        <div className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Incidencias asignadas ({incidencias.length})</div>
+        {incidencias.length===0&&<div className="text-center py-8 text-sm text-gray-400">No tienes incidencias</div>}
+        {incidencias.map(inc=>{
+          const t=trabajos.find(x=>x.id===inc.trabajo_id);
+          const cfgEstado={"Abierta":"bg-red-100 text-red-700","En proceso":"bg-amber-100 text-amber-700","Resuelta":"bg-emerald-100 text-emerald-700"};
+          return<div key={inc.id} className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+            <div className="flex justify-between items-start mb-1">
+              <div className="font-bold text-gray-800">⚠️ {inc.tipo}{t?` · ${t.tipo}`:""}</div>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${cfgEstado[inc.estado]||"bg-gray-100 text-gray-500"}`}>{inc.estado}</span>
+            </div>
+            {inc.descripcion&&<div className="text-sm text-gray-600 bg-gray-50 rounded-lg p-2 mb-2">{inc.descripcion}</div>}
+            {inc.fecha_propuesta&&<div className="text-xs text-teal-700">📅 Propuesto: {fmt(inc.fecha_propuesta)} a las {inc.hora_propuesta}</div>}
+            {inc.estado!=="Resuelta"&&<a href={`/trabajo/${inc.trabajo_id}`} target="_blank" className="block text-center mt-2 bg-[#1E3A5F] text-white text-sm font-bold py-2 rounded-xl">Ver y responder →</a>}
+          </div>;
+        })}
+      </>}
      {tab==="cobros"&&(()=>{
 const totalGanado=trabajos.filter(t=>(t.presupuesto_colaborador||0)>0).reduce((s,t)=>s+(t.presupuesto_colaborador||0),0);        const totalCobradoReal=pagos.reduce((s,p)=>s+(+p.importe||0),0);
         const pendienteReal=totalGanado-totalCobradoReal;
