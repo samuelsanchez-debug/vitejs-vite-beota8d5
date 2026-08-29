@@ -2160,6 +2160,7 @@ function PortalColaborador({id}:{id:string}){
   const[trabajo,setTrabajo]=useState<any>(null);
   const[cliente,setCliente]=useState<any>(null);
   const[colabInfo,setColabInfo]=useState<any>(null);
+  const[incidencia,setIncidencia]=useState<any>(null);
   const[estado,setEstado]=useState<"idle"|"ok"|"no"|"cargando">("idle");
   const[cargando,setCargando]=useState(true);
   useEffect(()=>{
