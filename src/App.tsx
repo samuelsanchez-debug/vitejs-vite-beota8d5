@@ -2269,7 +2269,7 @@ const confirmarConDisponibilidad=async(dia:string,hora:string,importe:string,arc
       </div>
       <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
        
-       <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">¿Puedes encargarte? Indica fecha y/o precio</div>
+       <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">{incidencia?"¿Cuándo puedes ir a resolver la incidencia?":"¿Puedes encargarte? Indica fecha y/o precio"}</div>
         {estado!=="nopuedo"&&<div className="mb-4">
           <DisponibilidadSelector onConfirmar={(dia,hora,importe,archivo,nota)=>confirmarConDisponibilidad(dia,hora,importe,archivo,nota)}/>
         </div>}
