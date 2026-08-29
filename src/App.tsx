@@ -2216,6 +2216,31 @@ const confirmarConDisponibilidad=async(dia:string,hora:string,importe:string,arc
   if(!trabajo)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-center"><div className="text-4xl mb-3">❌</div><div className="font-bold text-gray-700">Trabajo no encontrado</div></div></div>;
   if(estado==="ok")return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4"><div className="bg-white rounded-2xl p-8 text-center max-w-sm w-full shadow-sm border border-gray-100"><div className="text-6xl mb-4">✅</div><div className="text-xl font-black text-gray-800 mb-2">¡Confirmado!</div><div className="text-gray-500 text-sm">Hemos avisado a Domia. Nos ponemos en contacto contigo pronto.</div></div></div>;
   if(estado==="no")return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4"><div className="bg-white rounded-2xl p-8 text-center max-w-sm w-full shadow-sm border border-gray-100"><div className="text-6xl mb-4">👍</div><div className="text-xl font-black text-gray-800 mb-2">Entendido</div><div className="text-gray-500 text-sm">Gracias por avisarnos. Buscaremos otra disponibilidad.</div></div></div>;
+   if(incidencia){
+    return<div className="min-h-screen bg-[#F0F2F5]" style={{fontFamily:"'Inter',system-ui,sans-serif"}}>
+      <div className="bg-[#1E3A5F] px-5 py-5 text-white">
+        <div className="text-[10px] text-blue-300 font-bold uppercase tracking-widest mb-1">Domia Services · Trabajo #{id}</div>
+        <div className="text-2xl font-black">{trabajo.tipo}</div>
+      </div>
+      <div className="px-4 py-5 max-w-lg mx-auto space-y-4">
+        <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-4">
+          <div className="flex items-center gap-2 mb-1.5"><span className="text-xl">⚠️</span><span className="text-sm font-black text-red-700 uppercase tracking-wide">Incidencia — {incidencia.tipo}</span></div>
+          <div className="text-sm text-red-800 leading-relaxed">Este es un trabajo que ya realizaste y ha surgido un problema:</div>
+          <div className="text-sm text-red-900 font-semibold bg-white/60 rounded-lg px-3 py-2 mt-2">{incidencia.descripcion||"(sin detalles)"}</div>
+          <div className="text-xs text-red-600 mt-2">Indica abajo cuándo puedes ir a revisarlo. No tiene coste (garantía).</div>
+        </div>
+        <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm space-y-3">
+          <div className="flex items-start gap-3"><span className="text-xl mt-0.5">📍</span><div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Dirección</div><div className="font-semibold text-gray-800">{cliente?.direccion||"—"}</div></div></div>
+          <div className="flex items-start gap-3"><span className="text-xl mt-0.5">📝</span><div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Trabajo original</div><div className="text-gray-700 text-sm">{trabajo.descripcion}</div></div></div>
+        </div>
+        <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+          <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">¿Cuándo puedes ir a resolverlo?</div>
+          {estado==="ok"?<div className="text-center py-4"><div className="text-4xl mb-2">✅</div><div className="font-bold text-emerald-700 text-sm">Disponibilidad enviada</div><div className="text-xs text-gray-400 mt-1">Domia coordinará la visita con el cliente</div></div>:<DisponibilidadSelector onConfirmar={(dia,hora,importe,archivo,nota)=>confirmarConDisponibilidad(dia,hora,importe,archivo,nota)}/>}
+        </div>
+        <div className="text-center text-xs text-gray-400 pb-4">Domia Services · Solo tú tienes acceso a este enlace</div>
+      </div>
+    </div>;
+  }
   const estadosAvanzados=["Visita confirmada","Presupuesto recibido","Presupuesto enviado","Aceptado","En curso","Completado"];
   if(estadosAvanzados.includes(trabajo.estado)){
     return<div className="min-h-screen bg-[#F0F2F5]" style={{fontFamily:"'Inter',system-ui,sans-serif"}}>
