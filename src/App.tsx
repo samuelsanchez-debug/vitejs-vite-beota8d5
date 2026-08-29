@@ -2292,10 +2292,14 @@ const confirmarConDisponibilidad=async(dia:string,hora:string,importe:string,arc
           <div className="flex items-start gap-3"><span className="text-xl mt-0.5">📍</span><div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Dirección</div><div className="font-semibold text-gray-800">{cliente?.direccion||"—"}</div></div></div>
           <div className="flex items-start gap-3"><span className="text-xl mt-0.5">📝</span><div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Trabajo original</div><div className="text-gray-700 text-sm">{trabajo.descripcion}</div></div></div>
         </div>
-        <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+                <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
           <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">¿Cuándo puedes ir a resolverlo?</div>
-          {estado==="ok"?<div className="text-center py-4"><div className="text-4xl mb-2">✅</div><div className="font-bold text-emerald-700 text-sm">Disponibilidad enviada</div><div className="text-xs text-gray-400 mt-1">Domia coordinará la visita con el cliente</div></div>:<DisponibilidadIncidencia onConfirmar={(dia,hora,importe,archivo,nota)=>confirmarIncidencia(dia,hora,importe,archivo,nota)}/>}
+          {estado==="ok"?<div className="text-center py-4"><div className="text-4xl mb-2">✅</div><div className="font-bold text-emerald-700 text-sm">Disponibilidad enviada</div><div className="text-xs text-gray-400 mt-1">Domia coordinará la visita con el cliente</div></div>:estado==="resuelto"?<div className="text-center py-4"><div className="text-4xl mb-2">🎉</div><div className="font-bold text-emerald-700 text-sm">¡Gracias!</div><div className="text-xs text-gray-400 mt-1">Domia confirmará el cierre de la incidencia</div></div>:<DisponibilidadIncidencia onConfirmar={(dia,hora,importe,archivo,nota)=>confirmarIncidencia(dia,hora,importe,archivo,nota)}/>}
         </div>
+        {estado!=="ok"&&estado!=="resuelto"&&<div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+          <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">¿Ya lo has resuelto?</div>
+          <button onClick={()=>{const m=prompt("¿Cómo lo has resuelto? (opcional)");marcarResueltoColab(m||"");}} className="w-full bg-emerald-600 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-700 transition">✅ Ya lo he resuelto</button>
+        </div>}
         <div className="text-center text-xs text-gray-400 pb-4">Domia Services · Solo tú tienes acceso a este enlace</div>
       </div>
     </div>;
