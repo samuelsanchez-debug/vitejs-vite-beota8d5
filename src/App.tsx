@@ -2372,9 +2372,10 @@ const[data,setData]=useState({clientes:[],colaboradores:[],trabajos:[],incidenci
   useEffect(()=>{
     const cargar=async()=>{
     const[c,col,t]=await Promise.all([supabase.from('clientes').select('*').order('id'),supabase.from('colaboradores').select('*').order('id'),supabase.from('trabajos').select('*').order('id')]);
-      setData({clientes:c.data||[],colaboradores:col.data||[],trabajos:(t.data||[]).map(x=>({...x,clienteId:x.cliente_id,colaboradorId:x.colaborador_id,presupuestoColaborador:x.presupuesto_colaborador,precioCliente:x.precio_cliente})),incidencias:[]});
+         setData({clientes:c.data||[],colaboradores:col.data||[],trabajos:(t.data||[]).map(x=>({...x,clienteId:x.cliente_id,colaboradorId:x.colaborador_id,presupuestoColaborador:x.presupuesto_colaborador,precioCliente:x.precio_cliente})),incidencias:[]});
+      setCargando(false);
     };
-    cargar();
+    cargar();  
   },[]);
   if(autenticado===null)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-4xl">⚙️</div></div>;
   if(!autenticado)return<LoginScreen onLogin={()=>setAutenticado(true)}/>;
