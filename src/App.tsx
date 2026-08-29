@@ -2373,8 +2373,9 @@ const confirmarConDisponibilidad=async(dia:string,hora:string,importe:string,arc
   ;
 }
 function Incidencias({data,setData,onBack,toast}){
-  const[filtro,setFiltro]=useState("Abierta");
+    const[filtro,setFiltro]=useState("Abierta");
   const[nueva,setNueva]=useState(false);
+  const[verInc,setVerInc]=useState(null);
   const incidencias=data.incidencias||[];
   const filtradas=filtro==="Todas"?incidencias:incidencias.filter(i=>i.estado===filtro);
   const cfgEstado={"Abierta":"bg-red-100 text-red-700","En proceso":"bg-amber-100 text-amber-700","Resuelta":"bg-emerald-100 text-emerald-700"};
