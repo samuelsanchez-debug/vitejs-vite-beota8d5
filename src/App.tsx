@@ -2347,8 +2347,8 @@ const confirmarConDisponibilidad=async(dia:string,hora:string,importe:string,arc
         <div className="flex items-center gap-2 mb-1.5"><span className="text-xl">⚠️</span><span className="text-sm font-black text-red-700 uppercase tracking-wide">Incidencia — {incidencia.tipo}</span></div>
         <div className="text-sm text-red-800 leading-relaxed">Este es un trabajo que ya realizaste y ha surgido un problema:</div>
         <div className="text-sm text-red-900 font-semibold bg-white/60 rounded-lg px-3 py-2 mt-2">{incidencia.descripcion||"(sin detalles)"}</div>
-        <div className="text-xs text-red-600 mt-2">Indica abajo cuándo puedes ir a revisarlo. No tiene coste (garantía).</div>
-      </div>}
+<div className="text-xs text-red-600 mt-2">Indica abajo cuándo puedes ir a revisarlo.</div>
+     </div>}
      <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm space-y-4">
         <div className="flex items-start gap-3"><span className="text-xl mt-0.5">📍</span><div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Dirección</div><div className="font-semibold text-gray-800">{cliente?.direccion||"—"}</div></div></div>
         <div className="flex items-start gap-3"><span className="text-xl mt-0.5">📝</span><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Descripción</div><div className="text-gray-700 text-sm leading-relaxed">{trabajo.descripcion}</div></div></div>
