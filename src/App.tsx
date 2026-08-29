@@ -2433,7 +2433,51 @@ function Incidencias({data,setData,onBack,toast}){
         </div>;
       })}
     </div>
-    {nueva&&<Modal title="Nueva incidencia" onClose={()=>setNueva(false)} wide><FormIncidencia data={data} setData={setData} onClose={()=>setNueva(false)} toast={toast}/></Modal>}
+        {nueva&&<Modal title="Nueva incidencia" onClose={()=>setNueva(false)} wide><FormIncidencia data={data} setData={setData} onClose={()=>setNueva(false)} toast={toast}/></Modal>}
+    {verInc&&(()=>{
+      const cl=data.clientes.find(c=>c.id===verInc.cliente_id);
+      const co=data.colaboradores.find(c=>c.id===verInc.colaborador_id);
+      const trab=data.trabajos.find(t=>t.id===verInc.trabajo_id);
+      return<Modal title={`Incidencia · ${verInc.tipo}`} onClose={()=>setVerInc(null)} wide>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className={`text-[11px] px-2.5 py-1 rounded-full font-bold ${cfgEstado[verInc.estado]||"bg-gray-100 text-gray-500"}`}>{verInc.estado}</span>
+            <span className="text-lg">{cfgTipo[verInc.tipo]||"📋"}</span>
+          </div>
+          <div className="bg-gray-50 rounded-xl p-3">
+            <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Cliente</div>
+            <div className="text-sm font-semibold text-gray-800">{cl?.nombre||"—"}</div>
+            <div className="text-xs text-gray-500">{cl?.telefono||""}</div>
+          </div>
+          <div className="bg-gray-50 rounded-xl p-3">
+            <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Trabajo relacionado</div>
+            <div className="text-sm text-gray-700">{trab?`${trab.tipo} #${trab.id}`:"—"}</div>
+          </div>
+          <div className="bg-gray-50 rounded-xl p-3">
+            <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Colaborador</div>
+            <div className="text-sm text-gray-700">{co?.nombre||"—"}</div>
+          </div>
+          <div className="bg-gray-50 rounded-xl p-3">
+            <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Descripción del problema</div>
+            <div className="text-sm text-gray-700">{verInc.descripcion||"—"}</div>
+          </div>
+          {verInc.fecha_propuesta&&<div className="bg-teal-50 rounded-xl p-3">
+            <div className="text-[10px] text-teal-600 font-bold uppercase mb-1">📅 Fecha propuesta por el colaborador</div>
+            <div className="text-sm text-teal-800">{new Date(verInc.fecha_propuesta+"T00:00:00").toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"})} a las {verInc.hora_propuesta}</div>
+            {verInc.nota_colaborador&&<div className="text-xs text-teal-700 mt-1">📝 {verInc.nota_colaborador}</div>}
+          </div>}
+          {verInc.resolucion&&<div className="bg-emerald-50 rounded-xl p-3">
+            <div className="text-[10px] text-emerald-600 font-bold uppercase mb-1">✅ Resolución</div>
+            <div className="text-sm text-emerald-800">{verInc.resolucion}</div>
+          </div>}
+          <div className="space-y-2 pt-2 border-t border-gray-100">
+            {verInc.fecha_propuesta&&cl?.telefono&&<button onClick={()=>{const fechaFmt=new Date(verInc.fecha_propuesta+"T00:00:00").toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"});window.open(buildWAIncidenciaCliente(cl,trab,verInc,fechaFmt,verInc.hora_propuesta),"_blank");}} className="w-full bg-cyan-500 text-white text-sm font-bold py-2.5 rounded-xl hover:bg-cyan-600 transition">📱 Avisar al cliente de la fecha</button>}
+            {co&&co.whatsapp&&<button onClick={()=>window.open(buildWAIncidencia(co,trab,cl,verInc),"_blank")} className="w-full bg-green-500 text-white text-sm font-bold py-2.5 rounded-xl hover:bg-green-600 transition">📱 Avisar a {co.nombre.split(" ")[0]} de la incidencia</button>}
+            {verInc.estado!=="Resuelta"&&<button onClick={async()=>{const res=prompt("¿Cómo se resolvió? (opcional)",verInc.resolucion||"");await supabase.from('incidencias').update({estado:"Resuelta",resolucion:res||verInc.resolucion||"",atendida:true,fecha_cierre:new Date().toISOString()}).eq('id',verInc.id);setData(d=>({...d,incidencias:d.incidencias.map(x=>x.id===verInc.id?{...x,estado:"Resuelta",resolucion:res||verInc.resolucion||"",atendida:true}:x)}));toast("✅ Incidencia resuelta");setVerInc(null);}} className="w-full bg-emerald-600 text-white text-sm font-bold py-2.5 rounded-xl hover:bg-emerald-700 transition">✅ Marcar como resuelta</button>}
+          </div>
+        </div>
+      </Modal>;
+    })()}
   </div>;
 }
 function FormIncidencia({data,setData,onClose,toast,trabajoPre}){
