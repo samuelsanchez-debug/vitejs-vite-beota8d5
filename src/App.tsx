@@ -2363,6 +2363,7 @@ function Incidencias({data,setData,onBack,toast}){
             <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${cfgEstado[inc.estado]||"bg-gray-100 text-gray-500"}`}>{inc.estado}</span>
           </div>
           {inc.descripcion&&<div className="text-sm text-gray-600 bg-gray-50 rounded-lg p-2 mb-2">{inc.descripcion}</div>}
+          {inc.fecha_propuesta&&<div className="text-sm text-teal-700 bg-teal-50 rounded-lg p-2 mb-2">📅 Colaborador disponible: {new Date(inc.fecha_propuesta+"T00:00:00").toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"})} a las {inc.hora_propuesta}{inc.nota_colaborador?` · 📝 ${inc.nota_colaborador}`:""}</div>}
           {inc.resolucion&&<div className="text-sm text-emerald-700 bg-emerald-50 rounded-lg p-2 mb-2">✅ {inc.resolucion}</div>}
                     {(()=>{const co=data.colaboradores.find(c=>c.id===inc.colaborador_id);return co&&co.whatsapp?<button onClick={()=>window.open(buildWAIncidencia(co,trab,cl,inc),"_blank")} className="w-full bg-green-500 text-white text-xs font-bold py-2 rounded-lg hover:bg-green-600 transition mb-2">📱 Avisar a {co.nombre.split(" ")[0]} de la incidencia</button>:null;})()}
           <div className="flex gap-2 mt-2">
