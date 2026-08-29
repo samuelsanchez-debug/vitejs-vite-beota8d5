@@ -2166,7 +2166,7 @@ function PortalColaborador({id}:{id:string}){
   useEffect(()=>{
     const cargar=async()=>{
       const{data:t}=await supabase.from('trabajos').select('*').eq('id',id).single();
-      if(t){setTrabajo(t);const{data:c}=await supabase.from('clientes').select('*').eq('id',t.cliente_id).single();setCliente(c);if(t.colaborador_id){const{data:co}=await supabase.from('colaboradores').select('*').eq('id',t.colaborador_id).single();setColabInfo(co);}}
+      if(t){setTrabajo(t);const{data:c}=await supabase.from('clientes').select('*').eq('id',t.cliente_id).single();setCliente(c);if(t.colaborador_id){const{data:co}=await supabase.from('colaboradores').select('*').eq('id',t.colaborador_id).single();setColabInfo(co);}const{data:incs}=await supabase.from('incidencias').select('*').eq('trabajo_id',id).neq('estado','Resuelta').order('id',{ascending:false});if(incs&&incs.length)setIncidencia(incs[0]);}
       setCargando(false);
     };
     cargar();
