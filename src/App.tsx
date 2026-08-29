@@ -2248,7 +2248,7 @@ const confirmarConDisponibilidad=async(dia:string,hora:string,importe:string,arc
         </div>
         <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
           <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">¿Cuándo puedes ir a resolverlo?</div>
-          {estado==="ok"?<div className="text-center py-4"><div className="text-4xl mb-2">✅</div><div className="font-bold text-emerald-700 text-sm">Disponibilidad enviada</div><div className="text-xs text-gray-400 mt-1">Domia coordinará la visita con el cliente</div></div>:<DisponibilidadSelector onConfirmar={(dia,hora,importe,archivo,nota)=>confirmarConDisponibilidad(dia,hora,importe,archivo,nota)}/>}
+          {estado==="ok"?<div className="text-center py-4"><div className="text-4xl mb-2">✅</div><div className="font-bold text-emerald-700 text-sm">Disponibilidad enviada</div><div className="text-xs text-gray-400 mt-1">Domia coordinará la visita con el cliente</div></div>:<DisponibilidadIncidencia onConfirmar={(dia,hora,importe,archivo,nota)=>confirmarConDisponibilidad(dia,hora,importe,archivo,nota)}/>}
         </div>
         <div className="text-center text-xs text-gray-400 pb-4">Domia Services · Solo tú tienes acceso a este enlace</div>
       </div>
