@@ -2312,14 +2312,14 @@ const confirmarConDisponibilidad=async(dia:string,hora:string,importe:string,arc
         <div className="text-2xl font-black">{trabajo.tipo}</div>
       </div>
       <div className="px-4 py-5 max-w-lg mx-auto space-y-4">
-               <div className="bg-teal-50 border border-teal-200 rounded-2xl p-5 text-center">
+                     <div className="bg-teal-50 border border-teal-200 rounded-2xl p-5 text-center">
           <div className="text-4xl mb-2">✅</div>
           <div className="font-black text-teal-800 text-lg mb-1">Visita confirmada</div>
           <div className="text-teal-700 text-sm">📅 {fmt(trabajo.fecha)} · {trabajo.hora}</div>
         </div>
         <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
           <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">¿Necesitas cambiar la fecha?</div>
-          {estado==="ok"?<div className="text-center py-3"><div className="text-3xl mb-1">✅</div><div className="font-bold text-emerald-700 text-sm">Nueva disponibilidad enviada</div></div>:<DisponibilidadSelector onConfirmar={(dia,hora,importe,archivo,nota)=>confirmarConDisponibilidad(dia,hora,importe,archivo,nota)} soloFecha={true}/>}
+          {estado==="ok"?<div className="text-center py-3"><div className="text-3xl mb-1">✅</div><div className="font-bold text-emerald-700 text-sm">Nueva disponibilidad enviada</div></div>:<DisponibilidadIncidencia onConfirmar={(dia,hora,importe,archivo,nota)=>confirmarConDisponibilidad(dia,hora,importe,archivo,nota)}/>}
         </div>
         <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
           <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">Descripción</div>
