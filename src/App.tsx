@@ -2138,7 +2138,7 @@ function PortalCliente({id}:{id:string}){
         <button onClick={()=>confirmar(true)} disabled={estado==="cargando"} className="w-full bg-green-500 hover:bg-green-600 active:scale-95 text-white rounded-2xl py-5 flex flex-col items-center gap-2 font-bold text-lg transition disabled:opacity-50"><span className="text-3xl">✅</span>Sí, me viene bien</button>
         <button onClick={()=>confirmar(false)} disabled={estado==="cargando"} className="w-full bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-600 rounded-2xl py-4 flex flex-col items-center gap-2 font-bold text-base transition disabled:opacity-50"><span className="text-2xl">📞</span>No, prefiero otra fecha</button>
       </div>
-      <div className="text-center text-xs text-gray-400 pb-4">Domia Services · 622 123 456</div>
+      <div className="text-center text-xs text-gray-400 pb-4">Domia Services · 685 917 059</div>
     </div>
   </div>;
 }
