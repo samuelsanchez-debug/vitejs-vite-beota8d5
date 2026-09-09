@@ -1089,7 +1089,7 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
         <button onClick={()=>setAccionesAbiertas(v=>!v)} className="w-full text-[11px] font-bold text-gray-400 uppercase tracking-widest py-1.5 flex items-center justify-center gap-1 hover:text-gray-600">{accionesAbiertas?"▲ Ocultar acciones":"▼ Todas las acciones"}</button>
         {accionesAbiertas&&<div className="space-y-2">
           {getColabId(t)?<Btn onClick={()=>setSelectorColab(true)} color="bg-gray-400">👷 Cambiar colaborador</Btn>:<Btn onClick={()=>setSelectorColab(true)}>👷 Asignar colaborador</Btn>}
-          {co2&&cl&&<Btn onClick={()=>window.open(buildWA(co2,t,cl),"_blank")} color="bg-green-500">📱 Enviar trabajo al colaborador</Btn>}
+          {co2&&cl&&<Btn onClick={async()=>{window.open(buildWA(co2,t,cl),"_blank");if(t.estado==="Solicitud")await avanzar("Presupuestando","Trabajo enviado al colaborador");}} color="bg-green-500">📱 Enviar trabajo al colaborador</Btn>}
           {cl&&<Btn onClick={()=>window.open(buildWAVisitaCliente(cl,t,co2),"_blank")} color="bg-cyan-500">📱 Proponer visita al cliente</Btn>}
           {co2&&cl&&<Btn onClick={()=>window.open(buildWAConfirmacionColab(co2,t,cl),"_blank")} color="bg-teal-500">📱 Avisar al colaborador (visita confirmada)</Btn>}
           <Btn onClick={()=>setModo("presupuesto")} color="bg-purple-600">📄 Generar / editar presupuesto</Btn>
