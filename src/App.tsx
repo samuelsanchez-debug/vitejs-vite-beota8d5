@@ -1672,8 +1672,8 @@ const[tabFin,setTabFin]=useState("cobros");
     ]).then(([{data:pg},{data:cb}])=>{setPagos(pg||[]);setCobros(cb||[]);setCargando(false);});
   },[]);
 
-const trabajosConColab=data.trabajos.filter(t=>getColabId(t)&&["Aceptado","En curso","Completado"].includes(t.estado));
-const trabajosCliente=data.trabajos.filter(t=>["Aceptado","En curso","Completado"].includes(t.estado));
+const trabajosConColab=data.trabajos.filter(t=>getColabId(t)&&["Aceptado","En curso","Completado"].includes(t.estado)&&(!focoTrabajo||t.id===focoTrabajo));
+const trabajosCliente=data.trabajos.filter(t=>["Aceptado","En curso","Completado"].includes(t.estado)&&(!focoTrabajo||t.id===focoTrabajo));
   const pagosDeTrabajo=(tid)=>pagos.filter(p=>p.trabajo_id===tid);
   const totalPagado=(tid)=>pagosDeTrabajo(tid).reduce((s,p)=>s+(+p.importe||0),0);
 
