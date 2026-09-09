@@ -2538,7 +2538,7 @@ const TITULO={home:"Inicio",nuevas:"Nuevas demandas",demandas:"Pipeline",cliente
       {sec==="incidencias"&&<Incidencias data={data} setData={setData} onBack={()=>setSec("home")} toast={T}/>}
     </main>
     {showNuevo&&<Modal title="Nueva solicitud" onClose={()=>setShowNuevo(false)} wide><FormTrabajo data={data} setData={setData} onClose={()=>setShowNuevo(false)} toast={T}/></Modal>}
-{tid&&<TrabajoModal tid={tid} data={data} setData={setData} onClose={()=>setTid(null)} toast={T} setSec={setSec}/>}
+{tid&&<TrabajoModal tid={tid} data={data} setData={setData} onClose={()=>setTid(null)} toast={T} setSec={setSec} setFocoFinanzas={setFocoFinanzas}/>}
     {toastMsg&&<Toast msg={toastMsg} clear={()=>setToastMsg(null)}/>}
   </div>;
 }
