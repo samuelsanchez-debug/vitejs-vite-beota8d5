@@ -472,9 +472,12 @@ const atencion=items.filter(t=>["Solicitud","Colaborador disponible","Cliente co
     <input className={S+" mb-4"} placeholder="🔍 Buscar cliente, tipo..." value={busca} onChange={e=>setBusca(e.target.value)}/>
 <div className="flex gap-1.5 flex-wrap mb-4">
       <Pill label="Todos" active={fEstado==="Todos"} onClick={()=>setFEstado("Todos")}/>
-      {FLUJO.filter(e=>data.trabajos.some(t=>t.estado===e)).map(e=>(
-        <Pill key={e} label={`${e} (${data.trabajos.filter(t=>t.estado===e).length})`} active={fEstado===e} onClick={()=>setFEstado(e)}/>
+      {FLUJO.filter(e=>data.trabajos.some(t=>t.estado===e&&!t.archivado)).map(e=>(
+        <Pill key={e} label={`${e} (${data.trabajos.filter(t=>t.estado===e&&!t.archivado).length})`} active={fEstado===e} onClick={()=>setFEstado(e)}/>
       ))}
+    </div>
+    <div className="mb-4">
+      <button onClick={()=>setVerArchivados(v=>!v)} className={`text-xs font-bold px-3 py-1.5 rounded-full border transition ${verArchivados?"bg-gray-700 text-white border-gray-700":"bg-white text-gray-500 border-gray-200"}`}>📦 Archivados ({data.trabajos.filter(t=>t.archivado).length})</button>
     </div>
     {atencion.length>0&&<div className="bg-red-50 border-2 border-red-200 rounded-2xl p-3 mb-4">
       <div className="font-bold text-red-700 text-sm mb-2 flex items-center gap-2">🔔 Requiere tu atención ({atencion.length})</div>
