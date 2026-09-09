@@ -1942,7 +1942,6 @@ function AceptarPresupuesto({id}){
       const{data:t}=await supabase.from('trabajos').select('*').eq('id',id).single();
       if(t){
         setTrabajo(t);
-        if(t.aceptado_cliente)setEstado("aceptado");
         const{data:c}=await supabase.from('clientes').select('*').eq('id',t.cliente_id).single();
         setCliente(c);
       }
