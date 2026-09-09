@@ -445,9 +445,10 @@ function TarjetaTrabajo({t,data,setData,toast,onVer,alertColor}){
   </div>;
 }
 function EstadoDemandas({data,setData,onBack,toast,onVer}){
-  const[busca,setBusca]=useState("");
+   const[busca,setBusca]=useState("");
   const[fEstado,setFEstado]=useState("Todos");
-  let items=[...data.trabajos];
+  const[verArchivados,setVerArchivados]=useState(false);
+  let items=[...data.trabajos].filter(t=>verArchivados?t.archivado:!t.archivado);
   if(fEstado!=="Todos")items=items.filter(t=>t.estado===fEstado);
   if(busca.trim()){const q=busca.toLowerCase();items=items.filter(t=>{const cl=data.clientes.find(c=>c.id===getClienteId(t));return t.descripcion?.toLowerCase().includes(q)||cl?.nombre.toLowerCase().includes(q)||t.tipo?.toLowerCase().includes(q);});}
 
