@@ -2534,7 +2534,7 @@ const TITULO={home:"Inicio",nuevas:"Nuevas demandas",demandas:"Pipeline",cliente
       {sec==="demandas"&&<EstadoDemandas data={data} setData={setData} onBack={()=>setSec("home")} toast={T} onVer={id=>{setTid(id);}}/>}
       {sec==="clientes"&&<Clientes data={data} setData={setData} onBack={()=>setSec("home")} toast={T}/>}
       {sec==="colaboradores"&&<Colaboradores data={data} setData={setData} onBack={()=>setSec("home")} toast={T}/>}
-      {sec==="finanzas"&&<Finanzas data={data} setData={setData} onBack={()=>setSec("home")} toast={T}/>}
+      {sec==="finanzas"&&<Finanzas data={data} setData={setData} onBack={()=>{setSec("home");setFocoFinanzas(null);}} toast={T} focoTrabajo={focoFinanzas}/>}
       {sec==="incidencias"&&<Incidencias data={data} setData={setData} onBack={()=>setSec("home")} toast={T}/>}
     </main>
     {showNuevo&&<Modal title="Nueva solicitud" onClose={()=>setShowNuevo(false)} wide><FormTrabajo data={data} setData={setData} onClose={()=>setShowNuevo(false)} toast={T}/></Modal>}
