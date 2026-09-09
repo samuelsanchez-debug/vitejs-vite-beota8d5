@@ -372,7 +372,7 @@ function TarjetaTrabajo({t,data,setData,toast,onVer,alertColor}){
       <div className="flex items-center gap-3">
         <div className="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center text-xl flex-shrink-0">{ICONO_TIPO[t.tipo]||"📋"}</div>
         <div className="flex-1 min-w-0 cursor-pointer" onClick={()=>onVer(t.id)}>
-          <div className="font-bold text-gray-800 text-[15px] leading-tight truncate">{t.tipo}</div>
+          <div className="font-bold text-gray-800 text-[15px] leading-tight truncate">{t.tipo} <span className="text-gray-400 font-semibold">#{t.id}</span></div>
           <div className="text-[13px] text-gray-500 truncate">{cl?.nombre}</div>
 <div className="text-[11px] text-gray-400 mt-0.5 truncate">{co?`👷 ${co.nombre}`:"Sin colaborador"} · {fmt(t.fecha)}</div>
           {t.ultima_novedad&&!t.atendido&&<div className="text-[11px] text-amber-600 font-bold mt-0.5 truncate">🔔 {t.ultima_novedad}</div>}        </div>
