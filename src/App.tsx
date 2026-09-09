@@ -1221,9 +1221,9 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
           <div className="text-[10px] text-gray-400 mt-0.5">Cliente</div>
         </div>
         <div className="text-gray-300 text-lg font-bold px-1">−</div>
-        <div className="text-center flex-1">
-          <div className="text-xl font-black text-red-500">{colab>0?`${colab}€`:"—"}</div>
-          <div className="text-[10px] text-gray-400 mt-0.5">Colaborador</div>
+              <div className="text-center flex-1">
+          <input type="number" defaultValue={colab>0?colab:""} placeholder="—" onBlur={async e=>{const v=+e.target.value||null;if(v===colab)return;const saved=await dbSaveTrabajo({...t,presupuestoColaborador:v});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Precio colaborador actualizado");}}} className="w-full text-xl font-black text-red-500 text-center bg-transparent border-b border-dashed border-red-200 focus:outline-none focus:border-red-500"/>
+          <div className="text-[10px] text-gray-400 mt-0.5">Colaborador ✏️</div>
         </div>
         <div className="text-gray-300 text-lg font-bold px-1">=</div>
         <div className="text-center flex-1">
