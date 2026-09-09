@@ -1277,15 +1277,6 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
     </>}
   </div>
 </div>
-<div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
-  <div className="bg-gray-50 border-b border-gray-100 px-4 py-2 flex items-center gap-2">
-    <span className="text-xs">⚡</span>
-    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Acciones</span>
-  </div>
-    <div className="p-4 space-y-2">
-    <button onClick={async()=>{if(!confirm("¿Eliminar este trabajo?"))return;await dbDeleteTrabajo(t.id);setData(d=>({...d,trabajos:d.trabajos.filter(x=>x.id!==t.id)}));onClose();toast("Trabajo eliminado");}} className="w-full bg-red-50 border border-red-200 text-red-500 py-2.5 rounded-xl font-bold text-sm hover:bg-red-100 transition">🗑 Eliminar trabajo</button>
-  </div>
-</div>
   </div>;
 }
 function TrabajoModal({tid,data,setData,onClose,toast,setSec,setFocoFinanzas}){
