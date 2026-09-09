@@ -1289,7 +1289,7 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
 </div>
   </div>;
 }
-function TrabajoModal({tid,data,setData,onClose,toast,setSec}){
+function TrabajoModal({tid,data,setData,onClose,toast,setSec,setFocoFinanzas}){
 const t=data.trabajos.find(x=>x.id===tid||x.id===+tid);
 const[modo,setModo]=useState<"ver"|"editar"|"presupuesto">(window.__abrirPresupuesto?"presupuesto":"ver");
   useEffect(()=>{if(window.__abrirPresupuesto)window.__abrirPresupuesto=false;},[]);  if(!t)return null;
