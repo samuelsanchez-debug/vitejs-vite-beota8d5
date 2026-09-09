@@ -2499,7 +2499,8 @@ export default function App(){
 const[data,setData]=useState({clientes:[],colaboradores:[],trabajos:[],incidencias:[]});
   const[cargando,setCargando]=useState(true);
   const[sec,setSec]=useState("home");
-  const[tid,setTid]=useState(null);
+    const[tid,setTid]=useState(null);
+  const[focoFinanzas,setFocoFinanzas]=useState(null);
   const[showNuevo,setShowNuevo]=useState(false);
   const[toastMsg,setToastMsg]=useState(null);
   const T=msg=>setToastMsg(msg);
