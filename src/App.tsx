@@ -1281,9 +1281,7 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
     <span className="text-xs">⚡</span>
     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Acciones</span>
   </div>
-  <div className="p-4 space-y-2">
-    {cl?.telefono&&precio>0&&<button onClick={()=>{const msg=`Hola ${cl.nombre.split(" ")[0]} 😊\n\nAquí tienes el enlace para ver y aceptar tu presupuesto de *Domia Services*:\n\n👉 https://domia-crm-two.vercel.app/aceptar/${t.id}\n\nCualquier duda estamos en el 685 917 059. ¡Gracias!\n\n— Samuel · Domia Services`;window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`,"_blank");}} className="w-full bg-green-500 hover:bg-green-600 text-white py-2.5 rounded-xl font-bold text-sm transition">💳 Enviar enlace de pago</button>}
-    {setSec&&<button onClick={()=>{onClose();setSec("finanzas");}} className="w-full bg-blue-50 border border-blue-200 text-blue-700 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-100 transition">💶 Ver en Finanzas</button>}
+    <div className="p-4 space-y-2">
     <button onClick={async()=>{if(!confirm("¿Eliminar este trabajo?"))return;await dbDeleteTrabajo(t.id);setData(d=>({...d,trabajos:d.trabajos.filter(x=>x.id!==t.id)}));onClose();toast("Trabajo eliminado");}} className="w-full bg-red-50 border border-red-200 text-red-500 py-2.5 rounded-xl font-bold text-sm hover:bg-red-100 transition">🗑 Eliminar trabajo</button>
   </div>
 </div>
