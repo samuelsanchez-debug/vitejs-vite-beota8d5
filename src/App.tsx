@@ -1090,12 +1090,13 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
           <Btn onClick={()=>setModo("presupuesto")} color="bg-purple-600">📄 Generar / editar presupuesto</Btn>
           {pdfD&&tel&&<Btn onClick={()=>window.open(`https://wa.me/${tel.replace('+','')}?text=${encodeURIComponent(`Hola ${cl?.nombre?.split(" ")[0]||""} 😊\n\nTu presupuesto de *Domia Services* ya está listo.\n\n📄 Verlo y aceptarlo aquí:\nhttps://domia-crm-two.vercel.app/aceptar/${t.id}\n\nCualquier duda me dices. ¡Gracias!\n\n— Samuel · Domia Services · 685 917 059`)}`,"_blank")} color="bg-green-500">📱 Enviar presupuesto al cliente</Btn>}
           {setSec&&<Btn onClick={()=>{setFocoFinanzas&&setFocoFinanzas(t.id);onClose();setSec("finanzas");}} color="bg-amber-500">💶 Ver este trabajo en Finanzas</Btn>}
-          <div className="pt-2 border-t border-gray-100">
+                    <div className="pt-2 border-t border-gray-100">
             <div className="text-[10px] text-gray-400 font-bold uppercase mb-1.5">Cambiar estado</div>
             <select value={t.estado} onChange={e=>avanzar(e.target.value)} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm">
               {["Solicitud","Presupuestando","Colaborador disponible","Visita propuesta","Cliente confirmó","Presupuesto recibido","Presupuesto enviado","Aceptado","En curso","Completado"].map(e=><option key={e}>{e}</option>)}
             </select>
           </div>
+          <button onClick={async()=>{if(!confirm("¿Eliminar este trabajo?"))return;await dbDeleteTrabajo(t.id);setData(d=>({...d,trabajos:d.trabajos.filter(x=>x.id!==t.id)}));onClose();toast("Trabajo eliminado");}} className="w-full bg-red-50 border border-red-200 text-red-500 py-2.5 rounded-xl font-bold text-sm hover:bg-red-100 transition mt-2">🗑 Eliminar trabajo</button>
         </div>}
       </>;
     })()}
