@@ -996,7 +996,7 @@ function SelectorColaborador({data,valorActual,onSeleccionar,onCerrar}){
     </div>
   </Modal>;
 }
-function FichaTrabajo({t,cl,co,data,setData,onClose,toast,setModo,setSec}){
+function FichaTrabajo({t,cl,co,data,setData,onClose,toast,setModo,setSec,setFocoFinanzas}){
 const[tab,setTab]=useState("resumen");
 const[editEstado,setEditEstado]=useState(false);
 const[editColab,setEditColab]=useState(false);
