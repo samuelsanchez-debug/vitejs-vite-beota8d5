@@ -1077,8 +1077,8 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
            return<>
         <Guia texto={recomendacion}/>
         {t.estado==="Solicitud"&&!getColabId(t)&&<Btn onClick={()=>setSelectorColab(true)}>👷 Asignar colaborador</Btn>}
-        {t.estado==="Solicitud"&&getColabId(t)&&co2&&cl&&<Btn onClick={()=>window.open(buildWA(co2,t,cl),"_blank")} color="bg-green-500">📱 Enviar trabajo al colaborador</Btn>}
-        {t.estado==="Presupuestando"&&co2&&cl&&<Btn onClick={()=>window.open(buildWA(co2,t,cl),"_blank")} color="bg-green-500">📱 Reenviar WhatsApp a {co2.nombre.split(" ")[0]}</Btn>}
+{t.estado==="Solicitud"&&getColabId(t)&&co2&&cl&&<Btn onClick={async()=>{window.open(buildWA(co2,t,cl),"_blank");await avanzar("Presupuestando","Trabajo enviado al colaborador");}} color="bg-green-500">📱 Enviar trabajo al colaborador</Btn>}
+             {t.estado==="Presupuestando"&&co2&&cl&&<Btn onClick={()=>window.open(buildWA(co2,t,cl),"_blank")} color="bg-green-500">📱 Reenviar WhatsApp a {co2.nombre.split(" ")[0]}</Btn>}
         {t.estado==="Colaborador disponible"&&cl?.telefono&&<Btn onClick={async()=>{window.open(buildWAVisitaCliente(cl,t,co2),"_blank");await avanzar("Visita propuesta","Fecha propuesta al cliente por WhatsApp");}} color="bg-cyan-500">📱 Proponer fecha al cliente</Btn>}
         {t.estado==="Cliente confirmó"&&co2&&<Btn onClick={async()=>{window.open(buildWAConfirmacionColab(co2,t,cl),"_blank");await avanzar("En curso","Visita programada — colaborador avisado");}} color="bg-teal-500">✅ Avisar colaborador — visita programada</Btn>}
         {t.estado==="Presupuesto recibido"&&<Btn onClick={()=>setModo("presupuesto")} color="bg-purple-600">📄 Generar presupuesto Domia</Btn>}
