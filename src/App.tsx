@@ -2108,6 +2108,23 @@ function PortalCliente({id}:{id:string}){
     }).eq('id',id);
     setEstado(confirma?"ok":"no");
   };
+    const proponerNuevaFecha=async()=>{
+    if(!nuevaFecha){return;}
+    setEstado("cargando");
+    const fechaFmt=new Date(nuevaFecha+"T00:00:00").toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"});
+    const historial=JSON.parse(trabajo.historial||"[]");
+    historial.push({ts:now(),txt:`Cliente propone otra fecha: ${fechaFmt} a las ${nuevaHora}${comentario?' — "'+comentario+'"':''}`,tipo:"sistema"});
+    await supabase.from('trabajos').update({
+      estado:"Colaborador disponible",
+      fecha:nuevaFecha,
+      hora:nuevaHora,
+      atendido:false,
+      ultima_novedad:`🔄 Cliente propone: ${fechaFmt} a las ${nuevaHora}`,
+      historial:JSON.stringify(historial),
+      notas:comentario?(trabajo.notas?trabajo.notas+' | ':'')+`cliente: ${comentario}`:trabajo.notas,
+    }).eq('id',id);
+    setEstado("no");
+  };
   if(cargando)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-center"><div className="text-4xl mb-3">⚙️</div><div className="font-bold text-gray-700">Cargando...</div></div></div>;
   if(!trabajo)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-center"><div className="text-4xl mb-3">❌</div><div className="font-bold text-gray-700">Enlace no válido</div></div></div>;
   if(estado==="ok")return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4"><div className="bg-white rounded-2xl p-8 text-center max-w-sm w-full shadow-sm border border-gray-100"><div className="text-6xl mb-4">✅</div><div className="text-xl font-black text-gray-800 mb-2">¡Perfecto!</div><div className="text-gray-500 text-sm">Hemos confirmado tu visita. Nos vemos pronto 😊</div><div className="mt-4 text-xs text-gray-400">Domia Services · 685 917 059</div></div></div>;
