@@ -2096,8 +2096,8 @@ function PortalCliente({id}:{id:string}){
     setEstado("cargando");
     const historial=JSON.parse(trabajo.historial||"[]");
     historial.push({ts:now(),txt:confirma?`Cliente confirmó la visita${comentario?' — "'+comentario+'"':''}`:`Cliente rechazó la visita${comentario?' — "'+comentario+'"':''}`,tipo:confirma?"ok":"sistema"});
-   await supabase.from('trabajos').update({
-      estado:confirma?"Cliente confirmó":"Visita propuesta",
+      await supabase.from('trabajos').update({
+      estado:confirma?"Cliente confirmó":"Colaborador disponible",
       atendido:false,
       ultima_novedad:confirma?"✅ Cliente confirmó la visita":"🔄 Cliente pidió cambio de fecha",
       historial:JSON.stringify(historial),
