@@ -92,6 +92,11 @@ const buildWAIncidencia=(colab,trabajo,cliente,incidencia)=>{
   const msg=`Hola ${colab.nombre.split(" ")[0]} 👋\n\n⚠️ Hay una incidencia en un trabajo que hiciste:\n\n📍 ${cliente?.direccion||""}\n🔧 ${trabajo.tipo} · ${cliente?.nombre||""}\n\n📋 *${incidencia.tipo}:* ${incidencia.descripcion||"(sin detalles)"}\n\n¿Puedes pasarte a revisarlo? Los datos del trabajo aquí:\n👉 ${enlace}\n\nGracias 🙏`;
   return `https://wa.me/${colab.whatsapp}?text=${encodeURIComponent(msg)}`;
 };
+const buildWACambioFecha=(colab,trabajo,cliente)=>{
+  const enlace=`${BASE_URL}/trabajo/${trabajo.id}`;
+  const msg=`Hola ${colab.nombre.split(" ")[0]} 👋\n\nEl cliente del trabajo de *${trabajo.tipo}* pide cambiar la fecha de la visita:\n\n📅 *Nueva fecha: ${fmt(trabajo.fecha)} a las ${trabajo.hora}*\n📍 ${cliente?.direccion||""}\n\n¿Te viene bien? Confírmalo aquí:\n👉 ${enlace}\n\nGracias 🙏`;
+  return `https://wa.me/${colab.whatsapp}?text=${encodeURIComponent(msg)}`;
+};
 const buildWAConfirmacionColab=(colab,trabajo,cliente)=>{
   const msg=`Hola ${colab.nombre.split(" ")[0]} 👋\n\n✅ El cliente ha confirmado la visita.\n\n📍 ${cliente.direccion}\n📅 *${fmt(trabajo.fecha)} a las ${trabajo.hora}*\n👤 ${cliente.nombre} · ${cliente.telefono}\n\nTras la visita, sube el presupuesto aquí:\n${BASE_URL}/trabajo/${trabajo.id}\n\nGracias 🙏`;
   return `https://wa.me/${colab.whatsapp}?text=${encodeURIComponent(msg)}`;
