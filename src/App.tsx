@@ -2406,7 +2406,7 @@ const confirmarConDisponibilidad=async(dia:string,hora:string,importe:string,arc
     }).eq('id',incidencia.id);
     setEstado("ok");
   };
-  const marcarResueltoColab=async(mensaje:string)=>{
+   const marcarResueltoColab=async(mensaje:string)=>{
     setEstado("cargando");
     await supabase.from('incidencias').update({
       estado:"En proceso",
@@ -2414,6 +2414,14 @@ const confirmarConDisponibilidad=async(dia:string,hora:string,importe:string,arc
       atendida:false,
     }).eq('id',incidencia.id);
     setEstado("resuelto");
+  };
+  const marcarTrabajoTerminado=async()=>{
+    setEstado("cargando");
+    const historial=JSON.parse(trabajo.historial||"[]");
+    historial.push({ts:now(),txt:"🔧 Colaborador marca el trabajo como terminado",tipo:"sistema"});
+    await supabase.from('trabajos').update({trabajo_terminado:true,verificacion_rechazo:null,atendido:false,ultima_novedad:"🔧 Colaborador marca trabajo terminado — pendiente verificación cliente",historial:JSON.stringify(historial)}).eq('id',id);
+    setTrabajo({...trabajo,trabajo_terminado:true,verificacion_rechazo:null});
+    setEstado("idle");
   };
   if(cargando)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-center"><div className="text-4xl mb-3">⚙️</div><div className="font-bold text-gray-700">Cargando...</div></div></div>;
   if(!trabajo)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-center"><div className="text-4xl mb-3">❌</div><div className="font-bold text-gray-700">Trabajo no encontrado</div></div></div>;
