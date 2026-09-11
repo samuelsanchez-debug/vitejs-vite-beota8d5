@@ -1124,9 +1124,10 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
       <div className="text-lg font-bold text-gray-800">{t.tipo}</div>
     </div>
     <div className="grid grid-cols-2 gap-2 pt-3 border-t border-gray-100">
-      <div className="bg-gray-50 rounded-xl p-2">
-        <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Fecha</div>
-        <input type="date" defaultValue={t.fecha} onBlur={async e=>{if(e.target.value===t.fecha)return;const hist=[...getHistorial(t),{ts:now(),txt:`Fecha actualizada: ${e.target.value}`,tipo:"sistema"}];const saved=await dbSaveTrabajo({...t,fecha:e.target.value,historial:hist});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Fecha actualizada");}}} className="w-full border border-gray-200 rounded-lg px-1 py-0.5 text-xs text-gray-700 font-semibold focus:outline-none focus:ring-1 focus:ring-[#1E3A5F] bg-white"/>
+           <div className="bg-gray-50 rounded-xl p-2">
+        <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Fecha y hora</div>
+        <input type="date" defaultValue={t.fecha} onBlur={async e=>{if(e.target.value===t.fecha)return;const hist=[...getHistorial(t),{ts:now(),txt:`Fecha actualizada: ${e.target.value}`,tipo:"sistema"}];const saved=await dbSaveTrabajo({...t,fecha:e.target.value,historial:hist});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Fecha actualizada");}}} className="w-full border border-gray-200 rounded-lg px-1 py-0.5 text-xs text-gray-700 font-semibold focus:outline-none focus:ring-1 focus:ring-[#1E3A5F] bg-white mb-1"/>
+        <input type="time" defaultValue={t.hora} onBlur={async e=>{if(e.target.value===t.hora)return;const hist=[...getHistorial(t),{ts:now(),txt:`Hora actualizada: ${e.target.value}`,tipo:"sistema"}];const saved=await dbSaveTrabajo({...t,hora:e.target.value,historial:hist});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Hora actualizada");}}} className="w-full border border-gray-200 rounded-lg px-1 py-0.5 text-xs text-gray-700 font-semibold focus:outline-none focus:ring-1 focus:ring-[#1E3A5F] bg-white"/>
       </div>
       <div className="bg-gray-50 rounded-xl p-2">
         <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Colaborador</div>
