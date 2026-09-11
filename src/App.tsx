@@ -2150,9 +2150,19 @@ function PortalCliente({id}:{id:string}){
         <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">¿Quieres dejar algún comentario? (opcional)</div>
         <textarea className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1E3A5F] transition resize-none" rows={3} placeholder="Ej: mejor por la mañana, código del portal es 1234..." value={comentario} onChange={e=>setComentario(e.target.value)}/>
       </div>
-      <div className="space-y-3">
+            <div className="space-y-3">
+        {!proponiendo?<>
         <button onClick={()=>confirmar(true)} disabled={estado==="cargando"} className="w-full bg-green-500 hover:bg-green-600 active:scale-95 text-white rounded-2xl py-5 flex flex-col items-center gap-2 font-bold text-lg transition disabled:opacity-50"><span className="text-3xl">✅</span>Sí, me viene bien</button>
-        <button onClick={()=>confirmar(false)} disabled={estado==="cargando"} className="w-full bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-600 rounded-2xl py-4 flex flex-col items-center gap-2 font-bold text-base transition disabled:opacity-50"><span className="text-2xl">📞</span>No, prefiero otra fecha</button>
+        <button onClick={()=>setProponiendo(true)} disabled={estado==="cargando"} className="w-full bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-600 rounded-2xl py-4 flex flex-col items-center gap-2 font-bold text-base transition disabled:opacity-50"><span className="text-2xl">📅</span>No, prefiero otra fecha</button>
+        </>:<div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm space-y-3">
+          <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Indica qué fecha te viene mejor</div>
+          <div className="flex gap-2">
+            <input type="date" value={nuevaFecha} onChange={e=>setNuevaFecha(e.target.value)} className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"/>
+            <input type="time" value={nuevaHora} onChange={e=>setNuevaHora(e.target.value)} className="w-28 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"/>
+          </div>
+          <button onClick={proponerNuevaFecha} disabled={!nuevaFecha||estado==="cargando"} className="w-full bg-[#1E3A5F] hover:bg-[#152d4a] text-white rounded-2xl py-3.5 font-bold text-base transition disabled:opacity-50">Enviar mi propuesta</button>
+          <button onClick={()=>setProponiendo(false)} className="w-full text-gray-400 text-sm py-1">← Volver</button>
+        </div>}
       </div>
       <div className="text-center text-xs text-gray-400 pb-4">Domia Services · 685 917 059</div>
     </div>
