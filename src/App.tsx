@@ -102,6 +102,27 @@ const buildWAConfirmacionColab=(colab,trabajo,cliente)=>{
   return `https://wa.me/${colab.whatsapp}?text=${encodeURIComponent(msg)}`;
 };
 
+const buildWAVerificarTrabajo=(cliente,trabajo)=>{
+  const nombre=cliente.nombre.split(" ")[0];
+  const enlace=`${BASE_URL}/verificar/${trabajo.id}`;
+  const msg=`Hola ${nombre} 😊\n\nSoy de *Domia Services*. Nuestro técnico nos indica que ha terminado el trabajo de *${trabajo.tipo}*.\n\n¿Puedes confirmarnos que todo está correcto?\n👉 ${enlace}\n\nGracias 🙏\n\n— Domia Services`;
+  return `https://wa.me/${cliente.telefono?.replace(/\s/g,'')}?text=${encodeURIComponent(msg)}`;
+};
+const buildWACobroFinal=(cliente,trabajo)=>{
+  const nombre=cliente.nombre.split(" ")[0];
+  const total=trabajo.precio_cliente||trabajo.precioCliente||0;
+  const iva=trabajo.iva||21;
+  const totalConIva=Math.round(total*(1+iva/100));
+  const adelanto=trabajo.adelanto_tipo==='fijo'?trabajo.adelanto_valor:Math.round(totalConIva*(trabajo.adelanto_valor||30)/100);
+  const resto=totalConIva-adelanto;
+  const msg=`Hola ${nombre} 😊\n\n¡Trabajo terminado! Queda pendiente el cobro final:\n\n💶 *${resto}€*\n🏦 ES43 2100 5129 4102 0005 0515\n\nConcepto: ${trabajo.tipo} #${trabajo.id}\n\nGracias por confiar en Domia Services 🙏`;
+  return `https://wa.me/${cliente.telefono?.replace(/\s/g,'')}?text=${encodeURIComponent(msg)}`;
+};
+const buildWARechazoVerificacion=(colab,trabajo,cliente,motivo)=>{
+  const enlace=`${BASE_URL}/trabajo/${trabajo.id}`;
+  const msg=`Hola ${colab.nombre.split(" ")[0]} 👋\n\nEl cliente revisó el trabajo de *${trabajo.tipo}* y indica que falta algo:\n\n📝 "${motivo}"\n\n¿Puedes pasarte a solucionarlo? Cuando esté, vuelve a marcarlo como terminado aquí:\n👉 ${enlace}\n\nGracias 🙏`;
+  return `https://wa.me/${colab.whatsapp}?text=${encodeURIComponent(msg)}`;
+};
 const dbSaveCliente = async(cliente) => { const {data} = await supabase.from('clientes').upsert(cliente).select(); return data?.[0]; };
 const dbSaveTrabajo = async(trabajo) => {
   const row = {
