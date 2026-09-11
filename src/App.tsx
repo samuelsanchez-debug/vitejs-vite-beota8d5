@@ -2091,6 +2091,67 @@ await supabase.from('trabajos').update({estado:"Aceptado",aceptado_cliente:true,
         <div className="text-center text-xs text-gray-400">Te contactaremos para coordinar el inicio del trabajo</div>
       </>}
 
+           <div className="text-center text-xs text-gray-400 pb-4">Domia Services · 685 917 059 · Elche, Alicante</div>
+    </div>
+  </div>;
+}
+function VerificarTrabajo({id}:{id:string}){
+  const[trabajo,setTrabajo]=useState<any>(null);
+  const[cliente,setCliente]=useState<any>(null);
+  const[cargando,setCargando]=useState(true);
+  const[estado,setEstado]=useState<"ver"|"motivo"|"cargando"|"si"|"no">("ver");
+  const[motivo,setMotivo]=useState("");
+  useEffect(()=>{
+    (async()=>{
+      const{data:t}=await supabase.from('trabajos').select('*').eq('id',id).single();
+      if(t){
+        setTrabajo(t);
+        const{data:c}=await supabase.from('clientes').select('*').eq('id',t.cliente_id).single();
+        setCliente(c);
+      }
+      setCargando(false);
+    })();
+  },[id]);
+  const confirmarSi=async()=>{
+    setEstado("cargando");
+    const historial=JSON.parse(trabajo.historial||"[]");
+    historial.push({ts:new Date().toLocaleString("es-ES",{hour:"2-digit",minute:"2-digit",day:"2-digit",month:"2-digit"}),txt:"✅ Cliente verificó que el trabajo está terminado",tipo:"ok"});
+    await supabase.from('trabajos').update({cliente_verificado:true,atendido:false,ultima_novedad:"✅ Cliente verificó trabajo terminado",historial:JSON.stringify(historial)}).eq('id',id);
+    setEstado("si");
+  };
+  const confirmarNo=async()=>{
+    if(!motivo.trim())return;
+    setEstado("cargando");
+    const historial=JSON.parse(trabajo.historial||"[]");
+    historial.push({ts:new Date().toLocaleString("es-ES",{hour:"2-digit",minute:"2-digit",day:"2-digit",month:"2-digit"}),txt:`❌ Cliente indica que falta: "${motivo.trim()}"`,tipo:"sistema"});
+    await supabase.from('trabajos').update({trabajo_terminado:false,verificacion_rechazo:motivo.trim(),atendido:false,ultima_novedad:"❌ Cliente indica que falta algo",historial:JSON.stringify(historial)}).eq('id',id);
+    setEstado("no");
+  };
+  if(cargando)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-4xl">⚙️</div></div>;
+  if(!trabajo)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4 text-center"><div><div className="text-4xl mb-2">🔍</div><div className="text-gray-600">Trabajo no encontrado</div></div></div>;
+  if(estado==="si")return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4"><div className="bg-white rounded-2xl p-8 text-center max-w-sm w-full shadow-sm border border-gray-100"><div className="text-6xl mb-4">✅</div><div className="text-xl font-black text-gray-800 mb-2">¡Gracias!</div><div className="text-gray-500 text-sm">En breve te contactamos para el cobro final.</div><div className="mt-4 text-xs text-gray-400">Domia Services · 685 917 059</div></div></div>;
+  if(estado==="no")return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4"><div className="bg-white rounded-2xl p-8 text-center max-w-sm w-full shadow-sm border border-gray-100"><div className="text-6xl mb-4">📝</div><div className="text-xl font-black text-gray-800 mb-2">Recibido</div><div className="text-gray-500 text-sm">Gracias por avisarnos, lo revisamos y te contactamos.</div><div className="mt-4 text-xs text-gray-400">Domia Services · 685 917 059</div></div></div>;
+  return<div className="min-h-screen bg-[#F0F2F5]" style={{fontFamily:"'Inter',system-ui,sans-serif"}}>
+    <div className="bg-[#1E3A5F] px-5 py-6 text-white text-center">
+      <img src="/logo-domia.png" alt="Domia" className="w-20 mx-auto mb-2"/>
+      <div className="text-lg font-black">¿Trabajo terminado?</div>
+      <div className="text-blue-200 text-xs mt-1">Domia Services</div>
+    </div>
+    <div className="px-4 py-6 max-w-md mx-auto space-y-4">
+      <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+        <div className="text-sm text-gray-500 mb-1">Hola {cliente?.nombre?.split(" ")[0]||""} 👋</div>
+        <div className="font-bold text-gray-800 text-lg mb-3">{trabajo.tipo}</div>
+        <div className="text-sm text-gray-600">Nuestro técnico nos indica que ha terminado el trabajo. ¿Puedes confirmarnos que todo está correcto?</div>
+      </div>
+      {estado!=="motivo"?<>
+        <button onClick={confirmarSi} disabled={estado==="cargando"} className="w-full bg-green-500 hover:bg-green-600 text-white py-4 rounded-2xl font-black text-base transition shadow-lg disabled:opacity-50">✅ Sí, está terminado</button>
+        <button onClick={()=>setEstado("motivo")} disabled={estado==="cargando"} className="w-full bg-white border border-gray-200 text-gray-600 py-3 rounded-2xl font-bold text-sm transition hover:border-red-400 hover:text-red-500 disabled:opacity-50">❌ No, falta algo</button>
+      </>:<div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm space-y-3">
+        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">¿Qué falta por hacer?</div>
+        <textarea value={motivo} onChange={e=>setMotivo(e.target.value)} rows={3} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F] resize-none" placeholder="Cuéntanos qué falta..."/>
+        <button onClick={confirmarNo} disabled={!motivo.trim()||estado==="cargando"} className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-2xl font-bold text-sm transition disabled:opacity-50">Enviar</button>
+        <button onClick={()=>setEstado("ver")} className="w-full text-gray-400 text-sm py-1">← Volver</button>
+      </div>}
       <div className="text-center text-xs text-gray-400 pb-4">Domia Services · 685 917 059 · Elche, Alicante</div>
     </div>
   </div>;
