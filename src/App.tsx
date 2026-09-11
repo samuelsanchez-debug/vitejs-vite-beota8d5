@@ -2346,7 +2346,33 @@ const confirmarConDisponibilidad=async(dia:string,hora:string,importe:string,arc
       </div>
     </div>;
   }
- 
+   if(trabajo.ultima_novedad&&trabajo.ultima_novedad.includes("Cliente propone")&&trabajo.estado==="Colaborador disponible"){
+    return<div className="min-h-screen bg-[#F0F2F5]" style={{fontFamily:"'Inter',system-ui,sans-serif"}}>
+      <div className="bg-[#1E3A5F] px-5 py-5 text-white">
+        <div className="text-[10px] text-blue-300 font-bold uppercase tracking-widest mb-1">Domia Services · Trabajo #{id}</div>
+        <div className="text-2xl font-black">{trabajo.tipo}</div>
+      </div>
+      <div className="px-4 py-5 max-w-lg mx-auto space-y-4">
+        <div className="bg-orange-50 border-2 border-orange-200 rounded-2xl p-4 text-center">
+          <div className="text-3xl mb-2">🔄</div>
+          <div className="text-sm font-black text-orange-700 uppercase tracking-wide mb-2">El cliente pide otra fecha</div>
+          <div className="text-2xl font-black text-orange-800">{fmt(trabajo.fecha)}</div>
+          <div className="text-lg font-bold text-orange-600">a las {trabajo.hora}</div>
+        </div>
+        <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+          <div className="flex items-start gap-3"><span className="text-xl mt-0.5">📍</span><div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Dirección</div><div className="font-semibold text-gray-800">{cliente?.direccion||"—"}</div></div></div>
+        </div>
+        {estado==="ok"?<div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 text-center"><div className="text-4xl mb-2">✅</div><div className="font-bold text-emerald-700">Respuesta enviada</div><div className="text-xs text-gray-400 mt-1">Domia coordinará con el cliente</div></div>:<>
+        <button onClick={()=>confirmarCambioFecha(true)} disabled={estado==="cargando"} className="w-full bg-green-500 hover:bg-green-600 text-white rounded-2xl py-4 font-bold text-base transition disabled:opacity-50">✅ Sí, me viene bien esta fecha</button>
+        <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+          <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">¿Prefieres proponer otra fecha?</div>
+          <DisponibilidadIncidencia onConfirmar={(dia,hora,importe,archivo,nota)=>confirmarConDisponibilidad(dia,hora,importe,archivo,nota)}/>
+        </div>
+        </>}
+        <div className="text-center text-xs text-gray-400 pb-4">Domia Services · Solo tú tienes acceso a este enlace</div>
+      </div>
+    </div>;
+  }
   return<div className="min-h-screen bg-[#F0F2F5]" style={{fontFamily:"'Inter',system-ui,sans-serif"}}>
     <div className="bg-[#1E3A5F] px-5 py-5 text-white">
       <div className="text-[10px] text-blue-300 font-bold uppercase tracking-widest mb-1">Domia Services · Trabajo #{id}</div>
