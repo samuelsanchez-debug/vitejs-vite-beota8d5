@@ -1110,11 +1110,18 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
           </div>
           <button onClick={()=>setModalRechazo(true)} className="w-full bg-red-50 border border-red-200 text-red-600 py-2.5 rounded-xl font-bold text-sm hover:bg-red-100 transition mt-2">❌ Rechazado</button>
           {t.archivado?<button onClick={async()=>{const saved=await dbSaveTrabajo({...t,archivado:false});setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,archivado:false}:x)}));onClose();toast("📤 Trabajo desarchivado");}} className="w-full bg-blue-50 border border-blue-200 text-blue-600 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-100 transition mt-2">📤 Desarchivar trabajo</button>:<button onClick={async()=>{const saved=await dbSaveTrabajo({...t,archivado:true});setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,archivado:true}:x)}));onClose();toast("📦 Trabajo archivado");}} className="w-full bg-gray-50 border border-gray-200 text-gray-600 py-2.5 rounded-xl font-bold text-sm hover:bg-gray-100 transition mt-2">📦 Archivar trabajo</button>}
-          <button onClick={async()=>{if(!confirm("¿Eliminar este trabajo? Esta acción no se puede deshacer."))return;await dbDeleteTrabajo(t.id);setData(d=>({...d,trabajos:d.trabajos.filter(x=>x.id!==t.id)}));onClose();toast("Trabajo eliminado");}} className="w-full bg-red-50 border border-red-200 text-red-500 py-2.5 rounded-xl font-bold text-sm hover:bg-red-100 transition mt-2">🗑 Eliminar trabajo</button>
+                   <button onClick={async()=>{if(!confirm("¿Eliminar este trabajo? Esta acción no se puede deshacer."))return;await dbDeleteTrabajo(t.id);setData(d=>({...d,trabajos:d.trabajos.filter(x=>x.id!==t.id)}));onClose();toast("Trabajo eliminado");}} className="w-full bg-red-50 border border-red-200 text-red-500 py-2.5 rounded-xl font-bold text-sm hover:bg-red-100 transition mt-2">🗑 Eliminar trabajo</button>
         </div>}
       </>;
     })()}
   </div>
+  {modalRechazo&&<Modal title="Rechazar trabajo" onClose={()=>setModalRechazo(false)}>
+    <div className="space-y-3">
+      <div className="text-sm text-gray-600">Indica el motivo del rechazo. El trabajo se marcará como cancelado y se archivará.</div>
+      <textarea value={motivoRechazo} onChange={e=>setMotivoRechazo(e.target.value)} rows={3} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F] resize-none" placeholder="Ej: precio demasiado alto, cliente eligió otra empresa, ya no lo necesita..."/>
+      <button onClick={async()=>{const hist=[...getHistorial(t),{ts:now(),txt:`❌ Rechazado${motivoRechazo?': '+motivoRechazo:''}`,tipo:"sistema"}];const saved=await dbSaveTrabajo({...t,estado:"Cancelado",archivado:true,historial:hist});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));}setModalRechazo(false);onClose();toast("❌ Trabajo rechazado y archivado");}} disabled={!motivoRechazo.trim()} className="w-full bg-red-500 hover:bg-red-600 text-white py-2.5 rounded-xl font-bold text-sm transition disabled:opacity-50">Rechazar y archivar</button>
+    </div>
+  </Modal>}
 </div>
     <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
   <div className="bg-gray-50 border-b border-gray-100 px-4 py-2 flex items-center gap-2">
