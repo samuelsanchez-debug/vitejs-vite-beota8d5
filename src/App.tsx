@@ -2282,6 +2282,15 @@ const confirmarConDisponibilidad=async(dia:string,hora:string,importe:string,arc
        await supabase.from('trabajos').update(update).eq('id',id);
     setEstado("ok");
   };
+  const confirmarCambioFecha=async(aceptar:boolean)=>{
+    setEstado("cargando");
+    const historial=JSON.parse(trabajo.historial||"[]");
+    if(aceptar){
+      historial.push({ts:now(),txt:`Colaborador acepta la nueva fecha: ${fmt(trabajo.fecha)} a las ${trabajo.hora}`,tipo:"ok"});
+      await supabase.from('trabajos').update({estado:"Cliente confirmó",atendido:false,ultima_novedad:`✅ Colaborador acepta: ${fmt(trabajo.fecha)} a las ${trabajo.hora}`,historial:JSON.stringify(historial)}).eq('id',id);
+    }
+    setEstado("ok");
+  };
   const confirmarIncidencia=async(dia:string,hora:string,importe:string,archivo:File|null,nota:string="")=>{
     setEstado("cargando");
     const fechaFmt=dia?new Date(dia+"T00:00:00").toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"}):"";
