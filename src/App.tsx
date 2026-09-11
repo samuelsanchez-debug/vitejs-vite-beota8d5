@@ -143,7 +143,10 @@ const dbSaveTrabajo = async(trabajo) => {
     ultima_novedad: trabajo.ultima_novedad||null,
         instrucciones_colaborador: trabajo.instrucciones_colaborador||'',
     notas_internas: trabajo.notas_internas||'',
-    archivado: trabajo.archivado||false,
+       archivado: trabajo.archivado||false,
+    trabajo_terminado: trabajo.trabajo_terminado||false,
+    cliente_verificado: trabajo.cliente_verificado||false,
+    verificacion_rechazo: trabajo.verificacion_rechazo||null,
   };
   if (trabajo.id) {
     const {data:actual}=await supabase.from('trabajos').select('estado').eq('id',trabajo.id).single();
