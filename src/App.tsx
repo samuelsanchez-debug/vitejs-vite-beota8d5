@@ -2084,6 +2084,9 @@ function PortalCliente({id}:{id:string}){
   const[estado,setEstado]=useState<"idle"|"ok"|"no"|"cargando">("idle");
   const[cargando,setCargando]=useState(true);
   const[comentario,setComentario]=useState("");
+  const[proponiendo,setProponiendo]=useState(false);
+  const[nuevaFecha,setNuevaFecha]=useState("");
+  const[nuevaHora,setNuevaHora]=useState("09:00");
   useEffect(()=>{
     const cargar=async()=>{
       const{data:t}=await supabase.from('trabajos').select('*').eq('id',id).single();
