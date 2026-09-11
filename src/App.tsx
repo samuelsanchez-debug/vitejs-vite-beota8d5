@@ -2504,7 +2504,7 @@ const confirmarConDisponibilidad=async(dia:string,hora:string,importe:string,arc
           <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">Descripción</div>
           <div className="text-sm text-gray-700">{trabajo.descripcion}</div>
         </div>
-        <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+               <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
           <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">Subir presupuesto</div>
           {!trabajo.notas?.startsWith('presup:')?(
             <SubirPresupuesto id={id} trabajo={trabajo} onSubido={url=>{setTrabajo({...trabajo,notas:'presup:'+url});}}/>
@@ -2516,6 +2516,17 @@ const confirmarConDisponibilidad=async(dia:string,hora:string,importe:string,arc
             </div>
           )}
         </div>
+        {trabajo.estado==="En curso"&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+          <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">Trabajo terminado</div>
+          {trabajo.verificacion_rechazo&&<div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-3 text-sm text-red-700"><strong>El cliente indica que falta algo:</strong><br/>{trabajo.verificacion_rechazo}</div>}
+          {trabajo.cliente_verificado?(
+            <div className="text-center py-3"><div className="text-3xl mb-1">🎉</div><div className="font-bold text-emerald-700 text-sm">El cliente verificó — trabajo cerrado</div></div>
+          ):trabajo.trabajo_terminado?(
+            <div className="text-center py-3"><div className="text-3xl mb-1">⏳</div><div className="font-bold text-gray-500 text-sm">Esperando verificación del cliente</div></div>
+          ):(
+            <button onClick={marcarTrabajoTerminado} disabled={estado==="cargando"} className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-bold text-sm transition disabled:opacity-50">✅ Marcar trabajo terminado</button>
+          )}
+        </div>}
         <div className="text-center text-xs text-gray-400 pb-4">Domia Services · Solo tú tienes acceso a este enlace</div>
       </div>
     </div>;
