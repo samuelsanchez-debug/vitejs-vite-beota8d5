@@ -370,6 +370,50 @@ function NuevasDemandas({data,setData,onBack,toast,onVer}){
   </div>;
 }
 
+const ESTADO_DOT_PIPELINE = {
+  "Solicitud":"bg-indigo-400","Colaborador disponible":"bg-indigo-400","Cliente confirmó":"bg-indigo-400","Presupuesto recibido":"bg-indigo-400","Aceptado":"bg-indigo-400",
+  "Presupuestando":"bg-amber-400",
+  "Visita propuesta":"bg-cyan-500","Presupuesto enviado":"bg-cyan-500",
+  "En curso":"bg-orange-500",
+  "Completado":"bg-emerald-500",
+  "Cancelado":"bg-gray-300",
+};
+const PRIO_STRIPE_PIPELINE = {"Alta":"border-l-red-400","Media":"border-l-amber-400","Baja":"border-l-gray-300"};
+const PRIO_TEXT_PIPELINE = {"Alta":"text-red-500","Media":"text-amber-600","Baja":"text-gray-400"};
+
+const COLUMNAS_MATRIZ = [
+  {key:"gestion",titulo:"En gestión",estados:["Solicitud","Cliente confirmó","Presupuesto recibido","Visita propuesta"],tint:"bg-indigo-50/70",badge:"bg-indigo-100 text-indigo-700",dot:"bg-indigo-400"},
+  {key:"presupuestando",titulo:"Presupuestando",estados:["Presupuestando"],tint:"bg-amber-50/70",badge:"bg-amber-100 text-amber-700",dot:"bg-amber-400"},
+  {key:"colabdisp",titulo:"Colaborador disp.",estados:["Colaborador disponible"],tint:"bg-cyan-50/70",badge:"bg-cyan-100 text-cyan-700",dot:"bg-cyan-500"},
+  {key:"presupenv",titulo:"Presupuesto enviado",estados:["Presupuesto enviado"],tint:"bg-violet-50/70",badge:"bg-violet-100 text-violet-700",dot:"bg-violet-500"},
+  {key:"aceptados",titulo:"Aceptados",estados:["Aceptado","En curso"],tint:"bg-orange-50/70",badge:"bg-orange-100 text-orange-700",dot:"bg-orange-500"},
+  {key:"completados",titulo:"Completados",estados:["Completado"],tint:"bg-emerald-50/70",badge:"bg-emerald-100 text-emerald-700",dot:"bg-emerald-500"},
+];
+const diasDesde = f=>{
+  if(!f)return"—";
+  const d=Math.round((new Date(hoy()+"T00:00:00")-new Date(f+"T00:00:00"))/86400000);
+  if(d<=0)return"hoy";
+  if(d===1)return"hace 1 día";
+  return`hace ${d} días`;
+};
+
+function IconoTipoPipeline({tipo}){
+  const p={width:18,height:18,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:1.8,strokeLinecap:"round" as const,strokeLinejoin:"round" as const};
+  switch(tipo){
+    case "Fontanería": return <svg {...p}><path d="M12 3C12 3 6 10.5 6 14.5C6 17.8 8.7 20.5 12 20.5C15.3 20.5 18 17.8 18 14.5C18 10.5 12 3 12 3Z"/></svg>;
+    case "Electricidad": return <svg {...p}><path d="M13 2 5 13h6l-1 9 9-11h-6l1-9Z"/></svg>;
+    case "Albañilería": return <svg {...p}><rect x="4" y="4" width="16" height="16" rx="1.5"/><line x1="4" y1="9.5" x2="20" y2="9.5"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="12" y1="4" x2="12" y2="9.5"/><line x1="8" y1="9.5" x2="8" y2="15"/><line x1="16" y1="9.5" x2="16" y2="15"/><line x1="12" y1="15" x2="12" y2="20"/></svg>;
+    case "Carpintería": return <svg {...p}><path d="M4 20 20 20 4 4Z"/><line x1="7" y1="20" x2="7" y2="17"/><line x1="10" y1="20" x2="10" y2="17"/><line x1="13" y1="20" x2="13" y2="17"/></svg>;
+    case "Pintura": return <svg {...p}><rect x="7" y="4" width="10" height="5" rx="1"/><line x1="12" y1="9" x2="12" y2="14"/><path d="M9 14h6v4a3 3 0 01-6 0v-4z"/></svg>;
+    case "Cerrajería": return <svg {...p}><circle cx="8" cy="8" r="4"/><line x1="11" y1="11" x2="20" y2="20"/><line x1="16.5" y1="16.5" x2="19" y2="14"/></svg>;
+    case "Climatización": return <svg {...p}><line x1="12" y1="4" x2="12" y2="20"/><line x1="12" y1="4" x2="12" y2="20" transform="rotate(60 12 12)"/><line x1="12" y1="4" x2="12" y2="20" transform="rotate(120 12 12)"/></svg>;
+    case "Mantenimiento": return <svg {...p}><path d="M14.7 6.3a4 4 0 00-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 005.4-5.4l-2.1 2.1-2-2 2.1-2.1z"/></svg>;
+    case "Jardinería": return <svg {...p}><path d="M6 20C6 12 12 5 20 4c1 8-6 14-14 16z"/><path d="M6 20c2-4 5-7 9-9"/></svg>;
+    case "Limpieza": return <svg {...p}><path d="M12 3v8"/><path d="M8 21l4-10 4 10"/><path d="M7 21h10"/></svg>;
+    default: return <svg {...p}><path d="M6 4h8l5 5v11H6z"/><path d="M14 4v5h5"/></svg>;
+  }
+}
+
 function TarjetaTrabajo({t,data,setData,toast,onVer,alertColor}){
   const[abierta,setAbierta]=useState(false);
   const cl=data.clientes.find(c=>c.id===getClienteId(t));
@@ -381,7 +425,6 @@ function TarjetaTrabajo({t,data,setData,toast,onVer,alertColor}){
   const presupUrl=partes.find(p=>p.startsWith('presup:'))?.replace('presup:','');
   const pdfDomiaUrl=partes.find(p=>p.startsWith('pdfdomia:'))?.replace('pdfdomia:','');
   const comentCliente=partes.find(p=>p.startsWith('cliente:'))?.replace('cliente:','');
-  const cfg=ESTADO_CFG[t.estado]||{bg:"bg-gray-100",text:"text-gray-500",dot:"bg-gray-300"};
 
   const avanzar=async(nuevoEstado,txtHistorial)=>{
     const hist=[...getHistorial(t),{ts:now(),txt:txtHistorial,tipo:"sistema"}];
@@ -389,24 +432,48 @@ function TarjetaTrabajo({t,data,setData,toast,onVer,alertColor}){
     if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast(`→ ${nuevoEstado}`);}
   };
 
-  return <div className={`bg-white border rounded-2xl overflow-hidden shadow-sm ${alertColor||"border-gray-100"}`}>
+  return <div className={`bg-white border rounded-2xl overflow-hidden shadow-sm border-l-4 ${PRIO_STRIPE_PIPELINE[t.prioridad]||"border-l-gray-200"} ${alertColor||"border-gray-100"}`}>
     <div className="px-4 py-3.5">
       <div className="flex items-center justify-between mb-2.5">
-        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${cfg.bg} ${cfg.text}`}><span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`}/>{t.estado}</span>
-        <div className="flex items-center gap-2">
-          {PRIO_CFG[t.prioridad]?.icon&&<span className={`text-[10px] font-bold ${PRIO_CFG[t.prioridad]?.text}`}>{PRIO_CFG[t.prioridad]?.icon}</span>}
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide bg-gray-100 text-gray-500"><span className={`w-1.5 h-1.5 rounded-full ${ESTADO_DOT_PIPELINE[t.estado]||"bg-gray-300"}`}/>{t.estado}</span>
+        <div className="flex items-center gap-2.5">
+          <span className={`text-[10px] font-bold ${PRIO_TEXT_PIPELINE[t.prioridad]||"text-gray-400"}`}>{t.prioridad}</span>
           <button onClick={()=>setAbierta(!abierta)} className={`text-gray-300 text-lg transition-transform ${abierta?"rotate-180":""}`}>▾</button>
         </div>
       </div>
-      <div className="flex items-center gap-3">
-        <div className="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center text-xl flex-shrink-0">{ICONO_TIPO[t.tipo]||"📋"}</div>
-        <div className="flex-1 min-w-0 cursor-pointer" onClick={()=>onVer(t.id)}>
-          <div className="font-bold text-gray-800 text-[15px] leading-tight truncate">{t.tipo} <span className="text-gray-400 font-semibold">#{t.id}</span></div>
-          <div className="text-[13px] text-gray-500 truncate">{cl?.nombre}</div>
-<div className="text-[11px] text-gray-400 mt-0.5 truncate">{co?`👷 ${co.nombre}`:"Sin colaborador"} · {fmt(t.fecha)}</div>
-          {t.ultima_novedad&&!t.atendido&&<div className="text-[11px] text-amber-600 font-bold mt-0.5 truncate">🔔 {t.ultima_novedad}</div>}        </div>
-<button onClick={async(e)=>{e.stopPropagation();await supabase.from('trabajos').update({atendido:true}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,atendido:true}:x)}));toast("✓ Marcado como atendido");}} className="flex-shrink-0 bg-gray-100 text-gray-500 text-xs font-bold px-2.5 py-2 rounded-xl hover:bg-emerald-100 hover:text-emerald-600 transition">✓</button>
-        <button onClick={()=>onVer(t.id)} className="flex-shrink-0 bg-[#1E3A5F] text-white text-xs font-bold px-3 py-2 rounded-xl hover:bg-[#152d4a] transition">Ver ficha</button>      </div>
+      <div className="flex items-start gap-3 flex-wrap">
+        <div className="flex items-start gap-3 flex-1 min-w-[160px] cursor-pointer" onClick={()=>onVer(t.id)}>
+          <div className="w-9 h-9 rounded-lg bg-[#EAF0F7] text-[#1E3A5F] flex items-center justify-center flex-shrink-0">
+            <IconoTipoPipeline tipo={t.tipo}/>
+          </div>
+          <div className="min-w-0">
+            <div className="text-[10px] text-gray-400 font-semibold mb-0.5 truncate">{t.tipo} · #{t.id}</div>
+            <div className="font-bold text-gray-800 text-[14.5px] leading-tight truncate">{cl?.nombre}</div>
+            <div className="text-[11px] text-gray-400 mt-0.5 flex items-center gap-1">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></svg>
+              {fmt(t.fecha)}
+            </div>
+            {t.ultima_novedad&&!t.atendido&&
+              <div className="inline-flex items-center gap-1.5 bg-red-50 text-red-600 text-[11px] font-semibold px-2 py-1 rounded-lg mt-1.5">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 4a4 4 0 00-4 4v3.4c0 .6-.2 1.2-.6 1.7L6 15h12l-1.4-1.9c-.4-.5-.6-1.1-.6-1.7V8a4 4 0 00-4-4z"/><path d="M10 18a2 2 0 004 0"/></svg>
+                {t.ultima_novedad}
+              </div>}
+          </div>
+        </div>
+        <div className="flex-shrink-0 max-w-[110px] pl-3 border-l border-gray-100">
+          <div className="text-[10px] text-gray-400 font-semibold mb-0.5">Colaborador</div>
+          <div className={`text-[12px] font-semibold flex items-center gap-1 ${co?"text-gray-700":"text-gray-400 italic font-medium"}`}>
+            {co&&<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="flex-shrink-0 opacity-70"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg>}
+            <span className="truncate">{co?co.nombre:"Sin asignar"}</span>
+          </div>
+        </div>
+        <div className="flex-shrink-0 flex items-center gap-2 pl-3 border-l border-gray-100">
+          <button onClick={async(e)=>{e.stopPropagation();await supabase.from('trabajos').update({atendido:true}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,atendido:true}:x)}));toast("✓ Marcado como atendido");}} className="w-7 h-7 flex items-center justify-center bg-gray-100 text-gray-500 rounded-lg hover:bg-emerald-100 hover:text-emerald-600 transition">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </button>
+          <button onClick={()=>onVer(t.id)} className="bg-[#1E3A5F] text-white text-[11.5px] font-bold px-3 py-1.5 rounded-lg hover:bg-[#152d4a] transition whitespace-nowrap">Ver ficha</button>
+        </div>
+      </div>
     </div>
     {abierta&&<div className="border-t border-gray-100">
       <div className="px-4 py-3 grid grid-cols-2 gap-3 border-b border-gray-50">
@@ -478,51 +545,176 @@ function TarjetaTrabajo({t,data,setData,toast,onVer,alertColor}){
   </div>;
 }
 function EstadoDemandas({data,setData,onBack,toast,onVer}){
-   const[busca,setBusca]=useState("");
-  const[fEstado,setFEstado]=useState("Todos");
+  const[busca,setBusca]=useState("");
+  const[fColab,setFColab]=useState("Todos");
+  const[fTipo,setFTipo]=useState("Todos");
+  const[fZona,setFZona]=useState("Todas");
   const[verArchivados,setVerArchivados]=useState(false);
+  const[vista,setVista]=useState("colaborador");
+  const[filtrosAbiertos,setFiltrosAbiertos]=useState(false);
+  const activosBase=data.trabajos.filter(t=>!t.archivado);
   let items=[...data.trabajos].filter(t=>verArchivados?t.archivado:!t.archivado);
-  if(fEstado!=="Todos")items=items.filter(t=>t.estado===fEstado);
+  if(fColab!=="Todos")items=items.filter(t=>String(getColabId(t))===fColab);
+  if(fTipo!=="Todos")items=items.filter(t=>t.tipo===fTipo);
+  if(fZona!=="Todas")items=items.filter(t=>{const co=data.colaboradores.find(c=>c.id===getColabId(t));return co?.zona===fZona;});
   if(busca.trim()){const q=busca.toLowerCase();items=items.filter(t=>{const cl=data.clientes.find(c=>c.id===getClienteId(t));return t.descripcion?.toLowerCase().includes(q)||cl?.nombre.toLowerCase().includes(q)||t.tipo?.toLowerCase().includes(q);});}
+  const hayFiltros=fColab!=="Todos"||fTipo!=="Todos"||fZona!=="Todas"||busca.trim()!=="";
+  const limpiarFiltros=()=>{setFColab("Todos");setFTipo("Todos");setFZona("Todas");setBusca("");};
 
-const atencion=items.filter(t=>["Solicitud","Colaborador disponible","Cliente confirmó","Presupuesto recibido","Aceptado","En curso"].includes(t.estado)&&!t.atendido);  const esperandoColab=items.filter(t=>t.estado==="Presupuestando");
-  const esperandoCliente=items.filter(t=>["Visita propuesta","Presupuesto enviado"].includes(t.estado));
-  const enGestion=items.filter(t=>["Solicitud","Colaborador disponible","Cliente confirmó","Presupuesto recibido","Aceptado"].includes(t.estado)&&t.atendido);
-  const activos=items.filter(t=>["En curso"].includes(t.estado));
-  const completados=items.filter(t=>t.estado==="Completado");
-  const cancelados=items.filter(t=>t.estado==="Cancelado");
-  const Seccion=({titulo,items:its,color})=>its.length===0?null:<div className="mb-4">
-    <div className="flex items-center gap-2 mb-2">
-      <span className={`w-2 h-2 rounded-full ${color}`}/>
-      <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">{titulo}</span>
-      <span className="ml-auto text-[11px] font-bold text-gray-400">{its.length}</span>
-    </div>
-    <div className="space-y-2">{its.map(t=><TarjetaTrabajo key={t.id} t={t} data={data} setData={setData} toast={toast} onVer={onVer}/>)}</div>
-  </div>;
+  const atencion=items.filter(t=>["Solicitud","Colaborador disponible","Cliente confirmó","Presupuesto recibido","Aceptado","En curso"].includes(t.estado)&&!t.atendido);
+
+  const porColaborador=(()=>{
+    const map=new Map();
+    items.forEach(t=>{
+      const co=data.colaboradores.find(c=>c.id===getColabId(t));
+      const key=co?String(co.id):"__sin__";
+      if(!map.has(key))map.set(key,{id:co?co.id:null,nombre:co?co.nombre:"Sin asignar",items:[]});
+      map.get(key).items.push(t);
+    });
+    const grupos=[...map.values()];
+    grupos.sort((a,b)=>a.nombre==="Sin asignar"?1:b.nombre==="Sin asignar"?-1:b.items.length-a.items.length);
+    return grupos;
+  })();
+
+  const zonas=["Todas",...new Set(data.colaboradores.map(c=>c.zona).filter(Boolean))];
+  const statValor=activosBase.reduce((s,t)=>s+(getPrecioCliente(t)||0),0);
+  const stats=[
+    {label:"Oportunidades",value:activosBase.length,tint:"bg-blue-50 text-blue-600",icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1.3" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.3" fill="currentColor" stroke="none"/></svg>},
+    {label:"Valor total",value:eur(statValor),tint:"bg-orange-50 text-orange-600",icon:<span className="font-black text-lg leading-none">€</span>},
+    {label:"En presupuestando",value:activosBase.filter(t=>t.estado==="Presupuestando").length,tint:"bg-amber-50 text-amber-600",icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="15" y2="12"/></svg>},
+    {label:"Aceptados",value:activosBase.filter(t=>t.estado==="Aceptado").length,tint:"bg-emerald-50 text-emerald-600",icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>},
+    {label:"Cerrados",value:activosBase.filter(t=>t.estado==="Completado").length,tint:"bg-violet-50 text-violet-600",icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 4h8v4a4 4 0 01-8 0V4z"/><path d="M8 5H5a3 3 0 003 3M16 5h3a3 3 0 01-3 3"/><line x1="12" y1="12" x2="12" y2="17"/><line x1="9" y1="20" x2="15" y2="20"/></svg>},
+  ];
+  const selCls="border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold bg-white text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#1E3A5F] transition";
 
   return<div>
     <Back title="Pipeline" onBack={onBack}/>
-    <input className={S+" mb-4"} placeholder="🔍 Buscar cliente, tipo..." value={busca} onChange={e=>setBusca(e.target.value)}/>
-<div className="flex gap-1.5 flex-wrap mb-4">
-      <Pill label="Todos" active={fEstado==="Todos"} onClick={()=>setFEstado("Todos")}/>
-      {FLUJO.filter(e=>data.trabajos.some(t=>t.estado===e&&!t.archivado)).map(e=>(
-        <Pill key={e} label={`${e} (${data.trabajos.filter(t=>t.estado===e&&!t.archivado).length})`} active={fEstado===e} onClick={()=>setFEstado(e)}/>
-      ))}
+
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-5">
+      {stats.map(s=><div key={s.label} className="bg-white border border-gray-100 rounded-2xl px-3.5 py-3 shadow-sm flex items-center gap-3">
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${s.tint}`}>{s.icon}</div>
+        <div className="min-w-0"><div className="font-black text-gray-800 text-lg leading-none truncate">{s.value}</div><div className="text-[10.5px] text-gray-400 font-semibold mt-1 truncate">{s.label}</div></div>
+      </div>)}
     </div>
-    <div className="mb-4">
+
+    <div className="flex gap-2 mb-3">
+      <input className={S+" flex-1"} placeholder="🔍 Buscar cliente, tipo..." value={busca} onChange={e=>setBusca(e.target.value)}/>
+      <button onClick={()=>setFiltrosAbiertos(v=>!v)} className={`flex-shrink-0 flex items-center gap-1.5 text-xs font-bold px-3 py-2.5 rounded-xl border transition ${filtrosAbiertos?"bg-[#1E3A5F] text-white border-[#1E3A5F]":"bg-white text-gray-600 border-gray-200"}`}>
+        Filtros
+        {(hayFiltros||verArchivados)&&<span className={`w-1.5 h-1.5 rounded-full ${filtrosAbiertos?"bg-white":"bg-[#1E3A5F]"}`}/>}
+      </button>
+    </div>
+
+    <div className="flex flex-wrap items-center gap-2 mb-3">
+      <div className="inline-flex bg-gray-100 rounded-xl p-1 w-full sm:w-auto">
+        <button onClick={()=>setVista("colaborador")} className={`flex-1 sm:flex-none text-xs font-bold px-3 py-1.5 rounded-lg transition ${vista==="colaborador"?"bg-[#1E3A5F] text-white shadow-sm":"text-gray-500"}`}>Por colaborador</button>
+        <button onClick={()=>setVista("tablero")} className={`flex-1 sm:flex-none text-xs font-bold px-3 py-1.5 rounded-lg transition ${vista==="tablero"?"bg-[#1E3A5F] text-white shadow-sm":"text-gray-500"}`}>Tablero</button>
+      </div>
+    </div>
+
+    {filtrosAbiertos&&<div className="bg-gray-50 border border-gray-100 rounded-2xl p-3 mb-4 flex flex-wrap items-center gap-2">
+      <select className={selCls} value={fColab} onChange={e=>setFColab(e.target.value)}>
+        <option value="Todos">Todos los colaboradores</option>
+        {data.colaboradores.map(c=><option key={c.id} value={String(c.id)}>{c.nombre}</option>)}
+      </select>
+      <select className={selCls} value={fTipo} onChange={e=>setFTipo(e.target.value)}>
+        <option value="Todos">Todos los tipos</option>
+        {TIPOS.map(t=><option key={t} value={t}>{t}</option>)}
+      </select>
+      {zonas.length>1&&<select className={selCls} value={fZona} onChange={e=>setFZona(e.target.value)}>
+        {zonas.map(z=><option key={z} value={z}>{z==="Todas"?"Todas las zonas":z}</option>)}
+      </select>}
       <button onClick={()=>setVerArchivados(v=>!v)} className={`text-xs font-bold px-3 py-1.5 rounded-full border transition ${verArchivados?"bg-gray-700 text-white border-gray-700":"bg-white text-gray-500 border-gray-200"}`}>📦 Archivados ({data.trabajos.filter(t=>t.archivado).length})</button>
-    </div>
+      {hayFiltros&&<button onClick={limpiarFiltros} className="text-xs font-bold text-gray-400 hover:text-gray-600 transition px-2">Limpiar filtros</button>}
+    </div>}
     {atencion.length>0&&<div className="bg-red-50 border-2 border-red-200 rounded-2xl p-3 mb-4">
       <div className="font-bold text-red-700 text-sm mb-2 flex items-center gap-2">🔔 Requiere tu atención ({atencion.length})</div>
       <div className="space-y-2">{atencion.map(t=><TarjetaTrabajo key={t.id} t={t} data={data} setData={setData} toast={toast} onVer={onVer} alertColor="border-red-200"/>)}</div>
     </div>}
 
-       <Seccion titulo="En gestión" items={enGestion} color="bg-indigo-500"/>
-    <Seccion titulo="Esperando colaborador" items={esperandoColab} color="bg-amber-400"/>
-    <Seccion titulo="Esperando cliente" items={esperandoCliente} color="bg-cyan-500"/>
-    <Seccion titulo="Activos" items={activos} color="bg-orange-500"/>
-    <Seccion titulo="Completados" items={completados} color="bg-emerald-500"/>
-    <Seccion titulo="Cancelados" items={cancelados} color="bg-gray-300"/>
+    {vista==="tablero"&&items.length>0&&<div className="sm:hidden flex items-center gap-1.5 text-[11px] text-gray-400 mb-3">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 5v14M8 5l-3 3M8 5l3 3M16 19V5M16 19l-3-3M16 19l3-3"/></svg>
+      Desliza para ver cada colaborador
+    </div>}
+
+    {vista==="tablero"?
+      <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-3 -mx-4 px-4" style={{WebkitOverflowScrolling:"touch"}}>
+        {porColaborador.map(g=>
+          <div key={g.nombre} className="snap-start flex-shrink-0 w-[82%] max-w-[280px] bg-gray-100 rounded-2xl p-3 flex flex-col">
+            <div className="flex items-center gap-2 mb-3 px-1">
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0 ${g.nombre==="Sin asignar"?"bg-red-400":"bg-[#1E3A5F]"}`}>
+                {g.nombre==="Sin asignar"?"—":g.nombre.split(" ").map(n=>n[0]).slice(0,2).join("").toUpperCase()}
+              </div>
+              <div className="font-bold text-[13.5px] text-gray-800 flex-1 min-w-0 truncate">{g.nombre}</div>
+              <div className="text-[11px] font-bold text-gray-400 bg-white border border-gray-200 px-2 py-0.5 rounded-full flex-shrink-0">{g.items.length}</div>
+            </div>
+            <div className="space-y-2">
+              {g.items.map(t=>{
+                const cl2=data.clientes.find(c=>c.id===getClienteId(t));
+                return <div key={t.id} onClick={()=>onVer(t.id)} className={`bg-white rounded-xl shadow-sm border-l-[3px] ${PRIO_STRIPE_PIPELINE[t.prioridad]||"border-l-gray-200"} px-3 py-2.5 cursor-pointer hover:shadow-md transition`}>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${ESTADO_DOT_PIPELINE[t.estado]||"bg-gray-300"}`}/>
+                    <span className="text-[9.5px] font-bold text-gray-400 uppercase tracking-wide truncate">{t.estado}</span>
+                  </div>
+                  <div className="text-[10px] text-gray-400 mb-0.5 truncate">{t.tipo} · #{t.id}</div>
+                  <div className="font-bold text-[13px] text-gray-800 leading-tight truncate">{cl2?.nombre}</div>
+                  <div className="text-[10.5px] text-gray-400 mt-1">{fmt(t.fecha)}</div>
+                </div>;
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    :
+      <div>
+        <div>
+          {porColaborador.map(g=>{
+            const colsConItems=COLUMNAS_MATRIZ.filter(col=>g.items.some(t=>col.estados.includes(t.estado)));
+            return <div key={g.nombre} className="flex flex-nowrap gap-3 overflow-x-auto snap-x snap-proximity pb-1 mb-3 -mx-4 px-4" style={{WebkitOverflowScrolling:"touch"}}>
+              <div className="snap-start w-[220px] flex-shrink-0 bg-white border border-gray-100 rounded-2xl p-3.5 shadow-sm flex flex-col">
+                <div className="flex items-center gap-2.5 mb-3">
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ${g.nombre==="Sin asignar"?"bg-red-400":"bg-[#1E3A5F]"}`}>
+                    {g.nombre==="Sin asignar"?"—":g.nombre.split(" ").map(n=>n[0]).slice(0,2).join("").toUpperCase()}
+                  </div>
+                  <div className="min-w-0"><div className="font-bold text-[13.5px] text-gray-800 truncate">{g.nombre}</div></div>
+                </div>
+                <div className="text-[10px] text-gray-400 font-semibold uppercase">En curso</div>
+                <div className="font-black text-gray-800 text-sm mb-3">{g.items.length}</div>
+                {g.id!=null&&<button onClick={()=>setFColab(String(g.id))} className="mt-auto text-xs font-bold text-[#1E3A5F] hover:underline text-left">Ver todas →</button>}
+              </div>
+              {colsConItems.length===0?
+                <div className="flex items-center text-[11px] text-gray-400 px-2">Sin oportunidades activas en el pipeline</div>
+              :colsConItems.map(col=>{
+                const its=g.items.filter(t=>col.estados.includes(t.estado));
+                return <div key={col.key} className={`snap-start w-[190px] flex-shrink-0 rounded-2xl p-2.5 ${col.tint}`}>
+                  <div className="flex items-center justify-between mb-2 px-0.5">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${col.badge}`}>{col.titulo}</span>
+                    <span className="text-[10px] font-bold text-gray-400">{its.length}</span>
+                  </div>
+                  <div className="space-y-1.5">
+                    {its.map(t=>{
+                      const cl2=data.clientes.find(c=>c.id===getClienteId(t));
+                      return <div key={t.id} onClick={()=>onVer(t.id)} className="bg-white rounded-xl shadow-sm px-2.5 py-2 cursor-pointer hover:shadow-md transition">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <div className="w-5 h-5 rounded-md bg-[#EAF0F7] text-[#1E3A5F] flex items-center justify-center flex-shrink-0"><IconoTipoPipeline tipo={t.tipo}/></div>
+                          <div className="text-[11px] font-bold text-gray-700 truncate">{t.tipo}</div>
+                        </div>
+                        <div className="text-[11px] text-gray-600 truncate">{cl2?.nombre}</div>
+                        {cl2?.direccion&&<div className="text-[10px] text-gray-400 truncate">📍 {cl2.direccion}</div>}
+                        <div className="flex items-center justify-between mt-1">
+                          <span className="text-[11px] font-bold text-gray-800">{getPrecioCliente(t)?eur(getPrecioCliente(t)):"—"}</span>
+                          <span className="text-[9.5px] text-gray-400">{diasDesde(t.fecha)}</span>
+                        </div>
+                      </div>;
+                    })}
+                  </div>
+                </div>;
+              })}
+            </div>;
+          })}
+        </div>
+      </div>
+    }
 
     {items.length===0&&<div className="text-center py-16 text-gray-400 text-sm">Sin demandas</div>}
   </div>;
@@ -2757,7 +2949,7 @@ const TITULO={home:"Inicio",nuevas:"Nuevas demandas",demandas:"Pipeline",cliente
       </div>
       <button onClick={()=>window.open('/solicitar','_blank')} className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition whitespace-nowrap">+ Nuevo</button>
     </header>
-    <main className="flex-1 px-4 py-5 max-w-2xl mx-auto w-full pb-8">
+    <main className={`flex-1 px-4 py-5 mx-auto w-full pb-8 ${sec==="demandas"?"max-w-[1440px]":"max-w-2xl"}`}>
       {sec==="home"&&<Home data={data} setData={setData} go={setSec} setTid={setTid} toast={T}/>}
       {sec==="nuevas"&&<NuevasDemandas data={data} setData={setData} onBack={()=>setSec("home")} toast={T} onVer={id=>{setTid(id);}}/>}
       {sec==="demandas"&&<EstadoDemandas data={data} setData={setData} onBack={()=>setSec("home")} toast={T} onVer={id=>{setTid(id);}}/>}
