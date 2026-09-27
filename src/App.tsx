@@ -74,7 +74,7 @@ const buildWA=(colab,trabajo,cliente)=>{
   const enlace=`${BASE_URL}/trabajo/${trabajo.id}`;
   const instr=trabajo.instrucciones_colaborador?`\n\n📋 *Instrucciones:* ${trabajo.instrucciones_colaborador}`:"";
   const msg=`Hola ${colab.nombre.split(" ")[0]} 👋\n\nTenemos un trabajo de *${trabajo.tipo}* en ${cliente.direccion}.\n\n📝 ${trabajo.descripcion}${instr}\n\n¿Puedes encargarte? Indícanos tu disponibilidad aquí:\n👉 ${enlace}\n\nGracias 🙏`;
-  return `https://wa.me/${colab.whatsapp}?text=${encodeURIComponent(msg)}`;
+  return `https://wa.me/${colab.whatsapp?.replace(/\s/g,'')}?text=${encodeURIComponent(msg)}`;
 };
 const buildWAVisitaCliente=(cliente,trabajo,colab)=>{
   const nombre=cliente.nombre.split(" ")[0];
@@ -90,16 +90,16 @@ const buildWAIncidenciaCliente=(cliente,trabajo,incidencia,fechaFmt,hora)=>{
 const buildWAIncidencia=(colab,trabajo,cliente,incidencia)=>{
   const enlace=`${BASE_URL}/trabajo/${trabajo.id}`;
   const msg=`Hola ${colab.nombre.split(" ")[0]} 👋\n\n⚠️ Hay una incidencia en un trabajo que hiciste:\n\n📍 ${cliente?.direccion||""}\n🔧 ${trabajo.tipo} · ${cliente?.nombre||""}\n\n📋 *${incidencia.tipo}:* ${incidencia.descripcion||"(sin detalles)"}\n\n¿Puedes pasarte a revisarlo? Los datos del trabajo aquí:\n👉 ${enlace}\n\nGracias 🙏`;
-  return `https://wa.me/${colab.whatsapp}?text=${encodeURIComponent(msg)}`;
+  return `https://wa.me/${colab.whatsapp?.replace(/\s/g,'')}?text=${encodeURIComponent(msg)}`;
 };
 const buildWACambioFecha=(colab,trabajo,cliente)=>{
   const enlace=`${BASE_URL}/trabajo/${trabajo.id}`;
   const msg=`Hola ${colab.nombre.split(" ")[0]} 👋\n\nEl cliente del trabajo de *${trabajo.tipo}* pide cambiar la fecha de la visita:\n\n📅 *Nueva fecha: ${fmt(trabajo.fecha)} a las ${trabajo.hora}*\n📍 ${cliente?.direccion||""}\n\n¿Te viene bien? Confírmalo aquí:\n👉 ${enlace}\n\nGracias 🙏`;
-  return `https://wa.me/${colab.whatsapp}?text=${encodeURIComponent(msg)}`;
+  return `https://wa.me/${colab.whatsapp?.replace(/\s/g,'')}?text=${encodeURIComponent(msg)}`;
 };
 const buildWAConfirmacionColab=(colab,trabajo,cliente)=>{
   const msg=`Hola ${colab.nombre.split(" ")[0]} 👋\n\n✅ El cliente ha confirmado la visita.\n\n📍 ${cliente.direccion}\n📅 *${fmt(trabajo.fecha)} a las ${trabajo.hora}*\n👤 ${cliente.nombre} · ${cliente.telefono}\n\nTras la visita, sube el presupuesto aquí:\n${BASE_URL}/trabajo/${trabajo.id}\n\nGracias 🙏`;
-  return `https://wa.me/${colab.whatsapp}?text=${encodeURIComponent(msg)}`;
+  return `https://wa.me/${colab.whatsapp?.replace(/\s/g,'')}?text=${encodeURIComponent(msg)}`;
 };
 
 const buildWAVerificarTrabajo=(cliente,trabajo)=>{
@@ -121,9 +121,16 @@ const buildWACobroFinal=(cliente,trabajo)=>{
 const buildWARechazoVerificacion=(colab,trabajo,cliente,motivo)=>{
   const enlace=`${BASE_URL}/trabajo/${trabajo.id}`;
   const msg=`Hola ${colab.nombre.split(" ")[0]} 👋\n\nEl cliente revisó el trabajo de *${trabajo.tipo}* y indica que falta algo:\n\n📝 "${motivo}"\n\n¿Puedes pasarte a solucionarlo? Cuando esté, vuelve a marcarlo como terminado aquí:\n👉 ${enlace}\n\nGracias 🙏`;
-  return `https://wa.me/${colab.whatsapp}?text=${encodeURIComponent(msg)}`;
+  return `https://wa.me/${colab.whatsapp?.replace(/\s/g,'')}?text=${encodeURIComponent(msg)}`;
 };
 const dbSaveCliente = async(cliente) => { const {data} = await supabase.from('clientes').upsert(cliente).select(); return data?.[0]; };
+const HISTORIAL_CAMPOS_IGNORADOS = ['historial','fecha_ultimo_estado'];
+const valorParaHistorial = v => v==null?null:typeof v==='object'?JSON.stringify(v):String(v);
+const registrarHistorial = async (entries) => {
+  const {data:{user}} = await supabase.auth.getUser();
+  const usuario_email = user?.email||null;
+  await supabase.from('historial_trabajos').insert(entries.map(e=>({usuario_email,...e})));
+};
 const dbSaveTrabajo = async(trabajo) => {
   const row = {
     cliente_id: trabajo.clienteId||trabajo.cliente_id,
@@ -149,13 +156,31 @@ const dbSaveTrabajo = async(trabajo) => {
     verificacion_rechazo: trabajo.verificacion_rechazo||null,
   };
   if (trabajo.id) {
-    const {data:actual}=await supabase.from('trabajos').select('estado').eq('id',trabajo.id).single();
+    const {data:actual}=await supabase.from('trabajos').select('*').eq('id',trabajo.id).single();
     if(actual&&actual.estado!==trabajo.estado){row.fecha_ultimo_estado=new Date().toISOString();}
-    const {data} = await supabase.from('trabajos').update(row).eq('id',trabajo.id).select(); return data?.[0];
+    const {data} = await supabase.from('trabajos').update(row).eq('id',trabajo.id).select();
+    if(actual){
+      const resumen=`${row.tipo||actual.tipo||''} · #${trabajo.id}`;
+      const cambios=Object.keys(row).filter(k=>!HISTORIAL_CAMPOS_IGNORADOS.includes(k)&&valorParaHistorial(actual[k])!==valorParaHistorial(row[k]));
+      if(cambios.length){
+        await registrarHistorial(cambios.map(campo=>({trabajo_id:trabajo.id,accion:'editado',campo,valor_anterior:valorParaHistorial(actual[campo]),valor_nuevo:valorParaHistorial(row[campo]),resumen})));
+      }
+    }
+    return data?.[0];
   }
-  else { row.fecha_ultimo_estado=new Date().toISOString(); const {data} = await supabase.from('trabajos').insert(row).select(); return data?.[0]; }
+  else {
+    row.fecha_ultimo_estado=new Date().toISOString();
+    const {data} = await supabase.from('trabajos').insert(row).select();
+    const saved=data?.[0];
+    if(saved){await registrarHistorial([{trabajo_id:saved.id,accion:'creado',resumen:`${row.tipo||''} · #${saved.id}`}]);}
+    return saved;
+  }
 };
-const dbDeleteTrabajo = async(id) => await supabase.from('trabajos').delete().eq('id',id);
+const dbDeleteTrabajo = async(id) => {
+  const {data:actual}=await supabase.from('trabajos').select('*').eq('id',id).single();
+  if(actual){await registrarHistorial([{trabajo_id:id,accion:'eliminado',resumen:`${actual.tipo||''} · #${id}`}]);}
+  return await supabase.from('trabajos').delete().eq('id',id);
+};
 const dbSaveColab = async(colab) => {
 const row = { nombre:colab.nombre, especialidades:colab.especialidades, telefono:colab.telefono, whatsapp:colab.whatsapp, email:colab.email, activo:colab.activo, zona:colab.zona, disponibilidad:colab.disponibilidad, valoracion:colab.valoracion||5, trabajos_completados:colab.trabajosCompletados||colab.trabajos_completados||0 };  if (colab.id) { const {data} = await supabase.from('colaboradores').update(row).eq('id',colab.id).select(); return data?.[0]; }
   else { const {data} = await supabase.from('colaboradores').insert(row).select(); return data?.[0]; }
@@ -719,6 +744,87 @@ function EstadoDemandas({data,setData,onBack,toast,onVer}){
     {items.length===0&&<div className="text-center py-16 text-gray-400 text-sm">Sin demandas</div>}
   </div>;
 }
+
+const HISTORIAL_CAMPO_LABEL = {
+  cliente_id:"Cliente", colaborador_id:"Colaborador", tipo:"Tipo de trabajo", descripcion:"Descripción",
+  origen:"Origen", prioridad:"Prioridad", estado:"Estado", fecha:"Fecha", hora:"Hora",
+  presupuesto_colaborador:"Presupuesto colaborador", margen:"Margen", precio_cliente:"Precio cliente",
+  notas:"Notas", partidas:"Partidas", iva:"IVA", adelanto_tipo:"Tipo de adelanto", adelanto_valor:"Adelanto",
+  atendido:"Atendido", ultima_novedad:"Última novedad", instrucciones_colaborador:"Instrucciones colaborador",
+  notas_internas:"Notas internas", archivado:"Archivado", trabajo_terminado:"Trabajo terminado",
+  cliente_verificado:"Cliente verificado", verificacion_rechazo:"Motivo de rechazo",
+};
+const HISTORIAL_ACCION_CFG = {
+  creado:{icon:"✨",label:"Creado",cls:"text-emerald-600 bg-emerald-50"},
+  editado:{icon:"✏️",label:"Editado",cls:"text-blue-600 bg-blue-50"},
+  eliminado:{icon:"🗑️",label:"Eliminado",cls:"text-red-600 bg-red-50"},
+};
+function Historial({data,onBack}){
+  const[items,setItems]=useState([]);
+  const[cargando,setCargando]=useState(true);
+  const[fAccion,setFAccion]=useState("Todas");
+  const[fUsuario,setFUsuario]=useState("Todos");
+  useEffect(()=>{
+    supabase.from('historial_trabajos').select('*').order('created_at',{ascending:false}).limit(400).then(({data})=>{setItems(data||[]);setCargando(false);});
+  },[]);
+  const usuarios=["Todos",...new Set(items.map(i=>i.usuario_email).filter(Boolean))];
+  let list=items;
+  if(fAccion!=="Todas")list=list.filter(i=>i.accion===fAccion);
+  if(fUsuario!=="Todos")list=list.filter(i=>i.usuario_email===fUsuario);
+
+  const formatearValor=(campo,valor)=>{
+    if(valor==null||valor==="")return "—";
+    if(campo==="cliente_id"){const c=data.clientes.find(c=>String(c.id)===String(valor));return c?c.nombre:valor;}
+    if(campo==="colaborador_id"){const c=data.colaboradores.find(c=>String(c.id)===String(valor));return c?c.nombre:"Sin asignar";}
+    if(["precio_cliente","presupuesto_colaborador"].includes(campo))return eur(Number(valor));
+    if(valor==="true")return "Sí";
+    if(valor==="false")return "No";
+    return valor.length>70?valor.slice(0,70)+"…":valor;
+  };
+
+  const grupos=[];
+  for(const it of list){
+    const ultimo=grupos[grupos.length-1];
+    if(ultimo&&ultimo.trabajo_id===it.trabajo_id&&ultimo.created_at===it.created_at&&ultimo.accion===it.accion){ultimo.campos.push(it);}
+    else{grupos.push({trabajo_id:it.trabajo_id,created_at:it.created_at,accion:it.accion,usuario_email:it.usuario_email,resumen:it.resumen,campos:[it]});}
+  }
+
+  return<div>
+    <Back title="Historial" onBack={onBack}/>
+    <div className="flex gap-1.5 flex-wrap mb-3">
+      {["Todas","creado","editado","eliminado"].map(a=><Pill key={a} label={a==="Todas"?"Todas":HISTORIAL_ACCION_CFG[a].label} active={fAccion===a} onClick={()=>setFAccion(a)}/>)}
+    </div>
+    {usuarios.length>2&&<select className="border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold bg-white text-gray-600 mb-4" value={fUsuario} onChange={e=>setFUsuario(e.target.value)}>
+      {usuarios.map(u=><option key={u} value={u}>{u==="Todos"?"Todos los usuarios":u}</option>)}
+    </select>}
+    {cargando&&<div className="text-center py-16 text-gray-400 text-sm">Cargando…</div>}
+    {!cargando&&grupos.length===0&&<div className="text-center py-16 text-gray-400 text-sm">Sin movimientos registrados</div>}
+    <div className="space-y-2">
+      {grupos.map((g,i)=>{
+        const cfg=HISTORIAL_ACCION_CFG[g.accion]||{icon:"•",label:g.accion,cls:"text-gray-600 bg-gray-100"};
+        return<div key={i} className="bg-white border border-gray-100 rounded-2xl p-3.5 shadow-sm">
+          <div className="flex items-center gap-2 mb-2">
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${cfg.cls}`}>{cfg.icon} {cfg.label}</span>
+            <span className="text-[13px] font-semibold text-gray-800 truncate">{g.resumen}</span>
+          </div>
+          {g.accion==="editado"&&<div className="space-y-1 mb-2">
+            {g.campos.map((c,j)=><div key={j} className="text-[12px] text-gray-600">
+              <span className="font-semibold text-gray-500">{HISTORIAL_CAMPO_LABEL[c.campo]||c.campo}:</span>{" "}
+              <span className="text-gray-400">{formatearValor(c.campo,c.valor_anterior)}</span>
+              <span className="mx-1 text-gray-300">→</span>
+              <span className="font-medium text-gray-800">{formatearValor(c.campo,c.valor_nuevo)}</span>
+            </div>)}
+          </div>}
+          <div className="text-[11px] text-gray-400 flex items-center gap-1.5">
+            <span>{g.usuario_email||"Desconocido"}</span>
+            <span>·</span>
+            <span>{new Date(g.created_at).toLocaleString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit",hour:"2-digit",minute:"2-digit"})}</span>
+          </div>
+        </div>;
+      })}
+    </div>
+  </div>;
+}
 function Clientes({data,setData,onBack,toast}){
   const[cid,setCid]=useState(null);
   const[editando,setEditando]=useState(false);
@@ -901,7 +1007,7 @@ const existe=data.colaboradores.find(c=>c.email&&s.email&&c.email.toLowerCase().
         <div className="bg-emerald-50 rounded-xl p-2 text-center"><div className="font-black text-emerald-700">{done}</div><div className="text-[10px] text-emerald-600">Completados</div></div>
         <div className="bg-red-50 rounded-xl p-2 text-center"><div className="font-black text-red-600">{pag}€</div><div className="text-[10px] text-red-500">Pagado</div></div>
       </div>
-{co?.whatsapp&&<button onClick={()=>window.open(`https://wa.me/${co.whatsapp}`,"_blank")} className="w-full mt-3 bg-green-500 hover:bg-green-600 text-white text-sm font-bold py-2.5 rounded-xl transition">📱 Abrir WhatsApp</button>}
+{co?.whatsapp&&<button onClick={()=>window.open(`https://wa.me/${co.whatsapp.replace(/\s/g,'')}`,"_blank")} className="w-full mt-3 bg-green-500 hover:bg-green-600 text-white text-sm font-bold py-2.5 rounded-xl transition">📱 Abrir WhatsApp</button>}
       {co?.email&&<button onClick={async()=>{if(!confirm(`¿Enviar acceso al portal a ${co.email}?`))return;try{const r=await fetch("https://opijkazhbktiikdzbanb.supabase.co/functions/v1/invitar-colaborador",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:co.email,nombre:co.nombre})});if(r.ok)toast("📧 Acceso enviado por email");else toast("Error al enviar el acceso");}catch(err){toast("Error al enviar el acceso");}}} className="w-full mt-2 bg-[#1E3A5F] hover:bg-[#152d4a] text-white text-sm font-bold py-2.5 rounded-xl transition">📧 Enviar acceso al portal</button>}
     </div>
     <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Trabajos asignados</div>
@@ -2899,6 +3005,117 @@ function FormIncidencia({data,setData,onClose,toast,trabajoPre}){
     <button onClick={guardar} className="w-full bg-[#1E3A5F] text-white py-3 rounded-xl font-bold text-sm">Crear incidencia</button>
   </div>;
 }
+const ADMIN_EMAIL = "samuel.sanchez@olcproperties.net";
+function AdminPanel({data}){
+  const[tab,setTab]=useState("resumen");
+  const[periodo,setPeriodo]=useState("Todo");
+  const[actividad,setActividad]=useState([]);
+  useEffect(()=>{
+    supabase.from('historial_trabajos').select('usuario_email,accion,created_at').then(({data})=>setActividad(data||[]));
+  },[]);
+  const enPeriodo=fechaStr=>{
+    if(periodo==="Todo"||!fechaStr)return true;
+    const d=new Date(fechaStr);
+    const ahora=new Date();
+    if(periodo==="Este mes")return d.getFullYear()===ahora.getFullYear()&&d.getMonth()===ahora.getMonth();
+    if(periodo==="Este año")return d.getFullYear()===ahora.getFullYear();
+    return true;
+  };
+  const clientesNuevos=data.clientes.filter(c=>enPeriodo(c.creado)).length;
+  const completados=data.trabajos.filter(t=>t.estado==="Completado"&&enPeriodo(t.fecha_ultimo_estado));
+  const cancelados=data.trabajos.filter(t=>t.estado==="Cancelado"&&enPeriodo(t.fecha_ultimo_estado));
+  const activos=data.trabajos.filter(t=>["Aceptado","En curso"].includes(t.estado));
+  const facturado=completados.reduce((s,t)=>s+(getPrecioCliente(t)||0),0);
+  const pagado=completados.reduce((s,t)=>s+(getPresupColab(t)||0),0);
+  const colabActivos=data.colaboradores.filter(c=>c.activo).length;
+  const porUsuario=(()=>{
+    const map=new Map();
+    actividad.filter(a=>enPeriodo(a.created_at)).forEach(a=>{
+      const key=a.usuario_email||"Desconocido";
+      map.set(key,(map.get(key)||0)+1);
+    });
+    return[...map.entries()].sort((a,b)=>b[1]-a[1]);
+  })();
+  const kpis=[
+    {label:"Clientes nuevos",value:clientesNuevos,cls:"bg-blue-50 text-blue-700"},
+    {label:"Colaboradores activos",value:`${colabActivos} / ${data.colaboradores.length}`,cls:"bg-indigo-50 text-indigo-700"},
+    {label:"Trabajos completados",value:completados.length,cls:"bg-emerald-50 text-emerald-700"},
+    {label:"Trabajos activos",value:activos.length,cls:"bg-orange-50 text-orange-700"},
+    {label:"Cancelados",value:cancelados.length,cls:"bg-gray-100 text-gray-600"},
+    {label:"Facturado",value:eur(facturado),cls:"bg-emerald-50 text-emerald-700"},
+    {label:"Pagado a colaboradores",value:eur(pagado),cls:"bg-red-50 text-red-600"},
+    {label:"Beneficio",value:eur(facturado-pagado),cls:"bg-violet-50 text-violet-700"},
+  ];
+  return<div className="min-h-screen bg-[#F0F2F5]" style={{fontFamily:"'Inter',system-ui,sans-serif"}}>
+    <header className="bg-[#1E3A5F] text-white px-4 py-3 flex items-center gap-3 sticky top-0 z-40 shadow-lg">
+      <div className="w-8 h-8 bg-orange-500 rounded-xl flex items-center justify-center font-black text-sm flex-shrink-0">A</div>
+      <div className="flex-1 min-w-0"><div className="font-black text-sm leading-none">Panel de admin</div></div>
+      <button onClick={()=>{window.location.pathname="/";}} className="text-xs text-blue-200 hover:text-white transition">Salir</button>
+    </header>
+    <main className="flex-1 px-4 py-5 max-w-2xl mx-auto w-full pb-8">
+      <div className="inline-flex bg-gray-200 rounded-xl p-1 mb-4">
+        <button onClick={()=>setTab("resumen")} className={`text-xs font-bold px-3 py-1.5 rounded-lg transition ${tab==="resumen"?"bg-white text-[#1E3A5F] shadow-sm":"text-gray-500"}`}>Resumen</button>
+        <button onClick={()=>setTab("historial")} className={`text-xs font-bold px-3 py-1.5 rounded-lg transition ${tab==="historial"?"bg-white text-[#1E3A5F] shadow-sm":"text-gray-500"}`}>Historial</button>
+      </div>
+      {tab==="resumen"?<>
+        <div className="flex gap-1.5 flex-wrap mb-4">
+          {["Todo","Este mes","Este año"].map(p=><Pill key={p} label={p} active={periodo===p} onClick={()=>setPeriodo(p)}/>)}
+        </div>
+        <div className="grid grid-cols-2 gap-3 mb-5">
+          {kpis.map(k=><div key={k.label} className={`rounded-2xl p-4 shadow-sm ${k.cls}`}>
+            <div className="text-xl font-black">{k.value}</div>
+            <div className="text-[11px] font-semibold mt-0.5 opacity-80">{k.label}</div>
+          </div>)}
+        </div>
+        <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+          <div className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3">Actividad por usuario</div>
+          {porUsuario.length===0&&<div className="text-sm text-gray-400 text-center py-4">Sin movimientos en este periodo</div>}
+          <div className="space-y-2">
+            {porUsuario.map(([email,n])=><div key={email} className="flex items-center justify-between text-sm">
+              <span className="text-gray-700 truncate">{email}</span>
+              <span className="font-bold text-gray-800">{n}</span>
+            </div>)}
+          </div>
+        </div>
+      </>:<Historial data={data} onBack={()=>setTab("resumen")}/>}
+    </main>
+  </div>;
+}
+const SIDEBAR_ICONS = {
+  home:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M4 11 12 4l8 7"/><path d="M6 10v9a1 1 0 001 1h4v-6h2v6h4a1 1 0 001-1v-9"/></svg>,
+  nuevas:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 13h5l1.5 2.5h5L16 13h5"/></svg>,
+  demandas:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="4" height="16" rx="1"/><rect x="10" y="4" width="4" height="10" rx="1"/><rect x="16" y="4" width="4" height="13" rx="1"/></svg>,
+  clientes:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg>,
+  colaboradores:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="8" r="3"/><circle cx="16.5" cy="9.5" r="2.5"/><path d="M3.5 20c0-3.6 2.6-6.2 6-6.2 2.9 0 5.2 1.9 5.8 4.5"/><path d="M14.5 14c2.4.4 4.3 2.5 4.3 5"/></svg>,
+  finanzas:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20V11M10 20V5M16 20v-6M22 20H2"/></svg>,
+  incidencias:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M12 4 2.5 20h19L12 4Z"/><line x1="12" y1="10.5" x2="12" y2="15"/><circle cx="12" cy="17.3" r="0.7" fill="currentColor" stroke="none"/></svg>,
+};
+const SIDEBAR_GRUPOS = [
+  {grupo:"General",items:[{id:"home",label:"Inicio"},{id:"nuevas",label:"Nuevas demandas"},{id:"demandas",label:"Pipeline"}]},
+  {grupo:"Directorio",items:[{id:"clientes",label:"Clientes"},{id:"colaboradores",label:"Colaboradores"}]},
+  {grupo:"Gestión",items:[{id:"finanzas",label:"Finanzas"},{id:"incidencias",label:"Incidencias"}]},
+];
+function Sidebar({sec,setSec,nuevasCount,incidenciasCount}){
+  const badges={nuevas:nuevasCount,incidencias:incidenciasCount};
+  return<aside className="w-[60px] sm:w-56 flex-shrink-0 bg-white border-r border-gray-200 flex flex-col items-center sm:items-stretch py-4 px-1.5 sm:px-3 sticky top-0 h-screen overflow-y-auto">
+    <div className="flex items-center gap-2.5 pb-5 justify-center sm:justify-start">
+      <div className="w-7 h-7 rounded-lg bg-[#1E3A5F] flex items-center justify-center text-white font-black text-[13px] flex-shrink-0">D</div>
+      <div className="hidden sm:block font-black text-[14.5px] text-gray-800 whitespace-nowrap">Domia CRM</div>
+    </div>
+    {SIDEBAR_GRUPOS.map(g=><div key={g.grupo} className="w-full">
+      <div className="hidden sm:block text-[10px] font-bold uppercase tracking-wider text-gray-400 px-2.5 pt-3.5 pb-1.5">{g.grupo}</div>
+      {g.items.map(it=>{
+        const activo=sec===it.id;
+        const badge=badges[it.id];
+        return<button key={it.id} onClick={()=>setSec(it.id)} className={`flex items-center gap-2.5 px-0 sm:px-2.5 py-2.5 sm:py-2 rounded-lg w-full justify-center sm:justify-start text-[13px] font-semibold transition ${activo?"bg-[#E7EDF5] text-[#1E3A5F]":"text-gray-500 hover:bg-gray-100 hover:text-gray-800"}`}>
+          {SIDEBAR_ICONS[it.id]}
+          <span className="hidden sm:inline truncate">{it.label}</span>
+          {badge>0&&<span className={`hidden sm:flex ml-auto text-[10px] font-bold px-1.5 h-[18px] min-w-[18px] rounded-full items-center justify-center ${activo?"bg-white text-[#1E3A5F]":"bg-gray-100 text-gray-500"}`}>{badge}</span>}
+        </button>;
+      })}
+    </div>)}
+  </aside>;
+}
 export default function App(){
   const path=window.location.pathname;
   const trabajoMatch=path.match(/^\/trabajo\/(\d+)$/);
@@ -2914,8 +3131,9 @@ export default function App(){
   if(path==="/alta-colaborador")return<AltaColaborador/>;
   const solicitarMatch=path==="/solicitar";
   const[autenticado,setAutenticado]=useState<boolean|null>(null);
+  const[emailUsuario,setEmailUsuario]=useState<string|null>(null);
   useEffect(()=>{
-    supabase.auth.getSession().then(({data})=>setAutenticado(!!data.session));
+    supabase.auth.getSession().then(({data})=>{setAutenticado(!!data.session);setEmailUsuario(data.session?.user?.email||null);});
   },[]);
 const[data,setData]=useState({clientes:[],colaboradores:[],trabajos:[],incidencias:[]});
   const[cargando,setCargando]=useState(true);
@@ -2934,30 +3152,33 @@ const[c,col,t,inc]=await Promise.all([supabase.from('clientes').select('*').orde
     cargar();  
   },[]);
   if(autenticado===null)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-4xl">⚙️</div></div>;
-  if(!autenticado)return<LoginScreen onLogin={()=>setAutenticado(true)}/>;
+  if(!autenticado)return<LoginScreen onLogin={()=>{supabase.auth.getSession().then(({data})=>{setAutenticado(true);setEmailUsuario(data.session?.user?.email||null);});}}/>;
   if(cargando)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-center"><div className="text-4xl mb-3">⚙️</div><div className="font-bold text-gray-700">Cargando Domia CRM...</div></div></div>;
+  if(path==="/admin"&&emailUsuario===ADMIN_EMAIL)return<AdminPanel data={data}/>;
   const sinAsignar=data.trabajos.filter(t=>t.estado==="Solicitud").length;
   const sinPrecio=data.trabajos.filter(t=>t.estado==="Presupuestando"&&!getPresupColab(t)).length;
 const TITULO={home:"Inicio",nuevas:"Nuevas demandas",demandas:"Pipeline",clientes:"Clientes",colaboradores:"Colaboradores",incidencias:"Incidencias"};
-  return<div className="min-h-screen flex flex-col" style={{background:"#F0F2F5",fontFamily:"'Inter',system-ui,sans-serif"}}>
-    <header className="bg-[#1E3A5F] text-white px-4 py-3 flex items-center gap-3 sticky top-0 z-40 shadow-lg">
-      {sec!=="home"&&<button onClick={()=>setSec("home")} className="w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 transition text-xl leading-none">‹</button>}
-      {sec==="home"&&<div className="w-8 h-8 bg-orange-500 rounded-xl flex items-center justify-center font-black text-sm flex-shrink-0">D</div>}
-      <div className="flex-1 min-w-0">
-        <div className="font-black text-sm leading-none">{TITULO[sec]||"Domia CRM"}</div>
-        {sec==="home"&&<div className="text-[10px] text-blue-300 mt-0.5">{sinAsignar>0?`⚡ ${sinAsignar} sin asignar · `:""}{sinPrecio>0?`💶 ${sinPrecio} sin precio · `:""}activos: {data.trabajos.filter(t=>["Aceptado","En curso"].includes(t.estado)).length}</div>}
+  const incidenciasAbiertas=(data.incidencias||[]).filter(i=>i.estado==="Abierta").length;
+  return<div className="min-h-screen flex" style={{background:"#F0F2F5",fontFamily:"'Inter',system-ui,sans-serif"}}>
+    <Sidebar sec={sec} setSec={setSec} nuevasCount={sinAsignar} incidenciasCount={incidenciasAbiertas}/>
+    <div className="flex-1 min-w-0 flex flex-col">
+      <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 flex items-center gap-3 sticky top-0 z-30">
+        <div className="flex-1 min-w-0">
+          <div className="font-black text-sm text-gray-800 leading-none">{TITULO[sec]||"Domia CRM"}</div>
+          {sec==="home"&&<div className="text-[10px] text-gray-400 mt-0.5">{sinAsignar>0?`⚡ ${sinAsignar} sin asignar · `:""}{sinPrecio>0?`💶 ${sinPrecio} sin precio · `:""}activos: {data.trabajos.filter(t=>["Aceptado","En curso"].includes(t.estado)).length}</div>}
+        </div>
+        <button onClick={()=>window.open('/solicitar','_blank')} className="bg-[#1E3A5F] hover:bg-[#152d4a] text-white text-xs font-bold px-3 py-1.5 rounded-xl transition whitespace-nowrap">+ Nuevo</button>
       </div>
-      <button onClick={()=>window.open('/solicitar','_blank')} className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition whitespace-nowrap">+ Nuevo</button>
-    </header>
-    <main className={`flex-1 px-4 py-5 mx-auto w-full pb-8 ${sec==="demandas"?"max-w-[1440px]":"max-w-2xl"}`}>
-      {sec==="home"&&<Home data={data} setData={setData} go={setSec} setTid={setTid} toast={T}/>}
-      {sec==="nuevas"&&<NuevasDemandas data={data} setData={setData} onBack={()=>setSec("home")} toast={T} onVer={id=>{setTid(id);}}/>}
-      {sec==="demandas"&&<EstadoDemandas data={data} setData={setData} onBack={()=>setSec("home")} toast={T} onVer={id=>{setTid(id);}}/>}
-      {sec==="clientes"&&<Clientes data={data} setData={setData} onBack={()=>setSec("home")} toast={T}/>}
-      {sec==="colaboradores"&&<Colaboradores data={data} setData={setData} onBack={()=>setSec("home")} toast={T}/>}
-      {sec==="finanzas"&&<Finanzas data={data} setData={setData} onBack={()=>{setSec("home");setFocoFinanzas(null);}} toast={T} focoTrabajo={focoFinanzas}/>}
-      {sec==="incidencias"&&<Incidencias data={data} setData={setData} onBack={()=>setSec("home")} toast={T}/>}
-    </main>
+      <main className={`flex-1 px-4 py-5 mx-auto w-full pb-8 ${sec==="demandas"?"max-w-[1440px]":"max-w-2xl"}`}>
+        {sec==="home"&&<Home data={data} setData={setData} go={setSec} setTid={setTid} toast={T}/>}
+        {sec==="nuevas"&&<NuevasDemandas data={data} setData={setData} onBack={()=>setSec("home")} toast={T} onVer={id=>{setTid(id);}}/>}
+        {sec==="demandas"&&<EstadoDemandas data={data} setData={setData} onBack={()=>setSec("home")} toast={T} onVer={id=>{setTid(id);}}/>}
+        {sec==="clientes"&&<Clientes data={data} setData={setData} onBack={()=>setSec("home")} toast={T}/>}
+        {sec==="colaboradores"&&<Colaboradores data={data} setData={setData} onBack={()=>setSec("home")} toast={T}/>}
+        {sec==="finanzas"&&<Finanzas data={data} setData={setData} onBack={()=>{setSec("home");setFocoFinanzas(null);}} toast={T} focoTrabajo={focoFinanzas}/>}
+        {sec==="incidencias"&&<Incidencias data={data} setData={setData} onBack={()=>setSec("home")} toast={T}/>}
+      </main>
+    </div>
     {showNuevo&&<Modal title="Nueva solicitud" onClose={()=>setShowNuevo(false)} wide><FormTrabajo data={data} setData={setData} onClose={()=>setShowNuevo(false)} toast={T}/></Modal>}
 {tid&&<TrabajoModal tid={tid} data={data} setData={setData} onClose={()=>setTid(null)} toast={T} setSec={setSec} setFocoFinanzas={setFocoFinanzas}/>}
     {toastMsg&&<Toast msg={toastMsg} clear={()=>setToastMsg(null)}/>}
