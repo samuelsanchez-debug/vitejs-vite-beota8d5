@@ -322,24 +322,6 @@ const proximas=[...data.trabajos].filter(t=>["Aceptado","En curso"].includes(t.e
       <div><div className="text-2xl font-bold text-gray-800">{cerrados}</div><div className="text-[11px] text-gray-400 mt-0.5">Cerrados</div></div>
     </div>
 
-    <div className="grid grid-cols-2 gap-3">
-      {[
-        {s:"nuevas",icon:"📥",label:"Nuevas demandas",desc:"Sin gestionar",badge:nuevas},
-        {s:"demandas",icon:"📋",label:"Pipeline",desc:"Todos los estados",badge:activos},
-        {s:"clientes",icon:"👤",label:"Clientes",desc:"Base de datos",badge:0},
-       {s:"colaboradores",icon:"🔧",label:"Colaboradores",desc:"Equipo",badge:0},
-               {s:"finanzas",icon:"💶",label:"Finanzas",desc:"Cobros y pagos",badge:0},
-        {s:"incidencias",icon:"⚠️",label:"Incidencias",desc:"Garantías y quejas",badge:(data.incidencias||[]).filter(i=>i.estado==="Abierta").length},
-      ].map(m=>(
-        <button key={m.s} onClick={()=>go(m.s)} className="bg-white border border-gray-100 rounded-2xl p-4 text-left shadow-sm hover:border-gray-300 hover:shadow-md active:scale-95 transition relative">
-          {m.badge>0&&<span className="absolute top-3 right-3 bg-amber-500 text-white text-[10px] font-bold min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center">{m.badge}</span>}
-          <div className="text-2xl mb-2">{m.icon}</div>
-          <div className="font-semibold text-gray-800 text-sm">{m.label}</div>
-          <div className="text-[11px] text-gray-400 mt-0.5">{m.desc}</div>
-        </button>
-      ))}
-    </div>
-
     {nuevas>0&&<div className="bg-white border border-amber-200 rounded-2xl p-4 shadow-sm">
       <div className="font-semibold text-amber-700 text-sm mb-2 flex items-center gap-2">⚡ {nuevas} demanda{nuevas>1?"s":""} sin asignar</div>
       {sinAsignar.slice(0,2).map(t=>{
@@ -3095,8 +3077,8 @@ const SIDEBAR_GRUPOS = [
   {grupo:"Directorio",items:[{id:"clientes",label:"Clientes"},{id:"colaboradores",label:"Colaboradores"}]},
   {grupo:"Gestión",items:[{id:"finanzas",label:"Finanzas"},{id:"incidencias",label:"Incidencias"}]},
 ];
-function Sidebar({sec,setSec,nuevasCount,incidenciasCount}){
-  const badges={nuevas:nuevasCount,incidencias:incidenciasCount};
+function Sidebar({sec,setSec,nuevasCount,pipelineCount,incidenciasCount}){
+  const badges={nuevas:nuevasCount,demandas:pipelineCount,incidencias:incidenciasCount};
   return<aside className="w-[60px] sm:w-56 flex-shrink-0 bg-white border-r border-gray-200 flex flex-col items-center sm:items-stretch py-4 px-1.5 sm:px-3 sticky top-0 h-screen overflow-y-auto">
     <div className="flex items-center gap-2.5 pb-5 justify-center sm:justify-start">
       <div className="w-7 h-7 rounded-lg bg-[#1E3A5F] flex items-center justify-center text-white font-black text-[13px] flex-shrink-0">D</div>
@@ -3159,8 +3141,9 @@ const[c,col,t,inc]=await Promise.all([supabase.from('clientes').select('*').orde
   const sinPrecio=data.trabajos.filter(t=>t.estado==="Presupuestando"&&!getPresupColab(t)).length;
 const TITULO={home:"Inicio",nuevas:"Nuevas demandas",demandas:"Pipeline",clientes:"Clientes",colaboradores:"Colaboradores",incidencias:"Incidencias"};
   const incidenciasAbiertas=(data.incidencias||[]).filter(i=>i.estado==="Abierta").length;
+  const pipelineActivos=data.trabajos.filter(t=>["Presupuestando","Presupuesto enviado","Aceptado","En curso"].includes(t.estado)).length;
   return<div className="min-h-screen flex" style={{background:"#F0F2F5",fontFamily:"'Inter',system-ui,sans-serif"}}>
-    <Sidebar sec={sec} setSec={setSec} nuevasCount={sinAsignar} incidenciasCount={incidenciasAbiertas}/>
+    <Sidebar sec={sec} setSec={setSec} nuevasCount={sinAsignar} pipelineCount={pipelineActivos} incidenciasCount={incidenciasAbiertas}/>
     <div className="flex-1 min-w-0 flex flex-col">
       <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 flex items-center gap-3 sticky top-0 z-30">
         <div className="flex-1 min-w-0">
