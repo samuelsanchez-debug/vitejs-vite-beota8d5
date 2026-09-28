@@ -273,10 +273,6 @@ const estadoFinal=esNuevo?(colab?"Presupuestando":"Solicitud"):(f.estado==="Soli
 
 function Home({data,setData,go,setTid,toast}){
   const nuevas=data.trabajos.filter(t=>t.estado==="Solicitud").length;
-  const activos=data.trabajos.filter(t=>["Presupuestando","Presupuesto enviado","Aceptado","En curso"].includes(t.estado)).length;
-  const cerrados=data.trabajos.filter(t=>t.estado==="Completado").length;
-  const ingresos=data.trabajos.filter(t=>t.estado==="Completado").reduce((s,t)=>s+(getPrecioCliente(t)||0),0);
-  const costes=data.trabajos.filter(t=>t.estado==="Completado").reduce((s,t)=>s+(getPresupColab(t)||0),0);
   const sinAsignar=data.trabajos.filter(t=>t.estado==="Solicitud");
 const proximas=[...data.trabajos].filter(t=>["Aceptado","En curso"].includes(t.estado)&&t.fecha>=hoy()).sort((a,b)=>a.fecha.localeCompare(b.fecha)).slice(0,4);
   const estadosVivos=["Solicitud","Presupuestando","Colaborador disponible","Visita propuesta","Cliente confirmó","Presupuesto recibido","Presupuesto enviado"];
@@ -301,26 +297,6 @@ const proximas=[...data.trabajos].filter(t=>["Aceptado","En curso"].includes(t.e
         </button>
       </div>
     </div>}
-    <div className="grid grid-cols-3 gap-3">
-      <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-        <div className="text-[11px] text-gray-400 font-medium mb-1 flex items-center gap-1">💰 Facturado</div>
-        <div className="text-xl font-bold text-gray-800">{ingresos}€</div>
-      </div>
-      <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-        <div className="text-[11px] text-gray-400 font-medium mb-1 flex items-center gap-1">👷 Pagado</div>
-        <div className="text-xl font-bold text-red-500">{costes}€</div>
-      </div>
-      <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-        <div className="text-[11px] text-gray-400 font-medium mb-1 flex items-center gap-1">📈 Beneficio</div>
-        <div className="text-xl font-bold text-emerald-600">{ingresos-costes}€</div>
-      </div>
-    </div>
-
-    <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm grid grid-cols-3 gap-2 text-center">
-      <div><div className="text-2xl font-bold text-gray-800">{nuevas}</div><div className="text-[11px] text-gray-400 mt-0.5">Nuevas</div></div>
-      <div className="border-x border-gray-100"><div className="text-2xl font-bold text-gray-800">{activos}</div><div className="text-[11px] text-gray-400 mt-0.5">Activos</div></div>
-      <div><div className="text-2xl font-bold text-gray-800">{cerrados}</div><div className="text-[11px] text-gray-400 mt-0.5">Cerrados</div></div>
-    </div>
 
     {nuevas>0&&<div className="bg-white border border-amber-200 rounded-2xl p-4 shadow-sm">
       <div className="font-semibold text-amber-700 text-sm mb-2 flex items-center gap-2">⚡ {nuevas} demanda{nuevas>1?"s":""} sin asignar</div>
@@ -340,6 +316,13 @@ const proximas=[...data.trabajos].filter(t=>["Aceptado","En curso"].includes(t.e
       <div className="space-y-2">{proximas.map(t=>{const cl=data.clientes.find(c=>c.id===getClienteId(t));const co=data.colaboradores.find(c=>c.id===getColabId(t));return<div key={t.id} onClick={()=>setTid(t.id)} className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 rounded-xl px-2 py-2 transition"><div className="text-center min-w-[36px]"><div className="text-lg font-bold text-[#1E3A5F] leading-none">{new Date(t.fecha+"T00:00:00").getDate()}</div><div className="text-[9px] text-gray-400 uppercase">{new Date(t.fecha+"T00:00:00").toLocaleDateString("es-ES",{month:"short"})}</div></div><div className="flex-1 min-w-0"><div className="font-medium text-sm text-gray-800 truncate">{t.tipo} — {cl?.nombre}</div><div className="text-xs text-gray-400">{t.hora} · {co?.nombre||"Sin asignar"}</div></div><Badge text={t.estado}/></div>;})}
       </div>
     </div>}
+
+    {parados.length===0&&adelantosPendientes.length===0&&visitasHoy.length===0&&nuevas===0&&proximas.length===0&&
+      <div className="text-center py-16">
+        <div className="text-5xl mb-3">✅</div>
+        <div className="font-bold text-gray-700">Todo al día</div>
+        <div className="text-sm text-gray-400 mt-1">No hay nada urgente ahora mismo</div>
+      </div>}
   </div>;
 }
 function NuevasDemandas({data,setData,onBack,toast,onVer}){
@@ -814,18 +797,62 @@ function Clientes({data,setData,onBack,toast}){
   const[showNew,setShowNew]=useState(false);
   const[busca,setBusca]=useState("");
   const[fAct,setFAct]=useState("Todos");
+  const[orden,setOrden]=useState({campo:"nombre",dir:1});
   if(!cid){
     let list=[...data.clientes];
     if(busca.trim()){const q=busca.toLowerCase();list=list.filter(c=>c.nombre.toLowerCase().includes(q)||c.telefono?.includes(busca));}
     if(fAct==="Con activos")list=list.filter(c=>data.trabajos.some(t=>getClienteId(t)===c.id&&!["Completado","Cancelado"].includes(t.estado)));
     if(fAct==="Sin trabajos")list=list.filter(c=>!data.trabajos.some(t=>getClienteId(t)===c.id));
+    const filas=list.map(c=>{
+      const ts=data.trabajos.filter(t=>getClienteId(t)===c.id);
+      const act=ts.filter(t=>!["Completado","Cancelado"].includes(t.estado)).length;
+      const ing=ts.filter(t=>t.estado==="Completado").reduce((s,t)=>s+(getPrecioCliente(t)||0),0);
+      return{...c,_trabajos:ts.length,_activos:act,_facturado:ing};
+    });
+    const ordenar=campo=>setOrden(o=>({campo,dir:o.campo===campo?-o.dir:1}));
+    filas.sort((a,b)=>orden.campo==="facturado"?(a._facturado-b._facturado)*orden.dir:a.nombre.localeCompare(b.nombre)*orden.dir);
+    const Flecha=({campo})=>orden.campo===campo?<span className="ml-1 text-gray-400">{orden.dir===1?"▾":"▴"}</span>:null;
     return<div>
-      <Back title="Clientes" onBack={onBack} right={<button onClick={()=>setShowNew(true)} className="bg-[#1E3A5F] text-white text-xs font-bold px-3 py-1.5 rounded-xl hover:bg-[#152d4a] transition">+ Nuevo</button>}/>
-      <input className={S+" mb-3"} placeholder="🔍 Nombre o teléfono..." value={busca} onChange={e=>setBusca(e.target.value)}/>
-      <div className="flex gap-1.5 mb-4 flex-wrap">{["Todos","Con activos","Sin trabajos"].map(o=><Pill key={o} label={o} active={fAct===o} onClick={()=>setFAct(o)}/>)}</div>
-      <div className="text-xs text-gray-400 font-semibold mb-3">{list.length} cliente{list.length!==1?"s":""}</div>
-      <div className="space-y-2">{list.map(c=>{const ts=data.trabajos.filter(t=>getClienteId(t)===c.id);const act=ts.filter(t=>!["Completado","Cancelado"].includes(t.estado)).length;const ing=ts.filter(t=>t.estado==="Completado").reduce((s,t)=>s+(getPrecioCliente(t)||0),0);return<div key={c.id} onClick={()=>setCid(c.id)} className="bg-white border border-gray-100 rounded-2xl px-4 py-4 shadow-sm cursor-pointer hover:border-[#1E3A5F] hover:shadow-md transition"><div className="flex items-center justify-between mb-1"><div className="font-bold text-gray-800">{c.nombre}</div><span className="text-[#1E3A5F] text-xl">›</span></div><div className="text-xs text-gray-500">{c.telefono}{c.email?` · ${c.email}`:""}</div>{c.direccion&&<div className="text-xs text-gray-400 truncate mt-0.5">📍 {c.direccion}</div>}<div className="flex items-center gap-2 mt-2"><span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{ts.length} trabajo{ts.length!==1?"s":""}</span>{act>0&&<span className="text-[10px] bg-amber-100 text-amber-700 font-bold px-2 py-0.5 rounded-full">{act} activo{act>1?"s":""}</span>}{ing>0&&<span className="text-[10px] text-emerald-700 font-bold ml-auto">{ing}€</span>}</div></div>;})}
-      {list.length===0&&<div className="text-center py-10 text-sm text-gray-400">Sin resultados</div>}
+      <Back title="Clientes" onBack={onBack}/>
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <input className={S+" flex-1 min-w-[180px]"} placeholder="🔍 Buscar por nombre o teléfono..." value={busca} onChange={e=>setBusca(e.target.value)}/>
+        <div className="flex gap-1.5 flex-wrap">{["Todos","Con activos","Sin trabajos"].map(o=><Pill key={o} label={o} active={fAct===o} onClick={()=>setFAct(o)}/>)}</div>
+        <button onClick={()=>setShowNew(true)} className="ml-auto bg-[#1E3A5F] hover:bg-[#152d4a] text-white text-xs font-bold px-3.5 py-2.5 rounded-xl transition whitespace-nowrap">+ Nuevo cliente</button>
+      </div>
+      <div className="text-xs text-gray-400 font-semibold mb-3">{filas.length} cliente{filas.length!==1?"s":""}</div>
+      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border-collapse min-w-[680px]">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-100">
+                <th onClick={()=>ordenar("nombre")} className="text-left text-[10.5px] uppercase tracking-wide text-gray-400 font-bold px-4 py-2.5 cursor-pointer select-none whitespace-nowrap">Cliente<Flecha campo="nombre"/></th>
+                <th className="text-left text-[10.5px] uppercase tracking-wide text-gray-400 font-bold px-4 py-2.5 whitespace-nowrap">Teléfono</th>
+                <th className="text-left text-[10.5px] uppercase tracking-wide text-gray-400 font-bold px-4 py-2.5 whitespace-nowrap">Dirección</th>
+                <th className="text-right text-[10.5px] uppercase tracking-wide text-gray-400 font-bold px-4 py-2.5 whitespace-nowrap">Trabajos</th>
+                <th className="text-left text-[10.5px] uppercase tracking-wide text-gray-400 font-bold px-4 py-2.5 whitespace-nowrap">Estado</th>
+                <th onClick={()=>ordenar("facturado")} className="text-right text-[10.5px] uppercase tracking-wide text-gray-400 font-bold px-4 py-2.5 cursor-pointer select-none whitespace-nowrap">Facturado<Flecha campo="facturado"/></th>
+                <th className="px-2"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {filas.map(c=><tr key={c.id} onClick={()=>setCid(c.id)} className="border-b border-gray-50 last:border-0 hover:bg-gray-50 cursor-pointer transition">
+                <td className="px-4 py-3">
+                  <div className="font-semibold text-gray-800">{c.nombre}</div>
+                  {c.email&&<div className="text-[11px] text-gray-400 mt-0.5">{c.email}</div>}
+                </td>
+                <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{c.telefono||"—"}</td>
+                <td className="px-4 py-3 text-gray-500 max-w-[220px] truncate">{c.direccion||"—"}</td>
+                <td className="px-4 py-3 text-right text-gray-600">{c._trabajos}</td>
+                <td className="px-4 py-3">
+                  {c._activos>0?<span className="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700"><span className="w-1.5 h-1.5 rounded-full bg-amber-500"/>{c._activos} activo{c._activos>1?"s":""}</span>:<span className="inline-flex items-center text-[10px] font-bold px-2.5 py-1 rounded-full bg-gray-100 text-gray-400">Sin activos</span>}
+                </td>
+                <td className="px-4 py-3 text-right font-semibold text-gray-800 whitespace-nowrap">{c._facturado>0?`${c._facturado}€`:<span className="text-gray-300">—</span>}</td>
+                <td className="px-2 text-right text-gray-300">›</td>
+              </tr>)}
+            </tbody>
+          </table>
+        </div>
+        {filas.length===0&&<div className="text-center py-10 text-sm text-gray-400">Sin resultados</div>}
       </div>
       {showNew&&<Modal title="Nuevo cliente" onClose={()=>setShowNew(false)}>
         {(()=>{const[f,setF]=useState({nombre:"",telefono:"",email:"",direccion:"",notas:""});return<><Fld label="Nombre *"><input className={S} value={f.nombre} onChange={e=>setF(x=>({...x,nombre:e.target.value}))}/></Fld><Fld label="Teléfono"><input className={S} value={f.telefono} onChange={e=>setF(x=>({...x,telefono:e.target.value}))}/></Fld><Fld label="Email"><input className={S} value={f.email} onChange={e=>setF(x=>({...x,email:e.target.value}))}/></Fld><Fld label="Dirección"><input className={S} value={f.direccion} onChange={e=>setF(x=>({...x,direccion:e.target.value}))}/></Fld><Fld label="Notas"><textarea className={S} rows={2} value={f.notas} onChange={e=>setF(x=>({...x,notas:e.target.value}))}/></Fld><button onClick={async()=>{if(!f.nombre.trim())return;const saved=await dbSaveCliente({...f,creado:hoy()});if(saved){setData(d=>({...d,clientes:[...d.clientes,saved]}));setShowNew(false);toast("✅ Cliente creado");}}} className="w-full bg-[#1E3A5F] hover:bg-[#152d4a] text-white py-2.5 rounded-xl font-bold text-sm transition">Guardar</button></>;})()}
@@ -3064,13 +3091,13 @@ function AdminPanel({data}){
   </div>;
 }
 const SIDEBAR_ICONS = {
-  home:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M4 11 12 4l8 7"/><path d="M6 10v9a1 1 0 001 1h4v-6h2v6h4a1 1 0 001-1v-9"/></svg>,
-  nuevas:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 13h5l1.5 2.5h5L16 13h5"/></svg>,
-  demandas:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="4" height="16" rx="1"/><rect x="10" y="4" width="4" height="10" rx="1"/><rect x="16" y="4" width="4" height="13" rx="1"/></svg>,
-  clientes:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg>,
-  colaboradores:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="8" r="3"/><circle cx="16.5" cy="9.5" r="2.5"/><path d="M3.5 20c0-3.6 2.6-6.2 6-6.2 2.9 0 5.2 1.9 5.8 4.5"/><path d="M14.5 14c2.4.4 4.3 2.5 4.3 5"/></svg>,
-  finanzas:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20V11M10 20V5M16 20v-6M22 20H2"/></svg>,
-  incidencias:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M12 4 2.5 20h19L12 4Z"/><line x1="12" y1="10.5" x2="12" y2="15"/><circle cx="12" cy="17.3" r="0.7" fill="currentColor" stroke="none"/></svg>,
+  home:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M4 11 12 4l8 7"/><path d="M6 10v9a1 1 0 001 1h4v-6h2v6h4a1 1 0 001-1v-9"/></svg>,
+  nuevas:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 13h5l1.5 2.5h5L16 13h5"/></svg>,
+  demandas:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="4" height="16" rx="1"/><rect x="10" y="4" width="4" height="10" rx="1"/><rect x="16" y="4" width="4" height="13" rx="1"/></svg>,
+  clientes:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg>,
+  colaboradores:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="8" r="3"/><circle cx="16.5" cy="9.5" r="2.5"/><path d="M3.5 20c0-3.6 2.6-6.2 6-6.2 2.9 0 5.2 1.9 5.8 4.5"/><path d="M14.5 14c2.4.4 4.3 2.5 4.3 5"/></svg>,
+  finanzas:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20V11M10 20V5M16 20v-6M22 20H2"/></svg>,
+  incidencias:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M12 4 2.5 20h19L12 4Z"/><line x1="12" y1="10.5" x2="12" y2="15"/><circle cx="12" cy="17.3" r="0.7" fill="currentColor" stroke="none"/></svg>,
 };
 const SIDEBAR_GRUPOS = [
   {grupo:"General",items:[{id:"home",label:"Inicio"},{id:"nuevas",label:"Nuevas demandas"},{id:"demandas",label:"Pipeline"}]},
@@ -3079,23 +3106,29 @@ const SIDEBAR_GRUPOS = [
 ];
 function Sidebar({sec,setSec,nuevasCount,pipelineCount,incidenciasCount}){
   const badges={nuevas:nuevasCount,demandas:pipelineCount,incidencias:incidenciasCount};
-  return<aside className="w-[60px] sm:w-56 flex-shrink-0 bg-white border-r border-gray-200 flex flex-col items-center sm:items-stretch py-4 px-1.5 sm:px-3 sticky top-0 h-screen overflow-y-auto">
-    <div className="flex items-center gap-2.5 pb-5 justify-center sm:justify-start">
-      <div className="w-7 h-7 rounded-lg bg-[#1E3A5F] flex items-center justify-center text-white font-black text-[13px] flex-shrink-0">D</div>
-      <div className="hidden sm:block font-black text-[14.5px] text-gray-800 whitespace-nowrap">Domia CRM</div>
+  return<aside className="w-[68px] sm:w-64 flex-shrink-0 bg-white border-r border-gray-200 flex flex-col items-center sm:items-stretch py-5 px-2 sm:px-3.5 sticky top-0 h-screen overflow-y-auto">
+    <div className="flex items-center justify-center pb-6">
+      <div className="sm:hidden w-10 h-10 rounded-lg bg-[#1E3A5F] flex items-center justify-center text-white font-bold text-base flex-shrink-0">D</div>
+      <img src="/logo-domia.png" alt="Domia" className="hidden sm:block h-24 w-auto max-w-full object-contain"/>
     </div>
     {SIDEBAR_GRUPOS.map(g=><div key={g.grupo} className="w-full">
-      <div className="hidden sm:block text-[10px] font-bold uppercase tracking-wider text-gray-400 px-2.5 pt-3.5 pb-1.5">{g.grupo}</div>
+      <div className="hidden sm:block text-[11px] font-bold uppercase tracking-wider text-gray-400 px-2.5 pt-4 pb-2">{g.grupo}</div>
       {g.items.map(it=>{
         const activo=sec===it.id;
         const badge=badges[it.id];
-        return<button key={it.id} onClick={()=>setSec(it.id)} className={`flex items-center gap-2.5 px-0 sm:px-2.5 py-2.5 sm:py-2 rounded-lg w-full justify-center sm:justify-start text-[13px] font-semibold transition ${activo?"bg-[#E7EDF5] text-[#1E3A5F]":"text-gray-500 hover:bg-gray-100 hover:text-gray-800"}`}>
+        return<button key={it.id} onClick={()=>setSec(it.id)} className={`flex items-center gap-2.5 px-0 sm:px-2.5 py-3 sm:py-2.5 rounded-lg w-full justify-center sm:justify-start text-sm font-semibold transition ${activo?"bg-[#E7EDF5] text-[#1E3A5F]":"text-gray-500 hover:bg-gray-100 hover:text-gray-800"}`}>
           {SIDEBAR_ICONS[it.id]}
           <span className="hidden sm:inline truncate">{it.label}</span>
-          {badge>0&&<span className={`hidden sm:flex ml-auto text-[10px] font-bold px-1.5 h-[18px] min-w-[18px] rounded-full items-center justify-center ${activo?"bg-white text-[#1E3A5F]":"bg-gray-100 text-gray-500"}`}>{badge}</span>}
+          {badge>0&&<span className={`hidden sm:flex ml-auto text-[11px] font-bold px-1.5 h-5 min-w-[20px] rounded-full items-center justify-center ${activo?"bg-white text-[#1E3A5F]":"bg-gray-100 text-gray-500"}`}>{badge}</span>}
         </button>;
       })}
     </div>)}
+    <div className="w-full pt-4">
+      <button onClick={()=>window.open('/solicitar','_blank')} className="flex items-center justify-center sm:justify-start gap-2.5 w-full bg-[#1E3A5F] hover:bg-[#152d4a] text-white rounded-lg py-3 sm:py-2.5 px-0 sm:px-2.5 text-sm font-semibold transition">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span className="hidden sm:inline">Nueva demanda</span>
+      </button>
+    </div>
   </aside>;
 }
 export default function App(){
@@ -3138,7 +3171,6 @@ const[c,col,t,inc]=await Promise.all([supabase.from('clientes').select('*').orde
   if(cargando)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-center"><div className="text-4xl mb-3">⚙️</div><div className="font-bold text-gray-700">Cargando Domia CRM...</div></div></div>;
   if(path==="/admin"&&emailUsuario===ADMIN_EMAIL)return<AdminPanel data={data}/>;
   const sinAsignar=data.trabajos.filter(t=>t.estado==="Solicitud").length;
-  const sinPrecio=data.trabajos.filter(t=>t.estado==="Presupuestando"&&!getPresupColab(t)).length;
 const TITULO={home:"Inicio",nuevas:"Nuevas demandas",demandas:"Pipeline",clientes:"Clientes",colaboradores:"Colaboradores",incidencias:"Incidencias"};
   const incidenciasAbiertas=(data.incidencias||[]).filter(i=>i.estado==="Abierta").length;
   const pipelineActivos=data.trabajos.filter(t=>["Presupuestando","Presupuesto enviado","Aceptado","En curso"].includes(t.estado)).length;
@@ -3148,11 +3180,9 @@ const TITULO={home:"Inicio",nuevas:"Nuevas demandas",demandas:"Pipeline",cliente
       <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 flex items-center gap-3 sticky top-0 z-30">
         <div className="flex-1 min-w-0">
           <div className="font-black text-sm text-gray-800 leading-none">{TITULO[sec]||"Domia CRM"}</div>
-          {sec==="home"&&<div className="text-[10px] text-gray-400 mt-0.5">{sinAsignar>0?`⚡ ${sinAsignar} sin asignar · `:""}{sinPrecio>0?`💶 ${sinPrecio} sin precio · `:""}activos: {data.trabajos.filter(t=>["Aceptado","En curso"].includes(t.estado)).length}</div>}
         </div>
-        <button onClick={()=>window.open('/solicitar','_blank')} className="bg-[#1E3A5F] hover:bg-[#152d4a] text-white text-xs font-bold px-3 py-1.5 rounded-xl transition whitespace-nowrap">+ Nuevo</button>
       </div>
-      <main className={`flex-1 px-4 py-5 mx-auto w-full pb-8 ${sec==="demandas"?"max-w-[1440px]":"max-w-2xl"}`}>
+      <main className={`flex-1 px-4 py-5 mx-auto w-full pb-8 ${sec==="demandas"?"max-w-[1440px]":sec==="clientes"?"max-w-[1100px]":"max-w-2xl"}`}>
         {sec==="home"&&<Home data={data} setData={setData} go={setSec} setTid={setTid} toast={T}/>}
         {sec==="nuevas"&&<NuevasDemandas data={data} setData={setData} onBack={()=>setSec("home")} toast={T} onVer={id=>{setTid(id);}}/>}
         {sec==="demandas"&&<EstadoDemandas data={data} setData={setData} onBack={()=>setSec("home")} toast={T} onVer={id=>{setTid(id);}}/>}
