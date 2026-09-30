@@ -932,8 +932,13 @@ function Colaboradores({data,setData,onBack,toast}){
     if(fEst==="Activo")list=list.filter(c=>c.activo);
     if(fEst==="Inactivo")list=list.filter(c=>!c.activo);
     if(fZona!=="Todas")list=list.filter(c=>c.zona===fZona);
+    const filas=list.map(c=>{
+      const act=data.trabajos.filter(t=>getColabId(t)===c.id&&["Presupuestando","Aceptado","En curso"].includes(t.estado)).length;
+      const pag=data.trabajos.filter(t=>getColabId(t)===c.id&&t.estado==="Completado").reduce((s,t)=>s+(getPresupColab(t)||0),0);
+      return{...c,_act:act,_pag:pag};
+    });
     return<div>
-<Back title="Colaboradores" onBack={onBack} right={<div className="flex gap-2"><button onClick={()=>{navigator.clipboard.writeText("https://domia-crm-two.vercel.app/alta-colaborador").then(()=>toast("📋 Enlace de alta copiado"));}} className="bg-green-500 text-white text-xs font-bold px-3 py-1.5 rounded-xl hover:bg-green-600 transition">🔗 Copiar enlace alta</button><button onClick={()=>setShowNew(true)} className="bg-[#1E3A5F] text-white text-xs font-bold px-3 py-1.5 rounded-xl hover:bg-[#152d4a] transition">+ Nuevo</button></div>}/>
+      <Back title="Colaboradores" onBack={onBack}/>
       <div className="flex gap-2 mb-4">
         <button onClick={()=>setTab("activos")} className={`flex-1 py-2 rounded-xl text-sm font-bold transition ${tab==="activos"?"bg-[#1E3A5F] text-white":"bg-white text-gray-500 border border-gray-200"}`}>Colaboradores</button>
         <button onClick={()=>setTab("solicitudes")} className={`flex-1 py-2 rounded-xl text-sm font-bold transition relative ${tab==="solicitudes"?"bg-[#1E3A5F] text-white":"bg-white text-gray-500 border border-gray-200"}`}>Solicitudes{pendientes>0&&<span className="absolute -top-1.5 -right-1.5 bg-amber-500 text-white text-[10px] font-black min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center">{pendientes}</span>}</button>
@@ -983,13 +988,55 @@ const existe=data.colaboradores.find(c=>c.email&&s.email&&c.email.toLowerCase().
         </div>)}
       </div>}
       {tab==="activos"&&<>
-      <input className={S+" mb-3"} placeholder="🔍 Nombre, zona o teléfono..." value={busca} onChange={e=>setBusca(e.target.value)}/>
-      <div className="mb-3"><div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Especialidad</div><div className="flex gap-1.5 flex-wrap">{["Todas",...TIPOS].map(t=><Pill key={t} label={t} active={fEsp===t} onClick={()=>setFEsp(t)}/>)}</div></div>
-      <div className="mb-3"><div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Estado</div><div className="flex gap-1.5">{["Todos","Activo","Inactivo"].map(o=><Pill key={o} label={o} active={fEst===o} onClick={()=>setFEst(o)}/>)}</div></div>
-      {zonas.length>1&&<div className="mb-4"><div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Zona</div><div className="flex gap-1.5 flex-wrap">{zonas.map(z=><Pill key={String(z)} label={String(z)} active={fZona===z} onClick={()=>setFZona(z)}/>)}</div></div>}
-      <div className="text-xs text-gray-400 font-semibold mb-3">{list.length} colaborador{list.length!==1?"es":""}</div>
-      <div className="space-y-2">{list.map(c=>{const act=data.trabajos.filter(t=>getColabId(t)===c.id&&["Presupuestando","Aceptado","En curso"].includes(t.estado)).length;const pag=data.trabajos.filter(t=>getColabId(t)===c.id&&t.estado==="Completado").reduce((s,t)=>s+(getPresupColab(t)||0),0);return<div key={c.id} onClick={()=>setCoid(c.id)} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm cursor-pointer hover:border-[#1E3A5F] hover:shadow-md transition"><div className="flex items-start justify-between mb-2"><div><div className="flex items-center gap-2 flex-wrap"><span className="font-bold text-gray-800">{c.nombre}</span><span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${c.activo?"bg-emerald-100 text-emerald-700":"bg-gray-100 text-gray-400"}`}>{c.activo?"Activo":"Inactivo"}</span>{act>0&&<span className="text-[10px] bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full font-bold">{act} en curso</span>}</div><div className="text-xs text-gray-500 mt-0.5">{c.especialidades?.join(" · ")}</div><div className="text-xs text-gray-400">{c.telefono}{c.zona?` · ${c.zona}`:""}</div></div><div className="text-right"><span className="text-[#1E3A5F] text-xl">›</span>{pag>0&&<div className="text-xs text-red-500 font-bold">{pag}€</div>}</div></div><div className="flex gap-0.5">{DIAS.map((d,i)=><span key={i} className={`text-[9px] w-6 h-6 flex items-center justify-center rounded-lg font-bold ${c.disponibilidad?.includes(i)?"bg-emerald-100 text-emerald-600":"bg-gray-100 text-gray-300"}`}>{d}</span>)}</div></div>;})}
-      {list.length===0&&<div className="text-center py-10 text-sm text-gray-400">Sin resultados.</div>}
+      <div className="flex flex-wrap items-center gap-2 mb-3">
+        <input className={S+" flex-1 min-w-[180px]"} placeholder="🔍 Nombre, zona o teléfono..." value={busca} onChange={e=>setBusca(e.target.value)}/>
+        <select className="border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-semibold bg-white text-gray-600" value={fEsp} onChange={e=>setFEsp(e.target.value)}>
+          <option value="Todas">Todas las especialidades</option>
+          {TIPOS.map(t=><option key={t} value={t}>{t}</option>)}
+        </select>
+        {zonas.length>1&&<select className="border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-semibold bg-white text-gray-600" value={fZona} onChange={e=>setFZona(e.target.value)}>
+          {zonas.map(z=><option key={String(z)} value={z}>{z==="Todas"?"Todas las zonas":z}</option>)}
+        </select>}
+        <button onClick={()=>{navigator.clipboard.writeText("https://domia-crm-two.vercel.app/alta-colaborador").then(()=>toast("📋 Enlace de alta copiado"));}} className="bg-green-50 text-green-700 border border-green-200 text-xs font-bold px-3.5 py-2.5 rounded-xl hover:bg-green-100 transition whitespace-nowrap">🔗 Copiar enlace alta</button>
+        <button onClick={()=>setShowNew(true)} className="bg-[#1E3A5F] text-white text-xs font-bold px-3.5 py-2.5 rounded-xl hover:bg-[#152d4a] transition whitespace-nowrap">+ Nuevo colaborador</button>
+      </div>
+      <div className="flex gap-1.5 mb-3">{["Todos","Activo","Inactivo"].map(o=><Pill key={o} label={o} active={fEst===o} onClick={()=>setFEst(o)}/>)}</div>
+      <div className="text-xs text-gray-400 font-semibold mb-3">{filas.length} colaborador{filas.length!==1?"es":""}</div>
+      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border-collapse min-w-[860px]">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-100">
+                <th className="text-left text-[10.5px] uppercase tracking-wide text-gray-400 font-bold px-4 py-2.5 whitespace-nowrap">Colaborador</th>
+                <th className="text-left text-[10.5px] uppercase tracking-wide text-gray-400 font-bold px-4 py-2.5 whitespace-nowrap">Teléfono</th>
+                <th className="text-left text-[10.5px] uppercase tracking-wide text-gray-400 font-bold px-4 py-2.5 whitespace-nowrap">Zona</th>
+                <th className="text-left text-[10.5px] uppercase tracking-wide text-gray-400 font-bold px-4 py-2.5 whitespace-nowrap">Disponibilidad</th>
+                <th className="text-right text-[10.5px] uppercase tracking-wide text-gray-400 font-bold px-4 py-2.5 whitespace-nowrap">En curso</th>
+                <th className="text-right text-[10.5px] uppercase tracking-wide text-gray-400 font-bold px-4 py-2.5 whitespace-nowrap">Pagado</th>
+                <th className="text-left text-[10.5px] uppercase tracking-wide text-gray-400 font-bold px-4 py-2.5 whitespace-nowrap">Estado</th>
+                <th className="px-2"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {filas.map(c=><tr key={c.id} onClick={()=>setCoid(c.id)} className={`border-b border-gray-50 last:border-0 hover:bg-gray-50 cursor-pointer transition ${!c.activo?"opacity-50":""}`}>
+                <td className="px-4 py-3">
+                  <div className="font-semibold text-gray-800">{c.nombre}</div>
+                  {c.especialidades?.length>0&&<div className="flex flex-wrap gap-1 mt-1">{c.especialidades.map(e=><span key={e} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#E7EDF5] text-[#1E3A5F] whitespace-nowrap">{e}</span>)}</div>}
+                </td>
+                <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{c.telefono||"—"}</td>
+                <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{c.zona||"—"}</td>
+                <td className="px-4 py-3">
+                  <div className="flex gap-0.5">{DIAS.map((d,i)=><span key={i} className={`text-[9px] w-5 h-5 flex items-center justify-center rounded font-bold ${c.disponibilidad?.includes(i)?"bg-emerald-100 text-emerald-600":"bg-gray-100 text-gray-300"}`}>{d}</span>)}</div>
+                </td>
+                <td className="px-4 py-3 text-right text-gray-600">{c._act}</td>
+                <td className="px-4 py-3 text-right font-semibold text-gray-800 whitespace-nowrap">{c._pag>0?`${c._pag}€`:<span className="text-gray-300">—</span>}</td>
+                <td className="px-4 py-3">{c.activo?<span className="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"/>Activo</span>:<span className="inline-flex items-center text-[10px] font-bold px-2.5 py-1 rounded-full bg-gray-100 text-gray-400">Inactivo</span>}</td>
+                <td className="px-2 text-right text-gray-300">›</td>
+              </tr>)}
+            </tbody>
+          </table>
+        </div>
+        {filas.length===0&&<div className="text-center py-10 text-sm text-gray-400">Sin resultados.</div>}
       </div>
 {showNew&&<Modal title="Nuevo colaborador" onClose={()=>setShowNew(false)}><FormColab onSave={async f=>{if(!f.nombre.trim())return;if(!f.email||!f.email.trim()){alert("El email es obligatorio");return;}const dup=data.colaboradores.find(c=>c.email&&c.email.toLowerCase().trim()===f.email.toLowerCase().trim());if(dup){alert(`Ya existe un colaborador con ese email: ${dup.nombre}`);return;}const saved=await dbSaveColab(f);if(saved){setData(d=>({...d,colaboradores:[...d.colaboradores,saved]}));setShowNew(false);toast("✅ Colaborador creado");}}} onCancel={()=>setShowNew(false)}/></Modal>}      </>}
     </div>;
@@ -3182,7 +3229,7 @@ const TITULO={home:"Inicio",nuevas:"Nuevas demandas",demandas:"Pipeline",cliente
           <div className="font-black text-sm text-gray-800 leading-none">{TITULO[sec]||"Domia CRM"}</div>
         </div>
       </div>
-      <main className={`flex-1 px-4 py-5 mx-auto w-full pb-8 ${sec==="demandas"?"max-w-[1440px]":sec==="clientes"?"max-w-[1100px]":"max-w-2xl"}`}>
+      <main className={`flex-1 px-4 py-5 mx-auto w-full pb-8 ${sec==="demandas"?"max-w-[1440px]":sec==="clientes"||sec==="colaboradores"?"max-w-[1180px]":"max-w-2xl"}`}>
         {sec==="home"&&<Home data={data} setData={setData} go={setSec} setTid={setTid} toast={T}/>}
         {sec==="nuevas"&&<NuevasDemandas data={data} setData={setData} onBack={()=>setSec("home")} toast={T} onVer={id=>{setTid(id);}}/>}
         {sec==="demandas"&&<EstadoDemandas data={data} setData={setData} onBack={()=>setSec("home")} toast={T} onVer={id=>{setTid(id);}}/>}
