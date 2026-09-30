@@ -468,7 +468,7 @@ function TarjetaTrabajo({t,data,setData,toast,onVer,alertColor}){
     {abierta&&<div className="border-t border-gray-100">
       <div className="px-4 py-3 grid grid-cols-2 gap-3 border-b border-gray-50">
         <div><div className="text-[10px] text-gray-400 uppercase font-bold mb-0.5">Cliente</div><div className="text-sm font-medium text-gray-800">{cl?.nombre}</div><div className="text-[11px] text-gray-500">{cl?.telefono}</div></div>
-        <div><div className="text-[10px] text-gray-400 uppercase font-bold mb-0.5">Colaborador</div><div className="text-sm font-medium text-gray-800">{co?.nombre||"Sin asignar"}</div><div className="text-[11px] text-gray-500">{co?.telefono}</div></div>
+        <div><div className="text-[10px] text-gray-400 uppercase font-bold mb-0.5">Colaborador</div><div className="text-sm font-medium text-gray-800">{co?.nombre||"Sin asignar"}</div><div className="text-[11px] text-gray-500">{co?.telefono||co?.whatsapp}</div></div>
         <div className="col-span-2"><div className="text-[10px] text-gray-400 uppercase font-bold mb-0.5">Dirección</div><div className="text-sm text-gray-700">{cl?.direccion||"—"}</div></div>
         <div className="col-span-2"><div className="text-[10px] text-gray-400 uppercase font-bold mb-0.5">Descripción</div><div className="text-sm text-gray-700 leading-relaxed">{t.descripcion}</div></div>
       </div>
@@ -927,7 +927,7 @@ function Colaboradores({data,setData,onBack,toast}){
   };
   if(!coid){
     let list=[...data.colaboradores];
-    if(busca.trim()){const q=busca.toLowerCase();list=list.filter(c=>c.nombre.toLowerCase().includes(q)||c.zona?.toLowerCase().includes(q)||c.telefono?.includes(busca));}
+    if(busca.trim()){const q=busca.toLowerCase();list=list.filter(c=>c.nombre.toLowerCase().includes(q)||c.zona?.toLowerCase().includes(q)||c.telefono?.includes(busca)||c.whatsapp?.includes(busca));}
     if(fEsp!=="Todas")list=list.filter(c=>c.especialidades?.includes(fEsp));
     if(fEst==="Activo")list=list.filter(c=>c.activo);
     if(fEst==="Inactivo")list=list.filter(c=>!c.activo);
@@ -1023,7 +1023,7 @@ const existe=data.colaboradores.find(c=>c.email&&s.email&&c.email.toLowerCase().
                   <div className="font-semibold text-gray-800">{c.nombre}</div>
                   {c.especialidades?.length>0&&<div className="flex flex-wrap gap-1 mt-1">{c.especialidades.map(e=><span key={e} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#E7EDF5] text-[#1E3A5F] whitespace-nowrap">{e}</span>)}</div>}
                 </td>
-                <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{c.telefono||"—"}</td>
+                <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{c.telefono||c.whatsapp||"—"}</td>
                 <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{c.zona||"—"}</td>
                 <td className="px-4 py-3">
                   <div className="flex gap-0.5">{DIAS.map((d,i)=><span key={i} className={`text-[9px] w-5 h-5 flex items-center justify-center rounded font-bold ${c.disponibilidad?.includes(i)?"bg-emerald-100 text-emerald-600":"bg-gray-100 text-gray-300"}`}>{d}</span>)}</div>
@@ -1055,7 +1055,7 @@ const existe=data.colaboradores.find(c=>c.email&&s.email&&c.email.toLowerCase().
     <Back title={co?.nombre} onBack={()=>setCoid(null)} right={<button onClick={()=>{setForm({...co});setEditando(true);}} className="border border-gray-200 text-gray-500 text-xs font-semibold px-3 py-1.5 rounded-xl hover:border-[#1E3A5F] hover:text-[#1E3A5F] transition">Editar</button>}/>
     <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm mb-4">
       <div className="flex flex-wrap items-center gap-2 mb-3"><span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${co?.activo?"bg-emerald-100 text-emerald-700":"bg-gray-100 text-gray-400"}`}>{co?.activo?"Activo":"Inactivo"}</span>{co?.especialidades?.map(e=><span key={e} className="text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full font-semibold border border-blue-100">{e}</span>)}</div>
-      <div className="grid grid-cols-2 gap-3 text-sm mb-3"><div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Teléfono</div><div className="font-semibold">{co?.telefono||"—"}</div></div><div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Zona</div><div className="font-semibold">{co?.zona||"—"}</div></div></div>
+      <div className="grid grid-cols-2 gap-3 text-sm mb-3"><div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Teléfono</div><div className="font-semibold">{co?.telefono||co?.whatsapp||"—"}</div></div><div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Zona</div><div className="font-semibold">{co?.zona||"—"}</div></div></div>
       <div className="text-[10px] text-gray-400 font-bold uppercase mb-1.5">Disponibilidad</div>
       <div className="flex gap-1 mb-3">{DIAS.map((d,i)=><span key={i} className={`flex-1 text-[10px] py-1.5 flex items-center justify-center rounded-lg font-bold ${co?.disponibilidad?.includes(i)?"bg-emerald-100 text-emerald-600":"bg-gray-100 text-gray-300"}`}>{d}</span>)}</div>
       <div className="grid grid-cols-3 gap-2">
@@ -1407,7 +1407,6 @@ useEffect(()=>{supabase.from('cobros_cliente').select('*').eq('trabajo_id',t.id)
 const comentCli=partes.find(p=>p.startsWith('cliente:'))?.replace('cliente:','').trim();
 const notaColab=partes.find(p=>p.startsWith('notacolab:'))?.replace('notacolab:','').trim();
   const justificante=partes.find(p=>p.startsWith('justificante:'))?.replace('justificante:','').trim();
-  const cfg=ESTADO_CFG[t.estado]||{bg:"bg-gray-100",text:"text-gray-500",dot:"bg-gray-300"};
   const precio=getPrecioCliente(t)||0;
   const colab=getPresupColab(t)||0;
   const margen=precio-colab;
@@ -1420,35 +1419,36 @@ const notaColab=partes.find(p=>p.startsWith('notacolab:'))?.replace('notacolab:'
 return<div className="space-y-3">
     {selectorColab&&<SelectorColaborador data={data} valorActual={t.colaboradorId} onCerrar={()=>setSelectorColab(false)} onSeleccionar={async(id)=>{const saved=await dbSaveTrabajo({...t,colaboradorId:id||null});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Colaborador actualizado");}setSelectorColab(false);}}/>}  
    <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
-  <div className="bg-gray-50 border-b border-gray-100 px-4 py-2 flex items-center gap-2">
-    <span className="text-xs">👤</span>
-    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Cliente</span>
-  </div>
   <div className="p-4">
-    <div className="flex items-center gap-3 mb-3">
-      <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold flex-shrink-0">{cl?.nombre?.[0]||"?"}</div>
-      <div className="min-w-0"><div className="font-semibold text-gray-800 truncate">{cl?.nombre}</div><div className="text-xs text-gray-500">{cl?.telefono}</div>{cl?.direccion&&<div className="text-xs text-gray-400 truncate">📍 {cl.direccion}</div>}</div>
+    <div className="flex items-center gap-3">
+      <div className="w-11 h-11 rounded-full bg-[#1E3A5F] text-white flex items-center justify-center font-bold flex-shrink-0">{cl?.nombre?.[0]||"?"}</div>
+      <div className="min-w-0"><div className="font-bold text-gray-800 text-[14.5px] truncate">{cl?.nombre}</div><div className="text-xs text-gray-400">{cl?.telefono}</div></div>
     </div>
-    <div className="flex gap-2">
-      {tel&&<a href={`https://wa.me/${tel.replace('+','')}`} target="_blank" className="flex-1 text-center py-2 rounded-lg bg-green-50 text-green-600 text-sm">💬</a>}
-      {tel&&<a href={`tel:${tel}`} className="flex-1 text-center py-2 rounded-lg bg-gray-50 text-gray-600 text-sm">📞</a>}
-      {cl?.email&&<a href={`mailto:${cl.email}`} className="flex-1 text-center py-2 rounded-lg bg-gray-50 text-gray-600 text-sm">✉️</a>}
-      {cl?.direccion&&<a href={`https://maps.google.com/?q=${encodeURIComponent(cl.direccion)}`} target="_blank" className="flex-1 text-center py-2 rounded-lg bg-gray-50 text-gray-600 text-sm">🗺️</a>}
+    {cl?.direccion&&<div className="flex items-center gap-2 pt-3 mt-3 border-t border-gray-100">
+      <div className="w-[26px] h-[26px] rounded-lg bg-gray-50 text-gray-400 flex items-center justify-center flex-shrink-0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 21s7-6.2 7-12a7 7 0 10-14 0c0 5.8 7 12 7 12Z"/><circle cx="12" cy="9" r="2.4"/></svg></div>
+      <div className="text-[11px] text-gray-400">Dirección</div>
+      <div className="ml-auto text-[12.5px] font-semibold text-gray-700 text-right">{cl.direccion}</div>
+    </div>}
+    <div className="flex gap-1.5 mt-3">
+      {tel&&<a href={`https://wa.me/${tel.replace('+','')}`} target="_blank" className="flex-1 flex flex-col items-center gap-1 py-2 rounded-xl bg-gray-50 text-gray-500 hover:bg-gray-100 transition"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15L2 22l5.2-1.4A10 10 0 1012 2Z"/></svg><span className="text-[9px] font-semibold">WhatsApp</span></a>}
+      {tel&&<a href={`tel:${tel}`} className="flex-1 flex flex-col items-center gap-1 py-2 rounded-xl bg-gray-50 text-gray-500 hover:bg-gray-100 transition"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2Z"/></svg><span className="text-[9px] font-semibold">Llamar</span></a>}
+      {cl?.email&&<a href={`mailto:${cl.email}`} className="flex-1 flex flex-col items-center gap-1 py-2 rounded-xl bg-gray-50 text-gray-500 hover:bg-gray-100 transition"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><span className="text-[9px] font-semibold">Email</span></a>}
+      {cl?.direccion&&<a href={`https://maps.google.com/?q=${encodeURIComponent(cl.direccion)}`} target="_blank" className="flex-1 flex flex-col items-center gap-1 py-2 rounded-xl bg-gray-50 text-gray-500 hover:bg-gray-100 transition"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 21s7-6.2 7-12a7 7 0 10-14 0c0 5.8 7 12 7 12Z"/><circle cx="12" cy="9" r="2.4"/></svg><span className="text-[9px] font-semibold">Mapa</span></a>}
     </div>
   </div>
 </div>
-<div className="bg-white border-2 border-[#1E3A5F]/10 rounded-2xl overflow-hidden shadow-sm">
-  <div className="bg-[#1E3A5F] px-4 py-2 flex items-center gap-2">
-    <span className="text-xs">👉</span>
-<span className="text-[10px] font-bold text-white uppercase tracking-widest flex-1">Siguiente paso</span>
+<div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+  <div className="bg-[#E7EDF5] px-4 py-2.5 flex items-center gap-2">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    <span className="text-[10px] font-bold text-[#1E3A5F] uppercase tracking-widest flex-1">Siguiente paso</span>
   </div>
   <div className="p-4 space-y-2">
     {(()=>{
       const co2=data.colaboradores.find(c=>c.id===getColabId(t));
 const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
   const avanzar=async(nuevoEstado,msg)=>{const hist=[...getHistorial(t),{ts:now(),txt:msg||`Estado: ${nuevoEstado}`,tipo:"sistema"}];const saved=await dbSaveTrabajo({...t,estado:nuevoEstado,historial:hist});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast(`✅ ${nuevoEstado}`);}};
-      const Guia=({texto})=><div className="text-sm text-gray-600 bg-blue-50 rounded-lg px-3 py-2 mb-1">{texto}</div>;
-      const Btn=({onClick,children,color="bg-[#1E3A5F]"})=><button onClick={onClick} className={`w-full ${color} text-white py-2.5 rounded-xl font-bold text-sm transition hover:opacity-90`}>{children}</button>;
+      const Guia=({texto})=><div className="text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2 mb-1">{texto}</div>;
+      const Btn=({onClick,children,ghost=false})=>ghost?<button onClick={onClick} className="w-full bg-white border border-gray-200 text-gray-600 py-2.5 rounded-xl font-semibold text-sm transition hover:border-gray-400">{children}</button>:<button onClick={onClick} className="w-full bg-[#1E3A5F] text-white py-2.5 rounded-xl font-bold text-sm transition hover:bg-[#152d4a]">{children}</button>;
 
             const recomendacion={
         "Solicitud":getColabId(t)?"Ya tienes colaborador asignado. Avísale del trabajo.":"Asigna un colaborador para este trabajo.",
@@ -1465,29 +1465,29 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
            return<>
         <Guia texto={recomendacion}/>
         {t.estado==="Solicitud"&&!getColabId(t)&&<Btn onClick={()=>setSelectorColab(true)}>👷 Asignar colaborador</Btn>}
-{t.estado==="Solicitud"&&getColabId(t)&&co2&&cl&&<Btn onClick={async()=>{window.open(buildWA(co2,t,cl),"_blank");await avanzar("Presupuestando","Trabajo enviado al colaborador");}} color="bg-green-500">📱 Enviar trabajo al colaborador</Btn>}
-             {t.estado==="Presupuestando"&&co2&&cl&&<Btn onClick={()=>window.open(buildWA(co2,t,cl),"_blank")} color="bg-green-500">📱 Reenviar WhatsApp a {co2.nombre.split(" ")[0]}</Btn>}
-        {t.estado==="Colaborador disponible"&&t.ultima_novedad&&t.ultima_novedad.includes("Cliente propone")&&co2&&<Btn onClick={()=>window.open(buildWACambioFecha(co2,t,cl),"_blank")} color="bg-orange-500">📱 Consultar cambio de fecha con {co2.nombre.split(" ")[0]}</Btn>}
-             {t.estado==="Colaborador disponible"&&cl?.telefono&&<Btn onClick={async()=>{window.open(buildWAVisitaCliente(cl,t,co2),"_blank");await avanzar("Visita propuesta","Fecha propuesta al cliente por WhatsApp");}} color="bg-cyan-500">📱 Proponer fecha al cliente</Btn>}
-             {t.estado==="Cliente confirmó"&&co2&&<Btn onClick={async()=>{window.open(buildWAConfirmacionColab(co2,t,cl),"_blank");await avanzar("En curso","Visita programada — colaborador avisado");}} color="bg-teal-500">✅ Avisar colaborador — visita programada</Btn>}
-        {t.estado==="Presupuesto recibido"&&<Btn onClick={()=>setModo("presupuesto")} color="bg-purple-600">📄 Generar presupuesto Domia</Btn>}
-        {t.estado==="Presupuesto enviado"&&pdfD&&tel&&<Btn onClick={()=>window.open(`https://wa.me/${tel.replace('+','')}?text=${encodeURIComponent(`Hola ${cl?.nombre?.split(" ")[0]||""} 😊\n\nTu presupuesto de *Domia Services* ya está listo.\n\n📄 Verlo y aceptarlo aquí:\nhttps://domia-crm-two.vercel.app/aceptar/${t.id}\n\nCualquier duda me dices. ¡Gracias!\n\n— Samuel · Domia Services · 685 917 059`)}`,"_blank")} color="bg-green-500">📱 Reenviar presupuesto al cliente</Btn>}
-        {t.estado==="Presupuesto enviado"&&<Btn onClick={()=>avanzar("Aceptado","Cliente aceptó el presupuesto")} color="bg-violet-500">🤝 Cliente aceptó</Btn>}
-        {t.estado==="Aceptado"&&<Btn onClick={()=>avanzar("En curso","Trabajo iniciado")} color="bg-orange-500">🔧 Marcar en curso</Btn>}
-        {t.estado==="En curso"&&!t.trabajo_terminado&&<Btn onClick={async()=>{const hist=[...getHistorial(t),{ts:now(),txt:"🔧 Trabajo marcado como terminado — pendiente verificación del cliente",tipo:"sistema"}];const saved=await dbSaveTrabajo({...t,trabajo_terminado:true,verificacion_rechazo:null,historial:hist});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));if(cl?.telefono)window.open(buildWAVerificarTrabajo(cl,t),"_blank");toast("✅ Marcado — pidiendo verificación al cliente");}}} color="bg-orange-500">✅ Marcar trabajo terminado</Btn>}
-        {t.estado==="En curso"&&t.trabajo_terminado&&!t.cliente_verificado&&!t.verificacion_rechazo&&cl?.telefono&&<Btn onClick={()=>window.open(buildWAVerificarTrabajo(cl,t),"_blank")} color="bg-cyan-500">📱 Pedir verificación al cliente</Btn>}
+{t.estado==="Solicitud"&&getColabId(t)&&co2&&cl&&<Btn onClick={async()=>{window.open(buildWA(co2,t,cl),"_blank");await avanzar("Presupuestando","Trabajo enviado al colaborador");}}>📱 Enviar trabajo al colaborador</Btn>}
+             {t.estado==="Presupuestando"&&co2&&cl&&<Btn onClick={()=>window.open(buildWA(co2,t,cl),"_blank")}>📱 Reenviar WhatsApp a {co2.nombre.split(" ")[0]}</Btn>}
+        {t.estado==="Colaborador disponible"&&t.ultima_novedad&&t.ultima_novedad.includes("Cliente propone")&&co2&&<Btn onClick={()=>window.open(buildWACambioFecha(co2,t,cl),"_blank")}>📱 Consultar cambio de fecha con {co2.nombre.split(" ")[0]}</Btn>}
+             {t.estado==="Colaborador disponible"&&cl?.telefono&&<Btn onClick={async()=>{window.open(buildWAVisitaCliente(cl,t,co2),"_blank");await avanzar("Visita propuesta","Fecha propuesta al cliente por WhatsApp");}}>📱 Proponer fecha al cliente</Btn>}
+             {t.estado==="Cliente confirmó"&&co2&&<Btn onClick={async()=>{window.open(buildWAConfirmacionColab(co2,t,cl),"_blank");await avanzar("En curso","Visita programada — colaborador avisado");}}>✅ Avisar colaborador — visita programada</Btn>}
+        {t.estado==="Presupuesto recibido"&&<Btn onClick={()=>setModo("presupuesto")}>📄 Generar presupuesto Domia</Btn>}
+        {t.estado==="Presupuesto enviado"&&pdfD&&tel&&<Btn onClick={()=>window.open(`https://wa.me/${tel.replace('+','')}?text=${encodeURIComponent(`Hola ${cl?.nombre?.split(" ")[0]||""} 😊\n\nTu presupuesto de *Domia Services* ya está listo.\n\n📄 Verlo y aceptarlo aquí:\nhttps://domia-crm-two.vercel.app/aceptar/${t.id}\n\nCualquier duda me dices. ¡Gracias!\n\n— Samuel · Domia Services · 685 917 059`)}`,"_blank")}>📱 Reenviar presupuesto al cliente</Btn>}
+        {t.estado==="Presupuesto enviado"&&<Btn onClick={()=>avanzar("Aceptado","Cliente aceptó el presupuesto")}>🤝 Cliente aceptó</Btn>}
+        {t.estado==="Aceptado"&&<Btn onClick={()=>avanzar("En curso","Trabajo iniciado")}>🔧 Marcar en curso</Btn>}
+        {t.estado==="En curso"&&!t.trabajo_terminado&&<Btn onClick={async()=>{const hist=[...getHistorial(t),{ts:now(),txt:"🔧 Trabajo marcado como terminado — pendiente verificación del cliente",tipo:"sistema"}];const saved=await dbSaveTrabajo({...t,trabajo_terminado:true,verificacion_rechazo:null,historial:hist});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));if(cl?.telefono)window.open(buildWAVerificarTrabajo(cl,t),"_blank");toast("✅ Marcado — pidiendo verificación al cliente");}}}>✅ Marcar trabajo terminado</Btn>}
+        {t.estado==="En curso"&&t.trabajo_terminado&&!t.cliente_verificado&&!t.verificacion_rechazo&&cl?.telefono&&<Btn onClick={()=>window.open(buildWAVerificarTrabajo(cl,t),"_blank")}>📱 Pedir verificación al cliente</Btn>}
         {t.estado==="En curso"&&t.verificacion_rechazo&&<div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700 mb-1"><strong>El cliente indica que falta algo:</strong><br/>{t.verificacion_rechazo}</div>}
-        {t.estado==="En curso"&&t.verificacion_rechazo&&co2&&<Btn onClick={()=>window.open(buildWARechazoVerificacion(co2,t,cl,t.verificacion_rechazo),"_blank")} color="bg-orange-500">🔁 Reenviar al colaborador con motivo</Btn>}
-        {t.estado==="En curso"&&t.cliente_verificado&&cl?.telefono&&<Btn onClick={()=>window.open(buildWACobroFinal(cl,t),"_blank")} color="bg-emerald-600">💰 Reclamar cobro</Btn>}
+        {t.estado==="En curso"&&t.verificacion_rechazo&&co2&&<Btn onClick={()=>window.open(buildWARechazoVerificacion(co2,t,cl,t.verificacion_rechazo),"_blank")}>🔁 Reenviar al colaborador con motivo</Btn>}
+        {t.estado==="En curso"&&t.cliente_verificado&&cl?.telefono&&<Btn onClick={()=>window.open(buildWACobroFinal(cl,t),"_blank")}>💰 Reclamar cobro</Btn>}
              <button onClick={()=>setAccionesAbiertas(v=>!v)} className="w-full text-[11px] font-bold text-gray-400 uppercase tracking-widest py-1.5 flex items-center justify-center gap-1 hover:text-gray-600">{accionesAbiertas?"▲ Ocultar acciones":"▼ Todas las acciones"}</button>
         {accionesAbiertas&&<div className="space-y-2">
-          {getColabId(t)?<Btn onClick={()=>setSelectorColab(true)} color="bg-gray-400">👷 Cambiar colaborador</Btn>:<Btn onClick={()=>setSelectorColab(true)}>👷 Asignar colaborador</Btn>}
-          {co2&&cl&&<Btn onClick={async()=>{window.open(buildWA(co2,t,cl),"_blank");if(t.estado==="Solicitud")await avanzar("Presupuestando","Trabajo enviado al colaborador");}} color="bg-green-500">📱 Enviar trabajo al colaborador</Btn>}
-          {cl&&<Btn onClick={async()=>{window.open(buildWAVisitaCliente(cl,t,co2),"_blank");await avanzar("Visita propuesta","Visita propuesta al cliente");}} color="bg-cyan-500">📱 Proponer visita al cliente</Btn>}
-          {co2&&cl&&<Btn onClick={async()=>{window.open(buildWAConfirmacionColab(co2,t,cl),"_blank");await avanzar("En curso","Visita confirmada — colaborador avisado");}} color="bg-teal-500">📱 Avisar al colaborador (visita confirmada)</Btn>}
-          <Btn onClick={()=>setModo("presupuesto")} color="bg-purple-600">📄 Generar / editar presupuesto</Btn>
-          {pdfD&&tel&&<Btn onClick={()=>window.open(`https://wa.me/${tel.replace('+','')}?text=${encodeURIComponent(`Hola ${cl?.nombre?.split(" ")[0]||""} 😊\n\nTu presupuesto de *Domia Services* ya está listo.\n\n📄 Verlo y aceptarlo aquí:\nhttps://domia-crm-two.vercel.app/aceptar/${t.id}\n\nCualquier duda me dices. ¡Gracias!\n\n— Samuel · Domia Services · 685 917 059`)}`,"_blank")} color="bg-green-500">📱 Enviar presupuesto al cliente</Btn>}
-          {setSec&&<Btn onClick={()=>{setFocoFinanzas&&setFocoFinanzas(t.id);onClose();setSec("finanzas");}} color="bg-amber-500">💶 Ver este trabajo en Finanzas</Btn>}
+          {getColabId(t)?<Btn onClick={()=>setSelectorColab(true)} ghost>👷 Cambiar colaborador</Btn>:<Btn onClick={()=>setSelectorColab(true)} ghost>👷 Asignar colaborador</Btn>}
+          {co2&&cl&&<Btn onClick={async()=>{window.open(buildWA(co2,t,cl),"_blank");if(t.estado==="Solicitud")await avanzar("Presupuestando","Trabajo enviado al colaborador");}} ghost>📱 Enviar trabajo al colaborador</Btn>}
+          {cl&&<Btn onClick={async()=>{window.open(buildWAVisitaCliente(cl,t,co2),"_blank");await avanzar("Visita propuesta","Visita propuesta al cliente");}} ghost>📱 Proponer visita al cliente</Btn>}
+          {co2&&cl&&<Btn onClick={async()=>{window.open(buildWAConfirmacionColab(co2,t,cl),"_blank");await avanzar("En curso","Visita confirmada — colaborador avisado");}} ghost>📱 Avisar al colaborador (visita confirmada)</Btn>}
+          <Btn onClick={()=>setModo("presupuesto")} ghost>📄 Generar / editar presupuesto</Btn>
+          {pdfD&&tel&&<Btn onClick={()=>window.open(`https://wa.me/${tel.replace('+','')}?text=${encodeURIComponent(`Hola ${cl?.nombre?.split(" ")[0]||""} 😊\n\nTu presupuesto de *Domia Services* ya está listo.\n\n📄 Verlo y aceptarlo aquí:\nhttps://domia-crm-two.vercel.app/aceptar/${t.id}\n\nCualquier duda me dices. ¡Gracias!\n\n— Samuel · Domia Services · 685 917 059`)}`,"_blank")} ghost>📱 Enviar presupuesto al cliente</Btn>}
+          {setSec&&<Btn onClick={()=>{setFocoFinanzas&&setFocoFinanzas(t.id);onClose();setSec("finanzas");}} ghost>💶 Ver este trabajo en Finanzas</Btn>}
                     <div className="pt-2 border-t border-gray-100">
             <div className="text-[10px] text-gray-400 font-bold uppercase mb-1.5">Cambiar estado</div>
             <select value={t.estado} onChange={e=>avanzar(e.target.value)} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm">
@@ -1510,30 +1510,29 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
   </Modal>}
 </div>
     <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
-  <div className="bg-gray-50 border-b border-gray-100 px-4 py-2 flex items-center gap-2">
-    <span className="text-xs">🔧</span>
-    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Trabajo</span>
-  </div>
   <div className="p-4">
     <div className="flex items-center justify-between mb-3">
       {editEstado?<select autoFocus className="text-xs border border-gray-200 rounded-lg px-2 py-1 text-gray-700 font-bold" defaultValue={t.estado} disabled={guardando} onChange={async(e)=>{setGuardando(true);const saved=await dbSaveTrabajo({...t,estado:e.target.value});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Estado actualizado");}setEditEstado(false);setGuardando(false);}}>
         {["Solicitud","Presupuestando","Colaborador disponible","Visita propuesta","Cliente confirmó","Presupuesto recibido","Presupuesto enviado","Aceptado","En curso","Completado"].map(e=><option key={e}>{e}</option>)}
-      </select>:<span onClick={()=>setEditEstado(true)} className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase cursor-pointer hover:opacity-70 ${cfg.bg} ${cfg.text}`} title="Clic para editar"><span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`}/>{t.estado} ✏️</span>}
+      </select>:<span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-gray-100 text-gray-500"><span className={`w-1.5 h-1.5 rounded-full ${ESTADO_DOT_PIPELINE[t.estado]||"bg-gray-300"}`}/>{t.estado}</span>}
+      <button onClick={()=>setEditEstado(v=>!v)} className="w-6 h-6 flex items-center justify-center rounded-lg text-gray-300 hover:text-gray-500 hover:bg-gray-50 transition flex-shrink-0" title="Editar estado">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4Z"/></svg>
+      </button>
     </div>
-    <div className="flex items-center gap-3 mb-3">
-      <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-xl">{ICONO_TIPO[t.tipo]||"📋"}</div>
-      <div className="text-lg font-bold text-gray-800">{t.tipo}</div>
+    <div className="flex items-center gap-3 mb-1">
+      <div className="w-10 h-10 rounded-xl bg-[#EAF0F7] text-[#1E3A5F] flex items-center justify-center flex-shrink-0"><IconoTipoPipeline tipo={t.tipo}/></div>
+      <div className="font-bold text-gray-800 text-[15px]">{t.tipo}</div>
     </div>
-    <div className="grid grid-cols-2 gap-2 pt-3 border-t border-gray-100">
-           <div className="bg-gray-50 rounded-xl p-2">
-        <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Fecha y hora</div>
-        <input type="date" defaultValue={t.fecha} onBlur={async e=>{if(e.target.value===t.fecha)return;const hist=[...getHistorial(t),{ts:now(),txt:`Fecha actualizada: ${e.target.value}`,tipo:"sistema"}];const saved=await dbSaveTrabajo({...t,fecha:e.target.value,historial:hist});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Fecha actualizada");}}} className="w-full border border-gray-200 rounded-lg px-1 py-0.5 text-xs text-gray-700 font-semibold focus:outline-none focus:ring-1 focus:ring-[#1E3A5F] bg-white mb-1"/>
-        <input type="time" defaultValue={t.hora} onBlur={async e=>{if(e.target.value===t.hora)return;const hist=[...getHistorial(t),{ts:now(),txt:`Hora actualizada: ${e.target.value}`,tipo:"sistema"}];const saved=await dbSaveTrabajo({...t,hora:e.target.value,historial:hist});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Hora actualizada");}}} className="w-full border border-gray-200 rounded-lg px-1 py-0.5 text-xs text-gray-700 font-semibold focus:outline-none focus:ring-1 focus:ring-[#1E3A5F] bg-white"/>
-      </div>
-      <div className="bg-gray-50 rounded-xl p-2">
-        <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Colaborador</div>
-<div className="text-xs font-semibold text-blue-600 cursor-pointer" onClick={()=>setSelectorColab(true)}>{co?.nombre||"— Asignar ✏️"}</div>
-      </div>
+    <div className="flex items-center gap-2.5 py-2.5 border-t border-gray-100 mt-2">
+      <div className="w-[26px] h-[26px] rounded-lg bg-gray-50 text-gray-400 flex items-center justify-center flex-shrink-0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></svg></div>
+      <div className="text-[11px] text-gray-400 flex-1">Fecha</div>
+      <input type="date" defaultValue={t.fecha} onBlur={async e=>{if(e.target.value===t.fecha)return;const hist=[...getHistorial(t),{ts:now(),txt:`Fecha actualizada: ${e.target.value}`,tipo:"sistema"}];const saved=await dbSaveTrabajo({...t,fecha:e.target.value,historial:hist});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Fecha actualizada");}}} className="border-0 bg-transparent text-right text-[12.5px] font-semibold text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#1E3A5F] rounded-md px-1"/>
+      <input type="time" defaultValue={t.hora} onBlur={async e=>{if(e.target.value===t.hora)return;const hist=[...getHistorial(t),{ts:now(),txt:`Hora actualizada: ${e.target.value}`,tipo:"sistema"}];const saved=await dbSaveTrabajo({...t,hora:e.target.value,historial:hist});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Hora actualizada");}}} className="border-0 bg-transparent text-right text-[12.5px] font-semibold text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#1E3A5F] rounded-md px-1"/>
+    </div>
+    <div className="flex items-center gap-2.5 py-2.5 border-t border-gray-100 cursor-pointer" onClick={()=>setSelectorColab(true)}>
+      <div className="w-[26px] h-[26px] rounded-lg bg-gray-50 text-gray-400 flex items-center justify-center flex-shrink-0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="9" cy="8" r="3"/><path d="M3.5 20c0-3.6 2.6-6.2 6-6.2 2.9 0 5.2 1.9 5.8 4.5"/></svg></div>
+      <div className="text-[11px] text-gray-400 flex-1">Colaborador</div>
+      <div className="text-[12.5px] font-semibold text-[#1E3A5F]">{co?.nombre||"Sin asignar"}</div>
     </div>
   </div>
   <div className="flex gap-1 border-t border-gray-200">
@@ -1704,7 +1703,7 @@ return<Modal title={`${t.tipo} #${t.id}`} onClose={onClose} wide={modo!=="ver"} 
       <div className="flex flex-wrap gap-1.5"><Badge text={t.estado}/><OrigenTag id={t.origen}/><span className={`text-xs font-bold ${PRIO_CFG[t.prioridad]?.text}`}>{PRIO_CFG[t.prioridad]?.icon} {t.prioridad}</span></div>
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Cliente</div><div className="font-semibold">{cl?.nombre}</div><div className="text-xs text-gray-400">{cl?.telefono}</div></div>
-        <div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Colaborador</div><div className="font-semibold">{co?.nombre||"Sin asignar"}</div><div className="text-xs text-gray-400">{co?.telefono}</div></div>
+        <div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Colaborador</div><div className="font-semibold">{co?.nombre||"Sin asignar"}</div><div className="text-xs text-gray-400">{co?.telefono||co?.whatsapp}</div></div>
         <div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Fecha / Hora</div><div>{fmt(t.fecha)} · {t.hora}</div></div>
       </div>
       <div className="bg-gray-50 rounded-xl p-3 text-sm text-gray-700">{t.descripcion}</div>
