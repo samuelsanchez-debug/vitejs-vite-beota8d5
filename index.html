@@ -12,6 +12,19 @@
     <link rel="apple-touch-icon" href="/logo-domia.png" />
     <title>Domia CRM</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontWeight: {
+              semibold: 500,
+              bold: 600,
+              black: 700,
+            },
+          },
+        },
+      };
+    </script>
   </head>
   <body>
     <div id="root"></div>
