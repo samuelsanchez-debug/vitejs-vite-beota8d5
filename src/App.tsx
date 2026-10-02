@@ -1349,48 +1349,51 @@ const saved=await dbSaveTrabajo({...t,precioCliente:totalCliente,historial:hist,
 }
 function SelectorColaborador({data,valorActual,onSeleccionar,onCerrar}){
   const[busca,setBusca]=useState("");
+  const[fOficio,setFOficio]=useState("Todos");
   const activos=data.colaboradores.filter(c=>c.activo);
-  const filtrados=busca.trim()?activos.filter(c=>c.nombre.toLowerCase().includes(busca.toLowerCase())||c.especialidades?.some(e=>e.toLowerCase().includes(busca.toLowerCase()))||c.zona?.toLowerCase().includes(busca.toLowerCase())):activos;
+  const oficioDe=c=>(c.especialidades&&c.especialidades[0])||"Otros";
+  const todosOficios=[...new Set(activos.map(oficioDe))].sort();
+  const filtrados=(busca.trim()?activos.filter(c=>c.nombre.toLowerCase().includes(busca.toLowerCase())||c.especialidades?.some(e=>e.toLowerCase().includes(busca.toLowerCase()))||c.zona?.toLowerCase().includes(busca.toLowerCase())):activos).filter(c=>fOficio==="Todos"||oficioDe(c)===fOficio);
   const porOficio={};
-  filtrados.forEach(c=>{const e=(c.especialidades&&c.especialidades[0])||"Otros";if(!porOficio[e])porOficio[e]=[];porOficio[e].push(c);});
+  filtrados.forEach(c=>{const e=oficioDe(c);if(!porOficio[e])porOficio[e]=[];porOficio[e].push(c);});
   const oficios=Object.keys(porOficio).sort();
   return<Modal title="Seleccionar colaborador" onClose={onCerrar} wide>
-    <input className={S+" mb-4"} placeholder="🔍 Buscar por nombre, oficio o zona..." value={busca} onChange={e=>setBusca(e.target.value)} autoFocus/>
-    <div className="mb-3">
-      <button onClick={()=>onSeleccionar("")} className={`w-full text-left px-3 py-2.5 rounded-xl text-sm border transition ${!valorActual?"bg-[#1E3A5F] text-white border-[#1E3A5F]":"bg-white text-gray-500 border-gray-200 hover:border-gray-400"}`}>— Sin colaborador —</button>
+    <div className="relative mb-3">
+      <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input className={S+" pl-9"} placeholder="Buscar por nombre o zona..." value={busca} onChange={e=>setBusca(e.target.value)} autoFocus/>
     </div>
-    {oficios.length===0&&<div className="text-center py-8 text-sm text-gray-400">Sin colaboradores</div>}
-    <div className="space-y-4 max-h-[55vh] overflow-y-auto">
+    <div className="flex gap-1.5 overflow-x-auto pb-2.5">
+      {["Todos",...todosOficios].map(o=><button key={o} onClick={()=>setFOficio(o)} className={`text-[11.5px] font-semibold px-3 py-1.5 rounded-full border whitespace-nowrap transition ${fOficio===o?"bg-[#1E3A5F] text-white border-[#1E3A5F]":"bg-white text-gray-500 border-gray-200 hover:border-gray-400"}`}>{o}</button>)}
+    </div>
+    <div className="border border-gray-200 rounded-xl overflow-hidden max-h-[55vh] overflow-y-auto">
+      <button onClick={()=>onSeleccionar("")} className={`w-full flex items-center gap-2.5 text-left px-3 py-2 text-[12.5px] font-semibold transition ${!valorActual?"bg-[#E7EDF5] text-[#1E3A5F]":"text-gray-500 hover:bg-gray-50"}`}>
+        <span className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${!valorActual?"bg-[#1E3A5F] text-white":"bg-gray-100 text-gray-400"}`}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><line x1="5.6" y1="5.6" x2="18.4" y2="18.4"/></svg></span>
+        Sin colaborador
+        {!valorActual&&<svg className="ml-auto" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+      </button>
+      {oficios.length===0&&<div className="text-center py-8 text-sm text-gray-400 border-t border-gray-100">Sin colaboradores</div>}
       {oficios.map(oficio=><div key={oficio}>
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-lg">{ICONO_TIPO[oficio]||"📋"}</span>
-          <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">{oficio}</span>
-          <span className="text-[10px] text-gray-400">({porOficio[oficio].length})</span>
+        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border-t border-gray-100 text-[10px] font-bold uppercase tracking-wider text-gray-400">
+          {oficio}<span className="ml-auto">{porOficio[oficio].length}</span>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
-          {porOficio[oficio].map(c=>{
-            const activos=data.trabajos.filter(t=>getColabId(t)===c.id&&["Presupuestando","Aceptado","En curso"].includes(t.estado)).length;
-            const sel=String(valorActual)===String(c.id);
-            return<button key={c.id} onClick={()=>onSeleccionar(c.id)} className={`text-left p-3 rounded-xl border transition ${sel?"bg-blue-50 border-[#1E3A5F]":"bg-white border-gray-200 hover:border-[#1E3A5F] hover:shadow-sm"}`}>
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-bold text-gray-800 text-sm">{c.nombre}</span>
-                {sel&&<span className="text-[#1E3A5F]">✓</span>}
-              </div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-bold">⭐ {c.valoracion||5}</span>
-                {activos>0&&<span className="text-[10px] bg-violet-100 text-violet-700 px-1.5 py-0.5 rounded-full font-bold">{activos} en curso</span>}
-                {c.zona&&<span className="text-[10px] text-gray-400">📍 {c.zona}</span>}
-              </div>
-            </button>;
-          })}
-        </div>
+        {porOficio[oficio].map(c=>{
+          const activos=data.trabajos.filter(t=>getColabId(t)===c.id&&["Presupuestando","Aceptado","En curso"].includes(t.estado)).length;
+          const sel=String(valorActual)===String(c.id);
+          const iniciales=c.nombre.split(" ").filter(Boolean).map(n=>n[0]).slice(0,2).join("").toUpperCase();
+          return<button key={c.id} onClick={()=>onSeleccionar(c.id)} className={`w-full flex items-center gap-2.5 text-left px-3 py-2 border-t border-gray-100 transition ${sel?"bg-[#E7EDF5]":"hover:bg-gray-50"}`}>
+            <span className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${sel?"bg-[#1E3A5F] text-white":"bg-gray-100 text-gray-500"}`}>{iniciales}</span>
+            <span className="flex-1 min-w-0 text-[13px] font-semibold text-gray-800 truncate">{c.nombre}</span>
+            {c.zona&&<span className="text-[11px] text-gray-400 whitespace-nowrap truncate max-w-[40%]">{c.zona}</span>}
+            <span className="flex items-center justify-end gap-1 w-7 text-[10.5px] font-semibold text-gray-500 flex-shrink-0"><span className={`w-1.5 h-1.5 rounded-full ${activos>0?"bg-orange-500":"bg-emerald-500"}`}/>{activos}</span>
+            <span className="w-4 flex-shrink-0 text-[#1E3A5F]">{sel&&<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}</span>
+          </button>;
+        })}
       </div>)}
     </div>
   </Modal>;
 }
 function FichaTrabajo({t,cl,co,data,setData,onClose,toast,setModo,setSec,setFocoFinanzas}){
 const[tab,setTab]=useState("resumen");
-const[editEstado,setEditEstado]=useState(false);
 const[editColab,setEditColab]=useState(false);
 const[selectorColab,setSelectorColab]=useState(false);
 const[accionesAbiertas,setAccionesAbiertas]=useState(false);
@@ -1511,28 +1514,38 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
 </div>
     <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
   <div className="p-4">
-    <div className="flex items-center justify-between mb-3">
-      {editEstado?<select autoFocus className="text-xs border border-gray-200 rounded-lg px-2 py-1 text-gray-700 font-bold" defaultValue={t.estado} disabled={guardando} onChange={async(e)=>{setGuardando(true);const saved=await dbSaveTrabajo({...t,estado:e.target.value});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Estado actualizado");}setEditEstado(false);setGuardando(false);}}>
-        {["Solicitud","Presupuestando","Colaborador disponible","Visita propuesta","Cliente confirmó","Presupuesto recibido","Presupuesto enviado","Aceptado","En curso","Completado"].map(e=><option key={e}>{e}</option>)}
-      </select>:<span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-gray-100 text-gray-500"><span className={`w-1.5 h-1.5 rounded-full ${ESTADO_DOT_PIPELINE[t.estado]||"bg-gray-300"}`}/>{t.estado}</span>}
-      <button onClick={()=>setEditEstado(v=>!v)} className="w-6 h-6 flex items-center justify-center rounded-lg text-gray-300 hover:text-gray-500 hover:bg-gray-50 transition flex-shrink-0" title="Editar estado">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4Z"/></svg>
-      </button>
-    </div>
-    <div className="flex items-center gap-3 mb-1">
+    <div className="flex items-center gap-3 mb-3">
       <div className="w-10 h-10 rounded-xl bg-[#EAF0F7] text-[#1E3A5F] flex items-center justify-center flex-shrink-0"><IconoTipoPipeline tipo={t.tipo}/></div>
       <div className="font-bold text-gray-800 text-[15px]">{t.tipo}</div>
     </div>
-    <div className="flex items-center gap-2.5 py-2.5 border-t border-gray-100 mt-2">
-      <div className="w-[26px] h-[26px] rounded-lg bg-gray-50 text-gray-400 flex items-center justify-center flex-shrink-0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></svg></div>
-      <div className="text-[11px] text-gray-400 flex-1">Fecha</div>
-      <input type="date" defaultValue={t.fecha} onBlur={async e=>{if(e.target.value===t.fecha)return;const hist=[...getHistorial(t),{ts:now(),txt:`Fecha actualizada: ${e.target.value}`,tipo:"sistema"}];const saved=await dbSaveTrabajo({...t,fecha:e.target.value,historial:hist});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Fecha actualizada");}}} className="border-0 bg-transparent text-right text-[12.5px] font-semibold text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#1E3A5F] rounded-md px-1"/>
-      <input type="time" defaultValue={t.hora} onBlur={async e=>{if(e.target.value===t.hora)return;const hist=[...getHistorial(t),{ts:now(),txt:`Hora actualizada: ${e.target.value}`,tipo:"sistema"}];const saved=await dbSaveTrabajo({...t,hora:e.target.value,historial:hist});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Hora actualizada");}}} className="border-0 bg-transparent text-right text-[12.5px] font-semibold text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#1E3A5F] rounded-md px-1"/>
+    <div className="flex flex-col items-start gap-2 pt-3 border-t border-gray-100">
+    <div className="flex items-center gap-2">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0"><circle cx="12" cy="12" r="9"/><polyline points="8.5 12.5 11 15 15.5 9.5"/></svg>
+      <span className="w-[84px] flex-shrink-0 text-[10px] font-bold uppercase tracking-wide text-gray-400">Estado</span>
+      <div className="relative bg-amber-50 border border-amber-100 rounded-lg" style={{width:`calc(${(t.estado.length*1.05).toFixed(1)}ch + 46px)`}}>
+        <span className={`absolute left-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full pointer-events-none ${ESTADO_DOT_PIPELINE[t.estado]||"bg-gray-300"}`}/>
+        <select value={t.estado} disabled={guardando} onChange={async(e)=>{setGuardando(true);const saved=await dbSaveTrabajo({...t,estado:e.target.value});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Estado actualizado");}setGuardando(false);}} className="w-full appearance-none bg-transparent text-[12.5px] font-semibold text-gray-800 pl-4 pr-6 py-0.5 cursor-pointer rounded-md hover:bg-amber-100/70 focus:outline-none focus:ring-1 focus:ring-[#1E3A5F] transition disabled:opacity-50">
+          {(t.estado==="Cancelado"?["Cancelado"]:[]).concat(["Solicitud","Presupuestando","Colaborador disponible","Visita propuesta","Cliente confirmó","Presupuesto recibido","Presupuesto enviado","Aceptado","En curso","Completado"]).map(e=><option key={e} value={e}>{e}</option>)}
+        </select>
+        <svg className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none text-amber-600" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
     </div>
-    <div className="flex items-center gap-2.5 py-2.5 border-t border-gray-100 cursor-pointer" onClick={()=>setSelectorColab(true)}>
-      <div className="w-[26px] h-[26px] rounded-lg bg-gray-50 text-gray-400 flex items-center justify-center flex-shrink-0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="9" cy="8" r="3"/><path d="M3.5 20c0-3.6 2.6-6.2 6-6.2 2.9 0 5.2 1.9 5.8 4.5"/></svg></div>
-      <div className="text-[11px] text-gray-400 flex-1">Colaborador</div>
-      <div className="text-[12.5px] font-semibold text-[#1E3A5F]">{co?.nombre||"Sin asignar"}</div>
+    <div className="flex items-center gap-2">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" className="flex-shrink-0"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></svg>
+      <span className="w-[84px] flex-shrink-0 text-[10px] font-bold uppercase tracking-wide text-gray-400">Fecha</span>
+      <div className="inline-flex items-center bg-amber-50 border border-amber-100 rounded-lg px-1 py-0.5">
+      <input type="date" defaultValue={t.fecha} onBlur={async e=>{if(e.target.value===t.fecha)return;const hist=[...getHistorial(t),{ts:now(),txt:`Fecha actualizada: ${e.target.value}`,tipo:"sistema"}];const saved=await dbSaveTrabajo({...t,fecha:e.target.value,historial:hist});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Fecha actualizada");}}} className="border-0 bg-transparent text-[12.5px] font-semibold text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#1E3A5F] rounded-md px-1"/>
+      <input type="time" defaultValue={t.hora} onBlur={async e=>{if(e.target.value===t.hora)return;const hist=[...getHistorial(t),{ts:now(),txt:`Hora actualizada: ${e.target.value}`,tipo:"sistema"}];const saved=await dbSaveTrabajo({...t,hora:e.target.value,historial:hist});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Hora actualizada");}}} className="border-0 bg-transparent text-[12.5px] font-semibold text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#1E3A5F] rounded-md px-1"/>
+      </div>
+    </div>
+    <div className="flex items-center gap-2 cursor-pointer" onClick={()=>setSelectorColab(true)}>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" className="flex-shrink-0"><circle cx="9" cy="8" r="3"/><path d="M3.5 20c0-3.6 2.6-6.2 6-6.2 2.9 0 5.2 1.9 5.8 4.5"/></svg>
+      <span className="w-[84px] flex-shrink-0 text-[10px] font-bold uppercase tracking-wide text-gray-400">Colaborador</span>
+      <span className="inline-flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100/70 border border-amber-100 rounded-lg pl-2 pr-1.5 py-1 transition">
+        <span className="text-[12.5px] font-semibold text-gray-800">{co?.nombre||"Sin asignar"}</span>
+        <svg className="text-amber-600 flex-shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </span>
+    </div>
     </div>
   </div>
   <div className="flex gap-1 border-t border-gray-200">
