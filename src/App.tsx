@@ -1548,9 +1548,9 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
     </div>
     </div>
   </div>
-  <div className="flex gap-1 border-t border-gray-200">
+  <div className="flex border-t border-gray-200 overflow-x-auto" style={{scrollbarWidth:"none"}}>
 {[["resumen","Resumen"],["presupuesto","Presupuesto"],["archivos","Archivos"],["notas","Notas"],["historial","Historial"]].map(([k,label])=>(
-    <button key={k} onClick={()=>setTab(k)} className={`px-3 py-2 text-sm font-semibold transition border-b-2 -mb-px ${tab===k?"border-[#1E3A5F] text-[#1E3A5F]":"border-transparent text-gray-400 hover:text-gray-600"}`}>{label}</button>
+    <button key={k} onClick={()=>setTab(k)} className={`flex-1 min-w-max px-2.5 py-2.5 text-[13px] font-semibold whitespace-nowrap transition border-b-2 -mb-px ${tab===k?"border-[#1E3A5F] text-[#1E3A5F]":"border-transparent text-gray-400 hover:text-gray-600"}`}>{label}</button>
         ))}
       </div>
 
