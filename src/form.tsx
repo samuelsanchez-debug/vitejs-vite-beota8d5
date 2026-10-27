@@ -4,16 +4,22 @@ const TIPOS = ["Fontanería","Electricidad","Albañilería","Carpintería","Pint
 const SUPABASE_URL = 'https://opijkazhbktiikdzbanb.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9waWprYXpoYmt0aWlrZHpiYW5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNDcyNjIsImV4cCI6MjA5NzcyMzI2Mn0.HmTXEO848sPMhi2NxNxvshLxntk1EDI6D4NCMAdUINI';
 const LOGO_URL = '/logo-domia.png';
+const MAX_FOTO_BYTES = 10 * 1024 * 1024;
+const EXT_POR_TIPO: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif', 'image/heic': 'heic', 'image/heif': 'heif' };
+const limpiarTelefono = (t: string) => (t || '').replace(/[\s.\-()]/g, '');
+const telefonoValido = (t: string) => /^\+?\d{9,15}$/.test(limpiarTelefono(t));
+const emailValido = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
 
 export default function FormularioDomia() {
   const [paso, setPaso] = useState(1);
-  const [fotos, setFotos] = useState([]);
-  const [fotosPreview, setFotosPreview] = useState([]);
+  const [fotos, setFotos] = useState<File[]>([]);
+  const [fotosPreview, setFotosPreview] = useState<string[]>([]);
+  const [web, setWeb] = useState("");
   const [form, setForm] = useState({
     nombre: "", telefono: "", email: "", direccion: "",
     tipos: [], descripcion: "",
   });
-  const [errores, setErrores] = useState({});
+  const [errores, setErrores] = useState<Record<string, string | null>>({});
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -26,22 +32,28 @@ export default function FormularioDomia() {
   };
 
   const validar = () => {
-    const e = {};
+    const e: Record<string, string> = {};
     if (!form.nombre.trim()) e.nombre = "Nombre obligatorio";
     if (!form.telefono.trim()) e.telefono = "Teléfono obligatorio";
+    else if (!telefonoValido(form.telefono)) e.telefono = "Introduce un teléfono válido (solo números, 9 o más cifras)";
     if (!form.direccion.trim()) e.direccion = "Dirección obligatoria";
     if (!form.tipos.length) e.tipos = "Selecciona al menos un servicio";
 if (!form.descripcion.trim()) e.descripcion = "Describe el problema";
     if (!form.email.trim()) e.email = "Email obligatorio";
+    else if (!emailValido(form.email)) e.email = "Introduce un email válido";
     setErrores(e);
     return Object.keys(e).length === 0;
   };
 
   const handleFoto = (e) => {
-    const files = Array.from(e.target.files || []);
+    const files = Array.from(e.target.files || []) as File[];
+    e.target.value = '';
     if (!files.length) return;
+    const validas = files.filter(f => f.type.startsWith('image/') && f.size <= MAX_FOTO_BYTES);
+    setErrores(x => ({ ...x, fotos: validas.length < files.length ? "Solo se admiten imágenes de hasta 10 MB" : null }));
+    if (!validas.length) return;
     setFotos(prev => {
-      const combinadas = [...prev, ...files].slice(0, 3);
+      const combinadas = [...prev, ...validas].slice(0, 3);
       setFotosPreview(combinadas.map(f => URL.createObjectURL(f)));
       return combinadas;
     });
@@ -56,13 +68,15 @@ if (!form.descripcion.trim()) e.descripcion = "Describe el problema";
 
   const enviar = async () => {
     if (!validar()) return;
+    // Campo trampa para bots: una persona no lo ve ni lo rellena. Simulamos éxito sin guardar nada.
+    if (web.trim()) { setPaso(3); return; }
     setPaso(2);
     try {
-     const fotosUrls = [];
+     const fotosUrls: string[] = [];
       for (let i = 0; i < fotos.length; i++) {
         const f = fotos[i];
-        const ext = f.name.split('.').pop();
-        const nombre = `demandas/${Date.now()}_${i}.${ext}`;
+        const ext = EXT_POR_TIPO[f.type] || 'jpg';
+        const nombre = `demandas/${crypto.randomUUID()}.${ext}`;
         const uploadRes = await fetch(`${SUPABASE_URL}/storage/v1/object/fotos-demandas/${nombre}`, {
           method: 'POST',
           headers: {
@@ -76,7 +90,7 @@ if (!form.descripcion.trim()) e.descripcion = "Describe el problema";
         }
       }
 
-let telLimpio = (form.telefono || '').replace(/\s/g, '');
+let telLimpio = limpiarTelefono(form.telefono);
       if (telLimpio && !telLimpio.startsWith('+')) telLimpio = '+34' + telLimpio;
       let clienteId = null;
 
@@ -86,6 +100,7 @@ let telLimpio = (form.telefono || '').replace(/\s/g, '');
           'Authorization': `Bearer ${SUPABASE_KEY}`,
         },
       });
+      if (!buscaRes.ok) throw new Error(`buscar cliente: ${buscaRes.status}`);
       const existentes = await buscaRes.json();
       if (existentes.length > 0) {
         clienteId = existentes[0].id;
@@ -107,9 +122,11 @@ let telLimpio = (form.telefono || '').replace(/\s/g, '');
             creado: new Date().toISOString().slice(0, 10),
           }),
         });
+        if (!clienteRes.ok) throw new Error(`crear cliente: ${clienteRes.status}`);
         const clienteData = await clienteRes.json();
         clienteId = clienteData[0]?.id;
       }
+      if (!clienteId) throw new Error('cliente sin id');
 
       const now = new Date();
       const historial = [{
@@ -118,13 +135,13 @@ let telLimpio = (form.telefono || '').replace(/\s/g, '');
         tipo: 'entrada'
       }];
 
-      await fetch(`${SUPABASE_URL}/rest/v1/trabajos`, {
+      const trabajoRes = await fetch(`${SUPABASE_URL}/rest/v1/trabajos`, {
         method: 'POST',
         headers: {
           'apikey': SUPABASE_KEY,
           'Authorization': `Bearer ${SUPABASE_KEY}`,
           'Content-Type': 'application/json',
-          'Prefer': 'return=representation',
+          'Prefer': 'return=minimal',
         },
         body: JSON.stringify({
           cliente_id: clienteId,
@@ -140,6 +157,7 @@ let telLimpio = (form.telefono || '').replace(/\s/g, '');
           historial: JSON.stringify(historial),
         }),
       });
+      if (!trabajoRes.ok) throw new Error(`crear trabajo: ${trabajoRes.status}`);
       setPaso(3);
     } catch (err) {
       console.error(err);
@@ -261,6 +279,7 @@ let telLimpio = (form.telefono || '').replace(/\s/g, '');
                 ))}
               </div>
             )}
+            {errores.fotos && <p className="text-red-500 text-xs mb-2">⚠️ {errores.fotos}</p>}
             {fotos.length < 3 && (
               <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl py-5 cursor-pointer hover:border-[#1E3A5F] hover:bg-blue-50 transition bg-gray-50">
                 <span className="text-3xl mb-1">📷</span>
@@ -300,6 +319,10 @@ let telLimpio = (form.telefono || '').replace(/\s/g, '');
             <input className={iCls('direccion')} placeholder="Calle, número, piso — Localidad" value={form.direccion}
               onChange={e => { set('direccion', e.target.value); setErrores(x => ({ ...x, direccion: null })); }}/>
             {errores.direccion && <p className="text-red-500 text-xs mt-1">⚠️ {errores.direccion}</p>}
+          </div>
+
+          <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, overflow: 'hidden' }}>
+            <label>Web <input tabIndex={-1} autoComplete="off" name="web" value={web} onChange={e => setWeb(e.target.value)}/></label>
           </div>
 
           <button onClick={enviar}

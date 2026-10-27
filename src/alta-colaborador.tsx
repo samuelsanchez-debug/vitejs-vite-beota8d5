@@ -6,25 +6,30 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 export default function AltaColaborador() {
   const [paso, setPaso] = useState(1);
   const [form, setForm] = useState({ nombre:"", telefono:"", email:"", zona:"", especialidades:[], experiencia:"" });
-  const [errores, setErrores] = useState({});
+  const [errores, setErrores] = useState<Record<string, string>>({});
+  const [web, setWeb] = useState("");
   const set = (k,v) => setForm(f=>({...f,[k]:v}));
   const toggleEsp = (t) => setForm(f=>({...f, especialidades: f.especialidades.includes(t)?f.especialidades.filter(x=>x!==t):[...f.especialidades,t]}));
   const validar = () => {
     const e = {};
     if(!form.nombre.trim()) e.nombre="Nombre obligatorio";
     if(!form.telefono.trim()) e.telefono="Teléfono obligatorio";
+    else if(!/^\+?\d{9,15}$/.test(form.telefono.replace(/[\s.\-()]/g,''))) e.telefono="Introduce un teléfono válido (solo números, 9 o más cifras)";
     if(!form.email.trim()) e.email="Email obligatorio";
+    else if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) e.email="Introduce un email válido";
     if(form.especialidades.length===0) e.especialidades="Elige al menos una";
     setErrores(e);
     return Object.keys(e).length===0;
   };
   const enviar = async () => {
     if(!validar()) return;
+    // Campo trampa para bots: una persona no lo ve ni lo rellena. Simulamos éxito sin guardar nada.
+    if(web.trim()) { setPaso(3); return; }
     setPaso(2);
     try {
-      let tel = form.telefono.replace(/\s/g,'');
+      let tel = form.telefono.replace(/[\s.\-()]/g,'');
       if(tel && !tel.startsWith('+')) tel = '+34'+tel;
-      await fetch(`${SUPABASE_URL}/rest/v1/solicitudes_colaborador`, {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/solicitudes_colaborador`, {
         method:'POST',
         headers:{ 'apikey':SUPABASE_KEY, 'Authorization':`Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
         body: JSON.stringify({
@@ -37,6 +42,7 @@ export default function AltaColaborador() {
           estado: 'Pendiente',
         }),
       });
+      if(!res.ok) throw new Error(`solicitud colaborador: ${res.status}`);
       setPaso(3);
     } catch(err) { console.error(err); setPaso(4); }
   };
@@ -84,6 +90,9 @@ export default function AltaColaborador() {
           <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Experiencia (opcional)</label>
           <textarea className={S} rows={3} value={form.experiencia} onChange={e=>set("experiencia",e.target.value)} placeholder="Cuéntanos brevemente tu experiencia..."/>
         </div>
+      </div>
+      <div aria-hidden="true" style={{position:'absolute',left:'-9999px',width:1,height:1,overflow:'hidden'}}>
+        <label>Web <input tabIndex={-1} autoComplete="off" name="web" value={web} onChange={e=>setWeb(e.target.value)}/></label>
       </div>
       <button onClick={enviar} className="w-full bg-[#1E3A5F] hover:bg-[#152d4a] text-white py-3 rounded-xl font-bold text-sm transition">Enviar solicitud</button>
       <div className="text-center text-xs text-gray-400 pb-4">Domia Services · Elche, Alicante</div>
