@@ -94,6 +94,34 @@ let telLimpio = limpiarTelefono(form.telefono);
       if (telLimpio && !telLimpio.startsWith('+')) telLimpio = '+34' + telLimpio;
       let clienteId = null;
 
+      // Camino seguro: una función de Supabase busca/crea el cliente y registra la solicitud.
+      // Si todavía no está instalada (404), se usa el método anterior más abajo.
+      const ahora = new Date();
+      const rpcRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/crear_solicitud_web`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          p_nombre: form.nombre,
+          p_telefono: telLimpio,
+          p_email: form.email,
+          p_direccion: form.direccion,
+          p_tipo: form.tipos.join(", "),
+          p_descripcion: form.descripcion,
+          p_notas: fotosUrls.length ? fotosUrls.map(u => `foto:${u}`).join('||') : '',
+          p_historial: JSON.stringify([{
+            ts: ahora.toLocaleString('es-ES', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }),
+            txt: 'Solicitud recibida desde formulario web',
+            tipo: 'entrada'
+          }]),
+        }),
+      });
+      if (rpcRes.ok) { setPaso(3); return; }
+      if (rpcRes.status !== 404) throw new Error(`crear solicitud: ${rpcRes.status}`);
+
       const buscaRes = await fetch(`${SUPABASE_URL}/rest/v1/clientes?telefono=eq.${encodeURIComponent(telLimpio)}&select=id`, {
         headers: {
           'apikey': SUPABASE_KEY,

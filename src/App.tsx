@@ -70,15 +70,53 @@ const sugerirColab = (tipo,colabs,trabajos)=>{
 
 const BASE_URL = 'https://domia-crm-two.vercel.app';
 
+// Enlaces públicos: usan un código aleatorio por trabajo (token) y, si aún no existe, el id numérico antiguo.
+type RolPortal='cliente'|'colaborador';
+const refTrabajo=(t:any,rol:RolPortal)=>String((rol==='cliente'?t?.token:t?.token_colab)||t?.id);
+const esRefToken=(ref:string)=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(ref);
+// Las funciones seguras de Supabase pueden no estar instaladas todavía: en ese caso se mantiene el acceso directo anterior.
+const faltaRpc=(error:any)=>!!error&&(error.code==='PGRST202'||error.status===404||/Could not find the function/i.test(error.message||''));
+const portalGet=async(ref:string,rol:RolPortal):Promise<{trabajo:any,cliente:any,colaborador:any,incidencias:any[]}|null>=>{
+  const{data,error}=await supabase.rpc('portal_get',{p_ref:ref,p_rol:rol});
+  if(!error)return data?.trabajo?{trabajo:data.trabajo,cliente:data.cliente||null,colaborador:data.colaborador||null,incidencias:data.incidencias||[]}:null;
+  if(!faltaRpc(error)||esRefToken(ref))return null;
+  const{data:t}=await supabase.from('trabajos').select('*').eq('id',ref).single();
+  if(!t)return null;
+  const{data:c}=await supabase.from('clientes').select('*').eq('id',t.cliente_id).single();
+  let colaborador=null;
+  if(rol==='colaborador'&&t.colaborador_id){const{data:co}=await supabase.from('colaboradores').select('*').eq('id',t.colaborador_id).single();colaborador=co;}
+  let incidencias:any[]=[];
+  if(rol==='colaborador'){const{data:incs}=await supabase.from('incidencias').select('*').eq('trabajo_id',ref).order('id',{ascending:false});incidencias=incs||[];}
+  return{trabajo:t,cliente:c||null,colaborador,incidencias};
+};
+const portalUpdate=async(ref:string,rol:RolPortal,patch:any):Promise<boolean>=>{
+  const{data,error}=await supabase.rpc('portal_update',{p_ref:ref,p_rol:rol,p_patch:patch});
+  if(!error)return data===true;
+  if(!faltaRpc(error)||esRefToken(ref))return false;
+  const{error:e2}=await supabase.from('trabajos').update(patch).eq('id',ref);
+  return !e2;
+};
+const portalUpdateIncidencia=async(ref:string,incId:number,patch:any):Promise<boolean>=>{
+  const{data,error}=await supabase.rpc('portal_update_incidencia',{p_ref:ref,p_inc_id:incId,p_patch:patch});
+  if(!error)return data===true;
+  if(!faltaRpc(error)||esRefToken(ref))return false;
+  const{error:e2}=await supabase.from('incidencias').update(patch).eq('id',incId);
+  return !e2;
+};
+const nombreArchivoSeguro=(archivo:File,prefijo:string)=>{
+  const ext=(archivo.name.split('.').pop()||'').toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,5)||'bin';
+  return `${prefijo}_${crypto.randomUUID()}.${ext}`;
+};
+
 const buildWA=(colab,trabajo,cliente)=>{
-  const enlace=`${BASE_URL}/trabajo/${trabajo.id}`;
+  const enlace=`${BASE_URL}/trabajo/${refTrabajo(trabajo,'colaborador')}`;
   const instr=trabajo.instrucciones_colaborador?`\n\n📋 *Instrucciones:* ${trabajo.instrucciones_colaborador}`:"";
   const msg=`Hola ${colab.nombre.split(" ")[0]} 👋\n\nTenemos un trabajo de *${trabajo.tipo}* en ${cliente.direccion}.\n\n📝 ${trabajo.descripcion}${instr}\n\n¿Puedes encargarte? Indícanos tu disponibilidad aquí:\n👉 ${enlace}\n\nGracias 🙏`;
   return `https://wa.me/${colab.whatsapp?.replace(/\s/g,'')}?text=${encodeURIComponent(msg)}`;
 };
 const buildWAVisitaCliente=(cliente,trabajo,colab)=>{
   const nombre=cliente.nombre.split(" ")[0];
-  const enlace=`${BASE_URL}/cliente/${trabajo.id}`;
+  const enlace=`${BASE_URL}/cliente/${refTrabajo(trabajo,'cliente')}`;
   const msg=`Hola ${nombre} 😊\n\nSoy Samuel de *Domia Services*.\n\nTe escribo porque hemos organizado una visita de nuestro técnico para revisar el trabajo de *${trabajo.tipo}*.\n\n📅 *${fmt(trabajo.fecha)} a las ${trabajo.hora}*\n\n👇 Confirma aquí si te viene bien (solo un clic):\n${enlace}\n\nSi necesitas cambiar la fecha, también puedes indicarlo ahí. Cualquier duda estamos en el 685 917 059 🙏\n\n— Samuel · Domia Services`;
   return `https://wa.me/${cliente.telefono?.replace(/\s/g,'')}?text=${encodeURIComponent(msg)}`;
 };
@@ -88,23 +126,23 @@ const buildWAIncidenciaCliente=(cliente,trabajo,incidencia,fechaFmt,hora)=>{
   return `https://wa.me/${cliente.telefono?.replace(/\s/g,'')}?text=${encodeURIComponent(msg)}`;
 };
 const buildWAIncidencia=(colab,trabajo,cliente,incidencia)=>{
-  const enlace=`${BASE_URL}/trabajo/${trabajo.id}`;
+  const enlace=`${BASE_URL}/trabajo/${refTrabajo(trabajo,'colaborador')}`;
   const msg=`Hola ${colab.nombre.split(" ")[0]} 👋\n\n⚠️ Hay una incidencia en un trabajo que hiciste:\n\n📍 ${cliente?.direccion||""}\n🔧 ${trabajo.tipo} · ${cliente?.nombre||""}\n\n📋 *${incidencia.tipo}:* ${incidencia.descripcion||"(sin detalles)"}\n\n¿Puedes pasarte a revisarlo? Los datos del trabajo aquí:\n👉 ${enlace}\n\nGracias 🙏`;
   return `https://wa.me/${colab.whatsapp?.replace(/\s/g,'')}?text=${encodeURIComponent(msg)}`;
 };
 const buildWACambioFecha=(colab,trabajo,cliente)=>{
-  const enlace=`${BASE_URL}/trabajo/${trabajo.id}`;
+  const enlace=`${BASE_URL}/trabajo/${refTrabajo(trabajo,'colaborador')}`;
   const msg=`Hola ${colab.nombre.split(" ")[0]} 👋\n\nEl cliente del trabajo de *${trabajo.tipo}* pide cambiar la fecha de la visita:\n\n📅 *Nueva fecha: ${fmt(trabajo.fecha)} a las ${trabajo.hora}*\n📍 ${cliente?.direccion||""}\n\n¿Te viene bien? Confírmalo aquí:\n👉 ${enlace}\n\nGracias 🙏`;
   return `https://wa.me/${colab.whatsapp?.replace(/\s/g,'')}?text=${encodeURIComponent(msg)}`;
 };
 const buildWAConfirmacionColab=(colab,trabajo,cliente)=>{
-  const msg=`Hola ${colab.nombre.split(" ")[0]} 👋\n\n✅ El cliente ha confirmado la visita.\n\n📍 ${cliente.direccion}\n📅 *${fmt(trabajo.fecha)} a las ${trabajo.hora}*\n👤 ${cliente.nombre} · ${cliente.telefono}\n\nTras la visita, sube el presupuesto aquí:\n${BASE_URL}/trabajo/${trabajo.id}\n\nGracias 🙏`;
+  const msg=`Hola ${colab.nombre.split(" ")[0]} 👋\n\n✅ El cliente ha confirmado la visita.\n\n📍 ${cliente.direccion}\n📅 *${fmt(trabajo.fecha)} a las ${trabajo.hora}*\n👤 ${cliente.nombre} · ${cliente.telefono}\n\nTras la visita, sube el presupuesto aquí:\n${BASE_URL}/trabajo/${refTrabajo(trabajo,'colaborador')}\n\nGracias 🙏`;
   return `https://wa.me/${colab.whatsapp?.replace(/\s/g,'')}?text=${encodeURIComponent(msg)}`;
 };
 
 const buildWAVerificarTrabajo=(cliente,trabajo)=>{
   const nombre=cliente.nombre.split(" ")[0];
-  const enlace=`${BASE_URL}/verificar/${trabajo.id}`;
+  const enlace=`${BASE_URL}/verificar/${refTrabajo(trabajo,'cliente')}`;
   const msg=`Hola ${nombre} 😊\n\nSoy de *Domia Services*. Nuestro técnico nos indica que ha terminado el trabajo de *${trabajo.tipo}*.\n\n¿Puedes confirmarnos que todo está correcto?\n👉 ${enlace}\n\nGracias 🙏\n\n— Domia Services`;
   return `https://wa.me/${cliente.telefono?.replace(/\s/g,'')}?text=${encodeURIComponent(msg)}`;
 };
@@ -119,7 +157,7 @@ const buildWACobroFinal=(cliente,trabajo)=>{
   return `https://wa.me/${cliente.telefono?.replace(/\s/g,'')}?text=${encodeURIComponent(msg)}`;
 };
 const buildWARechazoVerificacion=(colab,trabajo,cliente,motivo)=>{
-  const enlace=`${BASE_URL}/trabajo/${trabajo.id}`;
+  const enlace=`${BASE_URL}/trabajo/${refTrabajo(trabajo,'colaborador')}`;
   const msg=`Hola ${colab.nombre.split(" ")[0]} 👋\n\nEl cliente revisó el trabajo de *${trabajo.tipo}* y indica que falta algo:\n\n📝 "${motivo}"\n\n¿Puedes pasarte a solucionarlo? Cuando esté, vuelve a marcarlo como terminado aquí:\n👉 ${enlace}\n\nGracias 🙏`;
   return `https://wa.me/${colab.whatsapp?.replace(/\s/g,'')}?text=${encodeURIComponent(msg)}`;
 };
@@ -520,7 +558,7 @@ function TarjetaTrabajo({t,data,setData,toast,onVer,alertColor}){
         {t.estado==="Cliente confirmó"&&co&&<button onClick={async()=>{window.open(buildWAConfirmacionColab(co,t,cl),"_blank");await avanzar("En curso","Visita programada — colaborador avisado");}} className="w-full bg-teal-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-teal-600">✅ Avisar colaborador — visita programada</button>}
         <button onClick={()=>{(window as any).__abrirPresupuesto=true;onVer(t.id);}} className="w-full bg-purple-600 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-purple-700">📄 Generar presupuesto Domia</button>
         {t.estado==="Presupuesto enviado"&&<>
-          {pdfDomiaUrl&&cl?.telefono&&<button onClick={()=>{const msg=`Hola ${cl.nombre.split(" ")[0]} 😊\n\nTe paso el presupuesto de *Domia Services*.\n\n💶 Total: *${getPrecioCliente(t)}€* (sin IVA)\n\n📄 Verlo y aceptarlo aquí:\nhttps://domia-crm-two.vercel.app/aceptar/${t.id}\n\nCualquier duda me dices. ¡Gracias!\n\n— Samuel · Domia Services · 685 917 059`;window.open(`https://wa.me/${cl.telefono.replace(/\s/g,"")}?text=${encodeURIComponent(msg)}`,"_blank");toast("📱 Reenviado");}} className="w-full bg-green-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-green-600">📱 Reenviar presupuesto al cliente</button>}
+          {pdfDomiaUrl&&cl?.telefono&&<button onClick={()=>{const msg=`Hola ${cl.nombre.split(" ")[0]} 😊\n\nTe paso el presupuesto de *Domia Services*.\n\n💶 Total: *${getPrecioCliente(t)}€* (sin IVA)\n\n📄 Verlo y aceptarlo aquí:\nhttps://domia-crm-two.vercel.app/aceptar/${refTrabajo(t,'cliente')}\n\nCualquier duda me dices. ¡Gracias!\n\n— Samuel · Domia Services · 685 917 059`;window.open(`https://wa.me/${cl.telefono.replace(/\s/g,"")}?text=${encodeURIComponent(msg)}`,"_blank");toast("📱 Reenviado");}} className="w-full bg-green-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-green-600">📱 Reenviar presupuesto al cliente</button>}
           <button onClick={()=>avanzar("Aceptado","Cliente aceptó el presupuesto")} className="w-full bg-violet-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-violet-600">🤝 Cliente aceptó</button>
         </>}
         {t.estado==="Aceptado"&&<button onClick={()=>avanzar("En curso","Trabajo iniciado")} className="w-full bg-orange-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-orange-600">🔧 Marcar en curso</button>}
@@ -1416,7 +1454,7 @@ const notaColab=partes.find(p=>p.startsWith('notacolab:'))?.replace('notacolab:'
   const iva=t.iva||21;
   const totalIva=Math.round(precio*(1+iva/100));
   const adelanto=t.adelanto_tipo==='fijo'?(t.adelanto_valor||0):Math.round(totalIva*(t.adelanto_valor||30)/100);
-  const linkAceptar=`https://domia-crm-two.vercel.app/aceptar/${t.id}`;
+  const linkAceptar=`https://domia-crm-two.vercel.app/aceptar/${refTrabajo(t,'cliente')}`;
   const tel=(cl?.telefono||"").replace(/\s/g,'');
 
 return<div className="space-y-3">
@@ -1474,7 +1512,7 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
              {t.estado==="Colaborador disponible"&&cl?.telefono&&<Btn onClick={async()=>{window.open(buildWAVisitaCliente(cl,t,co2),"_blank");await avanzar("Visita propuesta","Fecha propuesta al cliente por WhatsApp");}}>📱 Proponer fecha al cliente</Btn>}
              {t.estado==="Cliente confirmó"&&co2&&<Btn onClick={async()=>{window.open(buildWAConfirmacionColab(co2,t,cl),"_blank");await avanzar("En curso","Visita programada — colaborador avisado");}}>✅ Avisar colaborador — visita programada</Btn>}
         {t.estado==="Presupuesto recibido"&&<Btn onClick={()=>setModo("presupuesto")}>📄 Generar presupuesto Domia</Btn>}
-        {t.estado==="Presupuesto enviado"&&pdfD&&tel&&<Btn onClick={()=>window.open(`https://wa.me/${tel.replace('+','')}?text=${encodeURIComponent(`Hola ${cl?.nombre?.split(" ")[0]||""} 😊\n\nTu presupuesto de *Domia Services* ya está listo.\n\n📄 Verlo y aceptarlo aquí:\nhttps://domia-crm-two.vercel.app/aceptar/${t.id}\n\nCualquier duda me dices. ¡Gracias!\n\n— Samuel · Domia Services · 685 917 059`)}`,"_blank")}>📱 Reenviar presupuesto al cliente</Btn>}
+        {t.estado==="Presupuesto enviado"&&pdfD&&tel&&<Btn onClick={()=>window.open(`https://wa.me/${tel.replace('+','')}?text=${encodeURIComponent(`Hola ${cl?.nombre?.split(" ")[0]||""} 😊\n\nTu presupuesto de *Domia Services* ya está listo.\n\n📄 Verlo y aceptarlo aquí:\nhttps://domia-crm-two.vercel.app/aceptar/${refTrabajo(t,'cliente')}\n\nCualquier duda me dices. ¡Gracias!\n\n— Samuel · Domia Services · 685 917 059`)}`,"_blank")}>📱 Reenviar presupuesto al cliente</Btn>}
         {t.estado==="Presupuesto enviado"&&<Btn onClick={()=>avanzar("Aceptado","Cliente aceptó el presupuesto")}>🤝 Cliente aceptó</Btn>}
         {t.estado==="Aceptado"&&<Btn onClick={()=>avanzar("En curso","Trabajo iniciado")}>🔧 Marcar en curso</Btn>}
         {t.estado==="En curso"&&!t.trabajo_terminado&&<Btn onClick={async()=>{const hist=[...getHistorial(t),{ts:now(),txt:"🔧 Trabajo marcado como terminado — pendiente verificación del cliente",tipo:"sistema"}];const saved=await dbSaveTrabajo({...t,trabajo_terminado:true,verificacion_rechazo:null,historial:hist});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));if(cl?.telefono)window.open(buildWAVerificarTrabajo(cl,t),"_blank");toast("✅ Marcado — pidiendo verificación al cliente");}}}>✅ Marcar trabajo terminado</Btn>}
@@ -1489,7 +1527,7 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
           {cl&&<Btn onClick={async()=>{window.open(buildWAVisitaCliente(cl,t,co2),"_blank");await avanzar("Visita propuesta","Visita propuesta al cliente");}} ghost>📱 Proponer visita al cliente</Btn>}
           {co2&&cl&&<Btn onClick={async()=>{window.open(buildWAConfirmacionColab(co2,t,cl),"_blank");await avanzar("En curso","Visita confirmada — colaborador avisado");}} ghost>📱 Avisar al colaborador (visita confirmada)</Btn>}
           <Btn onClick={()=>setModo("presupuesto")} ghost>📄 Generar / editar presupuesto</Btn>
-          {pdfD&&tel&&<Btn onClick={()=>window.open(`https://wa.me/${tel.replace('+','')}?text=${encodeURIComponent(`Hola ${cl?.nombre?.split(" ")[0]||""} 😊\n\nTu presupuesto de *Domia Services* ya está listo.\n\n📄 Verlo y aceptarlo aquí:\nhttps://domia-crm-two.vercel.app/aceptar/${t.id}\n\nCualquier duda me dices. ¡Gracias!\n\n— Samuel · Domia Services · 685 917 059`)}`,"_blank")} ghost>📱 Enviar presupuesto al cliente</Btn>}
+          {pdfD&&tel&&<Btn onClick={()=>window.open(`https://wa.me/${tel.replace('+','')}?text=${encodeURIComponent(`Hola ${cl?.nombre?.split(" ")[0]||""} 😊\n\nTu presupuesto de *Domia Services* ya está listo.\n\n📄 Verlo y aceptarlo aquí:\nhttps://domia-crm-two.vercel.app/aceptar/${refTrabajo(t,'cliente')}\n\nCualquier duda me dices. ¡Gracias!\n\n— Samuel · Domia Services · 685 917 059`)}`,"_blank")} ghost>📱 Enviar presupuesto al cliente</Btn>}
           {setSec&&<Btn onClick={()=>{setFocoFinanzas&&setFocoFinanzas(t.id);onClose();setSec("finanzas");}} ghost>💶 Ver este trabajo en Finanzas</Btn>}
                     <div className="pt-2 border-t border-gray-100">
             <div className="text-[10px] text-gray-400 font-bold uppercase mb-1.5">Cambiar estado</div>
@@ -1969,7 +2007,7 @@ if(modoPass&&sesion)return<CrearPassword onListo={()=>{setModoPass(false);window
             </div>
             {inc.descripcion&&<div className="text-sm text-gray-600 bg-gray-50 rounded-lg p-2 mb-2">{inc.descripcion}</div>}
             {inc.fecha_propuesta&&<div className="text-xs text-teal-700">📅 Propuesto: {fmt(inc.fecha_propuesta)} a las {inc.hora_propuesta}</div>}
-            {inc.estado!=="Resuelta"&&<a href={`/trabajo/${inc.trabajo_id}`} target="_blank" className="block text-center mt-2 bg-[#1E3A5F] text-white text-sm font-bold py-2 rounded-xl">Ver y responder →</a>}
+            {inc.estado!=="Resuelta"&&<a href={`/trabajo/${refTrabajo((trabajos as any[]).find(x=>x.id===(inc as any).trabajo_id)||{id:(inc as any).trabajo_id},'colaborador')}`} target="_blank" className="block text-center mt-2 bg-[#1E3A5F] text-white text-sm font-bold py-2 rounded-xl">Ver y responder →</a>}
           </div>;
         })}
       </>}
@@ -2341,24 +2379,21 @@ function RegistrarPago({modal,onClose,onGuardado}){
     </div>
   </Modal>;
 }
-function AceptarPresupuesto({id}){
-  const[trabajo,setTrabajo]=useState(null);
-  const[cliente,setCliente]=useState(null);
+function AceptarPresupuesto({id:ref}:{id:string}){
+  const[trabajo,setTrabajo]=useState<any>(null);
+  const[cliente,setCliente]=useState<any>(null);
   const[cargando,setCargando]=useState(true);
   const[estado,setEstado]=useState("ver");
   const[justif,setJustif]=useState<string|null>(null);
   const[subiendo,setSubiendo]=useState(false);
   useEffect(()=>{
     (async()=>{
-      const{data:t}=await supabase.from('trabajos').select('*').eq('id',id).single();
-      if(t){
-        setTrabajo(t);
-        const{data:c}=await supabase.from('clientes').select('*').eq('id',t.cliente_id).single();
-        setCliente(c);
-      }
+      const r=await portalGet(ref,'cliente');
+      if(r){setTrabajo(r.trabajo);setCliente(r.cliente);}
       setCargando(false);
     })();
-  },[id]);
+  },[ref]);
+  const id=trabajo?.id;
 
   if(cargando)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-4xl">⚙️</div></div>;
   if(!trabajo)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4 text-center"><div><div className="text-4xl mb-2">🔍</div><div className="text-gray-600">Presupuesto no encontrado</div></div></div>;
@@ -2375,7 +2410,9 @@ function AceptarPresupuesto({id}){
     setEstado("procesando");
     const hist=JSON.parse(trabajo.historial||"[]");
     hist.push({ts:new Date().toLocaleString("es-ES"),txt:"✅ Cliente aceptó el presupuesto online",tipo:"ok"});
-await supabase.from('trabajos').update({estado:"Aceptado",aceptado_cliente:true,atendido:false,ultima_novedad:"💶 Cliente aceptó el presupuesto",historial:JSON.stringify(hist)}).eq('id',id);    try{
+    const guardado=await portalUpdate(ref,'cliente',{estado:"Aceptado",aceptado_cliente:true,atendido:false,ultima_novedad:"💶 Cliente aceptó el presupuesto",historial:JSON.stringify(hist)});
+    if(!guardado){setEstado("ver");alert("No hemos podido registrar tu aceptación. Inténtalo de nuevo o escríbenos por WhatsApp al 685 917 059.");return;}
+    try{
       await fetch("https://opijkazhbktiikdzbanb.supabase.co/functions/v1/notificar-aceptacion",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
@@ -2439,16 +2476,16 @@ await supabase.from('trabajos').update({estado:"Aceptado",aceptado_cliente:true,
                 const archivo=e.target.files?.[0];
                 if(!archivo)return;
                 setSubiendo(true);
-                const ext=archivo.name.split('.').pop();
-                const nombre=`justif_${id}_${Date.now()}.${ext}`;
-                const{data:up}=await supabase.storage.from('fotos-demandas').upload(nombre,archivo,{upsert:true});
+                if(archivo.size>15*1024*1024){alert("El archivo es demasiado grande (máximo 15 MB).");setSubiendo(false);return;}
+                const nombre=nombreArchivoSeguro(archivo,`justif_${id}`);
+                const{data:up}=await supabase.storage.from('fotos-demandas').upload(nombre,archivo,{upsert:false});
                 if(up){
                   const{data:pub}=supabase.storage.from('fotos-demandas').getPublicUrl(nombre);
                   const url=pub.publicUrl;
                   const nuevasNotas=(trabajo.notas||"")+` | justificante:${url}`;
-                  await supabase.from('trabajos').update({notas:nuevasNotas,atendido:false,ultima_novedad:"📎 Cliente adjuntó justificante de pago"}).eq('id',id);
-                  setJustif(url);
-                }
+                  const guardado=await portalUpdate(ref,'cliente',{notas:nuevasNotas,atendido:false,ultima_novedad:"📎 Cliente adjuntó justificante de pago"});
+                  if(guardado)setJustif(url);else alert("No hemos podido guardar el justificante. Inténtalo de nuevo.");
+                }else alert("No hemos podido subir el archivo. Inténtalo de nuevo.");
                 setSubiendo(false);
               }}/>
             </label>}
@@ -2461,7 +2498,7 @@ await supabase.from('trabajos').update({estado:"Aceptado",aceptado_cliente:true,
     </div>
   </div>;
 }
-function VerificarTrabajo({id}:{id:string}){
+function VerificarTrabajo({id:ref}:{id:string}){
   const[trabajo,setTrabajo]=useState<any>(null);
   const[cliente,setCliente]=useState<any>(null);
   const[cargando,setCargando]=useState(true);
@@ -2469,20 +2506,17 @@ function VerificarTrabajo({id}:{id:string}){
   const[motivo,setMotivo]=useState("");
   useEffect(()=>{
     (async()=>{
-      const{data:t}=await supabase.from('trabajos').select('*').eq('id',id).single();
-      if(t){
-        setTrabajo(t);
-        const{data:c}=await supabase.from('clientes').select('*').eq('id',t.cliente_id).single();
-        setCliente(c);
-      }
+      const r=await portalGet(ref,'cliente');
+      if(r){setTrabajo(r.trabajo);setCliente(r.cliente);}
       setCargando(false);
     })();
-  },[id]);
+  },[ref]);
   const confirmarSi=async()=>{
     setEstado("cargando");
     const historial=JSON.parse(trabajo.historial||"[]");
     historial.push({ts:new Date().toLocaleString("es-ES",{hour:"2-digit",minute:"2-digit",day:"2-digit",month:"2-digit"}),txt:"✅ Cliente verificó que el trabajo está terminado",tipo:"ok"});
-    await supabase.from('trabajos').update({cliente_verificado:true,atendido:false,ultima_novedad:"✅ Cliente verificó trabajo terminado",historial:JSON.stringify(historial)}).eq('id',id);
+    const guardado=await portalUpdate(ref,'cliente',{cliente_verificado:true,atendido:false,ultima_novedad:"✅ Cliente verificó trabajo terminado",historial:JSON.stringify(historial)});
+    if(!guardado){setEstado("ver");alert("No hemos podido registrar tu respuesta. Inténtalo de nuevo o llámanos al 685 917 059.");return;}
     setEstado("si");
   };
   const confirmarNo=async()=>{
@@ -2490,7 +2524,8 @@ function VerificarTrabajo({id}:{id:string}){
     setEstado("cargando");
     const historial=JSON.parse(trabajo.historial||"[]");
     historial.push({ts:new Date().toLocaleString("es-ES",{hour:"2-digit",minute:"2-digit",day:"2-digit",month:"2-digit"}),txt:`❌ Cliente indica que falta: "${motivo.trim()}"`,tipo:"sistema"});
-    await supabase.from('trabajos').update({trabajo_terminado:false,verificacion_rechazo:motivo.trim(),atendido:false,ultima_novedad:"❌ Cliente indica que falta algo",historial:JSON.stringify(historial)}).eq('id',id);
+    const guardado=await portalUpdate(ref,'cliente',{trabajo_terminado:false,verificacion_rechazo:motivo.trim(),atendido:false,ultima_novedad:"❌ Cliente indica que falta algo",historial:JSON.stringify(historial)});
+    if(!guardado){setEstado("motivo");alert("No hemos podido registrar tu respuesta. Inténtalo de nuevo o llámanos al 685 917 059.");return;}
     setEstado("no");
   };
   if(cargando)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-4xl">⚙️</div></div>;
@@ -2554,7 +2589,7 @@ function Calculadora(){
     </div>
   </div>;
 }
-function PortalCliente({id}:{id:string}){
+function PortalCliente({id:ref}:{id:string}){
   const[trabajo,setTrabajo]=useState<any>(null);
   const[estado,setEstado]=useState<"idle"|"ok"|"no"|"cargando">("idle");
   const[cargando,setCargando]=useState(true);
@@ -2564,23 +2599,24 @@ function PortalCliente({id}:{id:string}){
   const[nuevaHora,setNuevaHora]=useState("09:00");
   useEffect(()=>{
     const cargar=async()=>{
-      const{data:t}=await supabase.from('trabajos').select('*').eq('id',id).single();
-      if(t)setTrabajo(t);
+      const r=await portalGet(ref,'cliente');
+      if(r)setTrabajo(r.trabajo);
       setCargando(false);
     };
     cargar();
-  },[id]);
+  },[ref]);
   const confirmar=async(confirma:boolean)=>{
     setEstado("cargando");
     const historial=JSON.parse(trabajo.historial||"[]");
     historial.push({ts:now(),txt:confirma?`Cliente confirmó la visita${comentario?' — "'+comentario+'"':''}`:`Cliente rechazó la visita${comentario?' — "'+comentario+'"':''}`,tipo:confirma?"ok":"sistema"});
-      await supabase.from('trabajos').update({
+    const guardado=await portalUpdate(ref,'cliente',{
       estado:confirma?"Cliente confirmó":"Colaborador disponible",
       atendido:false,
       ultima_novedad:confirma?"✅ Cliente confirmó la visita":"🔄 Cliente pidió cambio de fecha",
       historial:JSON.stringify(historial),
-    notas:comentario?(trabajo.notas?trabajo.notas+' | ':'')+`cliente: ${comentario}`:trabajo.notas,
-    }).eq('id',id);
+      notas:comentario?(trabajo.notas?trabajo.notas+' | ':'')+`cliente: ${comentario}`:trabajo.notas,
+    });
+    if(!guardado){setEstado("idle");alert("No hemos podido registrar tu respuesta. Inténtalo de nuevo o llámanos al 685 917 059.");return;}
     setEstado(confirma?"ok":"no");
   };
     const proponerNuevaFecha=async()=>{
@@ -2589,7 +2625,7 @@ function PortalCliente({id}:{id:string}){
     const fechaFmt=new Date(nuevaFecha+"T00:00:00").toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"});
     const historial=JSON.parse(trabajo.historial||"[]");
     historial.push({ts:now(),txt:`Cliente propone otra fecha: ${fechaFmt} a las ${nuevaHora}${comentario?' — "'+comentario+'"':''}`,tipo:"sistema"});
-    await supabase.from('trabajos').update({
+    const guardado=await portalUpdate(ref,'cliente',{
       estado:"Colaborador disponible",
       fecha:nuevaFecha,
       hora:nuevaHora,
@@ -2597,7 +2633,8 @@ function PortalCliente({id}:{id:string}){
       ultima_novedad:`🔄 Cliente propone: ${fechaFmt} a las ${nuevaHora}`,
       historial:JSON.stringify(historial),
       notas:comentario?(trabajo.notas?trabajo.notas+' | ':'')+`cliente: ${comentario}`:trabajo.notas,
-    }).eq('id',id);
+    });
+    if(!guardado){setEstado("idle");alert("No hemos podido registrar tu propuesta. Inténtalo de nuevo o llámanos al 685 917 059.");return;}
     setEstado("no");
   };
   if(cargando)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-center"><div className="text-4xl mb-3">⚙️</div><div className="font-bold text-gray-700">Cargando...</div></div></div>;
@@ -2654,9 +2691,9 @@ function SubirPresupuesto({id,trabajo,onSubido}:{id:string,trabajo:any,onSubido:
     setSubiendo(true);
     let fotoUrl="";
     if(archivo){
-      const ext=archivo.name.split('.').pop();
-      const nombre=`presup_${id}_${Date.now()}.${ext}`;
-      const{data}=await supabase.storage.from('fotos-demandas').upload(nombre,archivo,{upsert:true});
+      if(archivo.size>15*1024*1024){alert("El archivo es demasiado grande (máximo 15 MB).");setSubiendo(false);return;}
+      const nombre=nombreArchivoSeguro(archivo,`presup_${trabajo.id}`);
+      const{data}=await supabase.storage.from('fotos-demandas').upload(nombre,archivo,{upsert:false});
       if(data){
         const{data:pub}=supabase.storage.from('fotos-demandas').getPublicUrl(nombre);
         fotoUrl=pub.publicUrl;
@@ -2664,14 +2701,15 @@ function SubirPresupuesto({id,trabajo,onSubido}:{id:string,trabajo:any,onSubido:
     }
     const historial=JSON.parse(trabajo.historial||"[]");
     historial.push({ts:new Date().toLocaleString("es-ES",{hour:"2-digit",minute:"2-digit",day:"2-digit",month:"2-digit"}),txt:`Presupuesto recibido: ${importe}€${notas?' — '+notas:''}`,tipo:"presupuesto"});
-   await supabase.from('trabajos').update({
+    const guardado=await portalUpdate(id,'colaborador',{
       estado:"Presupuesto recibido",
       atendido:false,
       ultima_novedad:`📄 Colaborador subió presupuesto: ${importe}€`,
       presupuesto_colaborador:+importe,
       notas:(trabajo.notas?trabajo.notas+' | ':'')+(fotoUrl?'presup:'+fotoUrl:(notas?'nota-colab: '+notas:'')),
       historial:JSON.stringify(historial),
-    }).eq('id',id);
+    });
+    if(!guardado){alert("No hemos podido enviar el presupuesto. Inténtalo de nuevo.");setSubiendo(false);return;}
     onSubido(fotoUrl||"ok");
     setSubiendo(false);
   };
@@ -2694,7 +2732,7 @@ function SubirPresupuesto({id,trabajo,onSubido}:{id:string,trabajo:any,onSubido:
     </button>
   </div>;
 }
-function PortalColaborador({id}:{id:string}){
+function PortalColaborador({id:ref}:{id:string}){
   const[trabajo,setTrabajo]=useState<any>(null);
   const[cliente,setCliente]=useState<any>(null);
   const[colabInfo,setColabInfo]=useState<any>(null);
@@ -2703,18 +2741,24 @@ function PortalColaborador({id}:{id:string}){
   const[cargando,setCargando]=useState(true);
   useEffect(()=>{
     const cargar=async()=>{
-      const{data:t}=await supabase.from('trabajos').select('*').eq('id',id).single();
-      if(t){setTrabajo(t);const{data:c}=await supabase.from('clientes').select('*').eq('id',t.cliente_id).single();setCliente(c);if(t.colaborador_id){const{data:co}=await supabase.from('colaboradores').select('*').eq('id',t.colaborador_id).single();setColabInfo(co);}const{data:incs}=await supabase.from('incidencias').select('*').eq('trabajo_id',id).order('id',{ascending:false});if(incs&&incs.length)setIncidencia(incs.find(x=>x.estado!=='Resuelta')||null);}
+      const r=await portalGet(ref,'colaborador');
+      if(r){
+        setTrabajo(r.trabajo);setCliente(r.cliente);setColabInfo(r.colaborador);
+        if(r.incidencias.length)setIncidencia(r.incidencias.find((x:any)=>x.estado!=='Resuelta')||null);
+      }
       setCargando(false);
     };
     cargar();
-  },[id]);
+  },[ref]);
+  const id=trabajo?.id;
+  const avisoError=()=>alert("No hemos podido guardar tu respuesta. Inténtalo de nuevo o escríbenos por WhatsApp al 685 917 059.");
   const confirmar=async(puede:boolean)=>{
     setEstado("cargando");
     const nuevoEstado=puede?"Visita confirmada":"Solicitud";
     const historial=JSON.parse(trabajo.historial||"[]");
     historial.push({ts:now(),txt:puede?"Colaborador confirmó la visita":"Colaborador no puede ir",tipo:puede?"ok":"sistema"});
-    await supabase.from('trabajos').update({estado:nuevoEstado,colaborador_id:puede?trabajo.colaborador_id:null,historial:JSON.stringify(historial)}).eq('id',id);
+    const guardado=await portalUpdate(ref,'colaborador',{estado:nuevoEstado,colaborador_id:puede?trabajo.colaborador_id:null,historial:JSON.stringify(historial)});
+    if(!guardado){setEstado("idle");avisoError();return;}
     setEstado(puede?"ok":"no");
   };
 const confirmarConDisponibilidad=async(dia:string,hora:string,importe:string,archivo:File|null,nota:string="")=>{
@@ -2722,9 +2766,9 @@ const confirmarConDisponibilidad=async(dia:string,hora:string,importe:string,arc
     const fechaFmt=dia?new Date(dia+"T00:00:00").toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"}):"";
     let presupUrl="";
     if(archivo){
-      const ext=archivo.name.split('.').pop();
-      const nombre=`presup_${id}_${Date.now()}.${ext}`;
-      const{data:up}=await supabase.storage.from('fotos-demandas').upload(nombre,archivo,{upsert:true});
+      if(archivo.size>15*1024*1024){alert("El archivo es demasiado grande (máximo 15 MB).");setEstado("idle");return;}
+      const nombre=nombreArchivoSeguro(archivo,`presup_${id}`);
+      const{data:up}=await supabase.storage.from('fotos-demandas').upload(nombre,archivo,{upsert:false});
       if(up){const{data:pub}=supabase.storage.from('fotos-demandas').getPublicUrl(nombre);presupUrl=pub.publicUrl;}
     }
     let historial=[];try{historial=Array.isArray(trabajo.historial)?trabajo.historial:JSON.parse(trabajo.historial||"[]");}catch(e){historial=[];}if(!Array.isArray(historial))historial=[];
@@ -2747,7 +2791,8 @@ const confirmarConDisponibilidad=async(dia:string,hora:string,importe:string,arc
     };
     if(dia){update.fecha=dia;update.hora=hora;}
     if(importe)update.presupuesto_colaborador=+importe;
-       await supabase.from('trabajos').update(update).eq('id',id);
+    const guardado=await portalUpdate(ref,'colaborador',update);
+    if(!guardado){setEstado("idle");avisoError();return;}
     setEstado("ok");
   };
   const confirmarCambioFecha=async(aceptar:boolean)=>{
@@ -2755,7 +2800,8 @@ const confirmarConDisponibilidad=async(dia:string,hora:string,importe:string,arc
     const historial=JSON.parse(trabajo.historial||"[]");
     if(aceptar){
       historial.push({ts:now(),txt:`Colaborador acepta la nueva fecha: ${fmt(trabajo.fecha)} a las ${trabajo.hora}`,tipo:"ok"});
-      await supabase.from('trabajos').update({estado:"Cliente confirmó",atendido:false,ultima_novedad:`✅ Colaborador acepta: ${fmt(trabajo.fecha)} a las ${trabajo.hora}`,historial:JSON.stringify(historial)}).eq('id',id);
+      const guardado=await portalUpdate(ref,'colaborador',{estado:"Cliente confirmó",atendido:false,ultima_novedad:`✅ Colaborador acepta: ${fmt(trabajo.fecha)} a las ${trabajo.hora}`,historial:JSON.stringify(historial)});
+      if(!guardado){setEstado("idle");avisoError();return;}
     }
     setEstado("ok");
   };
@@ -2763,29 +2809,32 @@ const confirmarConDisponibilidad=async(dia:string,hora:string,importe:string,arc
     setEstado("cargando");
     const fechaFmt=dia?new Date(dia+"T00:00:00").toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"}):"";
     const detalle=`Colaborador disponible para la incidencia: ${fechaFmt} a las ${hora}${nota?` · Nota: ${nota}`:""}`;
-      await supabase.from('incidencias').update({
+    const guardado=await portalUpdateIncidencia(ref,incidencia.id,{
       estado:"En proceso",
       fecha_propuesta:dia,
       hora_propuesta:hora,
       nota_colaborador:nota||"",
       atendida:false,
-    }).eq('id',incidencia.id);
+    });
+    if(!guardado){setEstado("idle");avisoError();return;}
     setEstado("ok");
   };
    const marcarResueltoColab=async(mensaje:string)=>{
     setEstado("cargando");
-    await supabase.from('incidencias').update({
+    const guardado=await portalUpdateIncidencia(ref,incidencia.id,{
       estado:"En proceso",
       resolucion:mensaje?`(Colaborador) ${mensaje}`:"(Colaborador) Marcado como resuelto",
       atendida:false,
-    }).eq('id',incidencia.id);
+    });
+    if(!guardado){setEstado("idle");avisoError();return;}
     setEstado("resuelto");
   };
   const marcarTrabajoTerminado=async()=>{
     setEstado("cargando");
     const historial=JSON.parse(trabajo.historial||"[]");
     historial.push({ts:now(),txt:"🔧 Colaborador marca el trabajo como terminado",tipo:"sistema"});
-    await supabase.from('trabajos').update({trabajo_terminado:true,verificacion_rechazo:null,atendido:false,ultima_novedad:"🔧 Colaborador marca trabajo terminado — pendiente verificación cliente",historial:JSON.stringify(historial)}).eq('id',id);
+    const guardado=await portalUpdate(ref,'colaborador',{trabajo_terminado:true,verificacion_rechazo:null,atendido:false,ultima_novedad:"🔧 Colaborador marca trabajo terminado — pendiente verificación cliente",historial:JSON.stringify(historial)});
+    if(!guardado){setEstado("idle");avisoError();return;}
     setTrabajo({...trabajo,trabajo_terminado:true,verificacion_rechazo:null});
     setEstado("idle");
   };
@@ -2873,7 +2922,7 @@ const confirmarConDisponibilidad=async(dia:string,hora:string,importe:string,arc
                <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
           <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">Subir presupuesto</div>
           {!trabajo.notas?.startsWith('presup:')?(
-            <SubirPresupuesto id={id} trabajo={trabajo} onSubido={url=>{setTrabajo({...trabajo,notas:'presup:'+url});}}/>
+            <SubirPresupuesto id={ref} trabajo={trabajo} onSubido={url=>{setTrabajo({...trabajo,notas:'presup:'+url});}}/>
           ):(
             <div className="text-center">
               <div className="text-4xl mb-2">✅</div>
@@ -3192,14 +3241,14 @@ function Sidebar({sec,setSec,nuevasCount,pipelineCount,incidenciasCount}){
 }
 export default function App(){
   const path=window.location.pathname;
-  const trabajoMatch=path.match(/^\/trabajo\/(\d+)$/);
+  const trabajoMatch=path.match(/^\/trabajo\/([0-9a-fA-F-]{1,40})$/);
   if(trabajoMatch)return<PortalColaborador id={trabajoMatch[1]}/>;
-  const clienteMatch=path.match(/^\/cliente\/(\d+)$/);
+  const clienteMatch=path.match(/^\/cliente\/([0-9a-fA-F-]{1,40})$/);
   if(clienteMatch)return<PortalCliente id={clienteMatch[1]}/>;
   if(path==="/calculadora")return<Calculadora/>;
-   const aceptarMatch=path.match(/^\/aceptar\/(\d+)$/);
+   const aceptarMatch=path.match(/^\/aceptar\/([0-9a-fA-F-]{1,40})$/);
   if(aceptarMatch)return<AceptarPresupuesto id={aceptarMatch[1]}/>;
-  const verificarMatch=path.match(/^\/verificar\/(\d+)$/);
+  const verificarMatch=path.match(/^\/verificar\/([0-9a-fA-F-]{1,40})$/);
   if(verificarMatch)return<VerificarTrabajo id={verificarMatch[1]}/>;
   if(path==="/portal")return<PortalColaboradorApp/>;
   if(path==="/alta-colaborador")return<AltaColaborador/>;
@@ -3217,17 +3266,23 @@ const[data,setData]=useState({clientes:[],colaboradores:[],trabajos:[],incidenci
   const[showNuevo,setShowNuevo]=useState(false);
   const[toastMsg,setToastMsg]=useState(null);
   const T=msg=>setToastMsg(msg);
+  const[noStaff,setNoStaff]=useState(false);
   useEffect(()=>{
+    if(!autenticado)return;
     const cargar=async()=>{
+      // Solo el personal autorizado (tabla staff) entra al CRM; si la función aún no existe, se deja pasar.
+      const{data:esStaffOk,error:errStaff}=await supabase.rpc('es_staff');
+      if(!errStaff&&esStaffOk===false){setNoStaff(true);setCargando(false);return;}
 const[c,col,t,inc]=await Promise.all([supabase.from('clientes').select('*').order('id'),supabase.from('colaboradores').select('*').order('id'),supabase.from('trabajos').select('*').order('id'),supabase.from('incidencias').select('*').order('id',{ascending:false})]);
       setData({clientes:c.data||[],colaboradores:col.data||[],trabajos:(t.data||[]).map(x=>({...x,clienteId:x.cliente_id,colaboradorId:x.colaborador_id,presupuestoColaborador:x.presupuesto_colaborador,precioCliente:x.precio_cliente})),incidencias:inc.data||[]});
       setCargando(false);
     };
-    cargar();  
-  },[]);
+    cargar();
+  },[autenticado]);
   if(autenticado===null)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-4xl">⚙️</div></div>;
   if(!autenticado)return<LoginScreen onLogin={()=>{supabase.auth.getSession().then(({data})=>{setAutenticado(true);setEmailUsuario(data.session?.user?.email||null);});}}/>;
   if(cargando)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-center"><div className="text-4xl mb-3">⚙️</div><div className="font-bold text-gray-700">Cargando Domia CRM...</div></div></div>;
+  if(noStaff)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4 text-center" style={{fontFamily:"'Inter',system-ui,sans-serif"}}><div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 max-w-sm w-full"><img src="/logo-domia.png" alt="Domia" className="w-24 mx-auto mb-4"/><div className="font-black text-gray-800 text-lg mb-1">Sin acceso al CRM</div><div className="text-sm text-gray-500 mb-5">Esta cuenta no tiene permiso para entrar aquí. Si eres colaborador, usa tu portal.</div><a href="/portal" className="block w-full bg-[#1E3A5F] text-white py-3 rounded-xl font-bold text-sm mb-2">Ir al portal de colaboradores</a><button onClick={async()=>{await supabase.auth.signOut();window.location.href="/";}} className="w-full text-xs text-gray-400 hover:text-gray-600 py-2">Cerrar sesión</button></div></div>;
   if(path==="/admin"&&emailUsuario===ADMIN_EMAIL)return<AdminPanel data={data}/>;
   const sinAsignar=data.trabajos.filter(t=>t.estado==="Solicitud").length;
 const TITULO={home:"Inicio",nuevas:"Nuevas demandas",demandas:"Pipeline",clientes:"Clientes",colaboradores:"Colaboradores",incidencias:"Incidencias"};
