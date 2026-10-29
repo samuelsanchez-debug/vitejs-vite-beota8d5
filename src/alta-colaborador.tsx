@@ -92,7 +92,7 @@ export default function AltaColaborador() {
         </div>
       </div>
       <div aria-hidden="true" style={{position:'absolute',left:'-9999px',width:1,height:1,overflow:'hidden'}}>
-        <label>Web <input tabIndex={-1} autoComplete="off" name="web" value={web} onChange={e=>setWeb(e.target.value)}/></label>
+        <label>No rellenar <input tabIndex={-1} autoComplete="off" name="campo_extra_xk7" value={web} onChange={e=>setWeb(e.target.value)}/></label>
       </div>
       <button onClick={enviar} className="w-full bg-[#1E3A5F] hover:bg-[#152d4a] text-white py-3 rounded-xl font-bold text-sm transition">Enviar solicitud</button>
       <div className="text-center text-xs text-gray-400 pb-4">Domia Services · Elche, Alicante</div>
