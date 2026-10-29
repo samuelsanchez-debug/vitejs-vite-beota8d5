@@ -3255,6 +3255,8 @@ export default function App(){
   const solicitarMatch=path==="/solicitar";
   const[autenticado,setAutenticado]=useState<boolean|null>(null);
   const[emailUsuario,setEmailUsuario]=useState<string|null>(null);
+  // Enlaces de "restablecer contraseña" o invitación: piden elegir una contraseña antes de entrar
+  const[modoPass,setModoPass]=useState(()=>/type=(recovery|invite)/.test(window.location.hash));
   useEffect(()=>{
     supabase.auth.getSession().then(({data})=>{setAutenticado(!!data.session);setEmailUsuario(data.session?.user?.email||null);});
   },[]);
@@ -3280,6 +3282,7 @@ const[c,col,t,inc]=await Promise.all([supabase.from('clientes').select('*').orde
     cargar();
   },[autenticado]);
   if(autenticado===null)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-4xl">⚙️</div></div>;
+  if(autenticado&&modoPass)return<CrearPassword onListo={()=>{window.location.hash="";setModoPass(false);}}/>;
   if(!autenticado)return<LoginScreen onLogin={()=>{supabase.auth.getSession().then(({data})=>{setAutenticado(true);setEmailUsuario(data.session?.user?.email||null);});}}/>;
   if(cargando)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-center"><div className="text-4xl mb-3">⚙️</div><div className="font-bold text-gray-700">Cargando Domia CRM...</div></div></div>;
   if(noStaff)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4 text-center" style={{fontFamily:"'Inter',system-ui,sans-serif"}}><div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 max-w-sm w-full"><img src="/logo-domia.png" alt="Domia" className="w-24 mx-auto mb-4"/><div className="font-black text-gray-800 text-lg mb-1">Sin acceso al CRM</div><div className="text-sm text-gray-500 mb-5">Esta cuenta no tiene permiso para entrar aquí. Si eres colaborador, usa tu portal.</div><a href="/portal" className="block w-full bg-[#1E3A5F] text-white py-3 rounded-xl font-bold text-sm mb-2">Ir al portal de colaboradores</a><button onClick={async()=>{await supabase.auth.signOut();window.location.href="/";}} className="w-full text-xs text-gray-400 hover:text-gray-600 py-2">Cerrar sesión</button></div></div>;
