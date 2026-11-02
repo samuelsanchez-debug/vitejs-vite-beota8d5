@@ -232,6 +232,22 @@ const S="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white f
 function Fld({label,children}){return<div className="mb-3"><label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{label}</label>{children}</div>;}
 function Badge({text}){const c=ESTADO_CFG[text]||{bg:"bg-gray-100",text:"text-gray-500",dot:"bg-gray-300"};return<span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${c.bg} ${c.text}`}><span className={`w-1.5 h-1.5 rounded-full ${c.dot}`}/>{text}</span>;}
 function OrigenTag({id}){const o=orCfg(id);return<span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${o.color}`}>{o.icon} {o.label}</span>;}
+// Al mandar un trabajo a un colaborador se sugiere añadir instrucciones (el mensaje y su enlace las incluyen)
+function ModalInstruccionesColab({colab,onEnviar,onCerrar}:{colab:any,onEnviar:(texto:string)=>void,onCerrar:()=>void}){
+  const[txt,setTxt]=useState("");
+  const nombre=(colab?.nombre||"el colaborador").split(" ")[0];
+  const hay=txt.trim().length>0;
+  return<Modal title={`Enviar trabajo a ${nombre}`} onClose={onCerrar} wide={false} xwide={false}>
+    <div className="space-y-3">
+      <div className="text-sm text-gray-600">¿Quieres mandarle instrucciones? Las verá en el mensaje de WhatsApp y en su enlace del trabajo.</div>
+      <textarea autoFocus value={txt} onChange={e=>setTxt(e.target.value)} rows={4} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F] resize-none" placeholder="Ej: El cliente pone su material. Llama antes de ir."/>
+      <div className="flex gap-2">
+        <button type="button" onClick={onCerrar} className="px-4 py-2.5 rounded-xl border border-gray-200 text-gray-500 text-sm font-semibold hover:border-gray-400">Cancelar</button>
+        <button type="button" onClick={()=>onEnviar(txt.trim())} className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2.5 rounded-xl font-bold text-sm transition">📱 {hay?"Enviar con instrucciones":"Enviar sin instrucciones"}</button>
+      </div>
+    </div>
+  </Modal>;
+}
 function Modal({title,onClose,wide,xwide,children}){return<div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"><div className={`bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full ${xwide?"max-w-5xl":wide?"max-w-2xl":"max-w-lg"} max-h-[93vh] overflow-y-auto`}><div className="flex items-center justify-between px-4 sm:px-5 py-4 border-b border-gray-100 sticky top-0 bg-white z-10"><h2 className="font-bold text-gray-800 text-base">{title}</h2><button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 text-xl">&times;</button></div><div className="px-4 sm:px-5 py-5">{children}</div></div></div>;}
 function Back({title,onBack,right}){return<div className="flex items-center gap-3 mb-5"><button onClick={onBack} className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-gray-200 text-gray-500 hover:border-[#1E3A5F] hover:text-[#1E3A5F] transition text-xl shadow-sm">‹</button><h2 className="font-black text-white text-lg flex-1 leading-tight">{title}</h2>{right?<div className="bg-white rounded-xl p-1 shadow-sm flex items-center gap-1">{right}</div>:null}</div>;}
 function Toast({msg,clear}){useEffect(()=>{const t=setTimeout(clear,2800);return()=>clearTimeout(t);},[]);return<div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] bg-gray-900 text-white text-sm px-5 py-3 rounded-2xl shadow-2xl whitespace-nowrap">{msg}</div>;}
@@ -306,6 +322,7 @@ const estadoFinal=esNuevo?(colab?"Presupuestando":"Solicitud"):(f.estado==="Soli
       {sugerido&&<div className="text-xs text-blue-700 mb-2">💡 Recomendado: <strong>{sugerido.nombre}</strong></div>}
       <select className={S} value={f.colaboradorId||""} onChange={e=>set("colaboradorId",e.target.value)}><option value="">— Sin asignar —</option>{data.colaboradores.filter(c=>c.activo).map(c=><option key={c.id} value={c.id}>{c.nombre} ({c.especialidades?.[0]}){sugerido?.id===c.id?" ★":""}</option>)}</select>
       {f.colaboradorId&&<p className="text-[10px] text-blue-600 mt-1.5">✓ Se pedirá presupuesto por WhatsApp al guardar</p>}
+      {f.colaboradorId&&esNuevo&&<div className="mt-2"><div className="text-[10px] font-bold text-blue-800 uppercase tracking-wider mb-1">Instrucciones para el colaborador <span className="normal-case tracking-normal font-medium text-blue-400">· opcional, las verá en el mensaje</span></div><textarea className={S} rows={2} value={f.instrucciones_colaborador||""} onChange={e=>set("instrucciones_colaborador",e.target.value)} placeholder="Ej: El cliente pone su material. Llama antes de ir."/></div>}
     </div>
     <PresBox colab={f.presupuestoColaborador} margen={f.margen} onChange={set}/>
     <Fld label="Notas"><textarea className={S} rows={2} value={f.notas||""} onChange={e=>set("notas",e.target.value)}/></Fld>
@@ -328,6 +345,16 @@ const proximas=[...data.trabajos].filter(t=>["Aceptado","En curso"].includes(t.e
 function NuevasDemandas({data,setData,onBack,toast,onVer}){
   const[busca,setBusca]=useState("");
   const[fil,setFil]=useState("Todas");
+  const[envio,setEnvio]=useState<any>(null);
+  // WhatsApp se abre en el mismo gesto del clic (si no, el móvil lo bloquea) y después se guarda
+  const asignarYAvisar=async(t:any,sg:any,cl:any,texto:string)=>{
+    const tr={...t,instrucciones_colaborador:texto};
+    window.open(buildWA(sg,tr,cl),"_blank");
+    setEnvio(null);
+    const updated={...tr,colaboradorId:sg.id,estado:"Presupuestando",historial:[...getHistorial(t),{ts:now(),txt:`Asignado a ${sg.nombre}`,tipo:"sistema"},{ts:now(),txt:texto?"Presupuesto solicitado WA con instrucciones":"Presupuesto solicitado WA",tipo:"wa"}]};
+    const saved=await dbSaveTrabajo(updated);
+    if(saved){setData((d:any)=>({...d,trabajos:d.trabajos.map((x:any)=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Abriendo WhatsApp...");}
+  };
   const nuevas=data.trabajos.filter((t:any)=>t.estado==="Solicitud");
   const altas=nuevas.filter((t:any)=>t.prioridad==="Alta").length;
   const web=nuevas.filter((t:any)=>t.origen==="web").length;
@@ -350,6 +377,7 @@ function NuevasDemandas({data,setData,onBack,toast,onVer}){
     </Controles>}
     {nuevas.length===0&&<Tarjeta className="mt-4"><div className="ui-empty"><div style={{display:"flex",justifyContent:"center",color:"#10B981",marginBottom:8}}><UiIcon n="check" s={34}/></div>Todo gestionado. No hay demandas sin asignar.</div></Tarjeta>}
     {nuevas.length>0&&lista.length===0&&<Tarjeta className="mt-4"><div className="ui-empty">Ninguna demanda coincide con el filtro.</div></Tarjeta>}
+    {envio&&<ModalInstruccionesColab colab={envio.sg} onCerrar={()=>setEnvio(null)} onEnviar={(txt:string)=>asignarYAvisar(envio.t,envio.sg,envio.cl,txt)}/>}
     <div className="ui-cards">{lista.map((t:any)=>{
       const cl=data.clientes.find((c:any)=>c.id===getClienteId(t));
       const sg=sugerirColab(t.tipo,data.colaboradores,data.trabajos);
@@ -375,7 +403,7 @@ function NuevasDemandas({data,setData,onBack,toast,onVer}){
           <div className="t"><UiIcon n="user" s={14}/>Sugerido: <b>{sg.nombre}</b>{sg.especialidades?.[0]?` (${sg.especialidades[0]})`:""}</div>
           <div className="a">
             <button type="button" className="ui-sbtn pri" onClick={async(e)=>{e.stopPropagation();const updated={...t,colaboradorId:sg.id,estado:"Presupuestando",atendido:false,historial:[...getHistorial(t),{ts:now(),txt:`Asignado a ${sg.nombre}`,tipo:"sistema"}]};const saved=await dbSaveTrabajo(updated);if(saved){setData((d:any)=>({...d,trabajos:d.trabajos.map((x:any)=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Colaborador asignado");}}}>Asignar</button>
-            <button type="button" className="ui-sbtn wa" onClick={async(e)=>{e.stopPropagation();const waUrl=buildWA(sg,t,cl);const updated={...t,colaboradorId:sg.id,estado:"Presupuestando",historial:[...getHistorial(t),{ts:now(),txt:`Asignado a ${sg.nombre}`,tipo:"sistema"},{ts:now(),txt:"Presupuesto solicitado WA",tipo:"wa"}]};const saved=await dbSaveTrabajo(updated);if(saved){setData((d:any)=>({...d,trabajos:d.trabajos.map((x:any)=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Abriendo WhatsApp...");setTimeout(()=>window.open(waUrl,"_blank"),400);}}}><UiIcon n="phone" s={13}/>Asignar y avisar</button>
+            <button type="button" className="ui-sbtn wa" onClick={e=>{e.stopPropagation();if(!t.instrucciones_colaborador){setEnvio({t,sg,cl});return;}asignarYAvisar(t,sg,cl,t.instrucciones_colaborador);}}><UiIcon n="phone" s={13}/>Asignar y avisar</button>
             <button type="button" className="ui-sbtn" onClick={e=>{e.stopPropagation();onVer(t.id);}}>Ver</button>
           </div>
         </div>:<button type="button" className="ui-sbtn ui-dash" onClick={e=>{e.stopPropagation();onVer(t.id);}}>Asignar manualmente<UiIcon n="chev" s={13}/></button>}
@@ -1340,6 +1368,7 @@ const[editColab,setEditColab]=useState(false);
 const[selectorColab,setSelectorColab]=useState(false);
 const[accionesAbiertas,setAccionesAbiertas]=useState(false);
 const[modalRechazo,setModalRechazo]=useState(false);
+const[modalEnvio,setModalEnvio]=useState(false);
 const[motivoRechazo,setMotivoRechazo]=useState("");const[cobrosTrabajo,setCobrosTrabajo]=useState([]);
 useEffect(()=>{supabase.from('cobros_cliente').select('*').eq('trabajo_id',t.id).then(({data})=>setCobrosTrabajo(data||[]));},[t.id]);
   const[guardando,setGuardando]=useState(false);
@@ -1359,6 +1388,17 @@ const notaColab=partes.find(p=>p.startsWith('notacolab:'))?.replace('notacolab:'
   const adelanto=t.adelanto_tipo==='fijo'?(t.adelanto_valor||0):Math.round(totalIva*(t.adelanto_valor||30)/100);
   const linkAceptar=`https://domia-crm-two.vercel.app/aceptar/${refTrabajo(t,'cliente')}`;
   const tel=(cl?.telefono||"").replace(/\s/g,'');
+  const colabEnvio=data.colaboradores.find((c:any)=>c.id===getColabId(t));
+  // Primer envío del trabajo al colaborador: WhatsApp se abre en el mismo gesto del clic y después se guarda
+  const enviarTrabajoColab=async(texto:string)=>{
+    if(!colabEnvio||!cl)return;
+    const tr={...t,instrucciones_colaborador:texto};
+    window.open(buildWA(colabEnvio,tr,cl),"_blank");
+    setModalEnvio(false);
+    const hist=[...getHistorial(t),{ts:now(),txt:texto?"Trabajo enviado al colaborador con instrucciones":"Trabajo enviado al colaborador",tipo:"sistema"}];
+    const saved=await dbSaveTrabajo({...tr,estado:"Presupuestando",historial:hist});
+    if(saved){setData((d:any)=>({...d,trabajos:d.trabajos.map((x:any)=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("✅ Presupuestando");}
+  };
 
 const subirFoto=async(archivo:File|undefined)=>{
     if(!archivo)return;
@@ -1435,7 +1475,7 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
            return<>
         <Guia texto={recomendacion}/>
         {t.estado==="Solicitud"&&!getColabId(t)&&<Btn onClick={()=>setSelectorColab(true)}>👷 Asignar colaborador</Btn>}
-{t.estado==="Solicitud"&&getColabId(t)&&co2&&cl&&<Btn onClick={async()=>{window.open(buildWA(co2,t,cl),"_blank");await avanzar("Presupuestando","Trabajo enviado al colaborador");}}>📱 Enviar trabajo al colaborador</Btn>}
+{t.estado==="Solicitud"&&getColabId(t)&&co2&&cl&&<Btn onClick={async()=>{if(!t.instrucciones_colaborador){setModalEnvio(true);return;}window.open(buildWA(co2,t,cl),"_blank");await avanzar("Presupuestando","Trabajo enviado al colaborador");}}>📱 Enviar trabajo al colaborador</Btn>}
              {t.estado==="Presupuestando"&&co2&&cl&&<Btn onClick={()=>window.open(buildWA(co2,t,cl),"_blank")}>📱 Reenviar WhatsApp a {co2.nombre.split(" ")[0]}</Btn>}
         {t.estado==="Colaborador disponible"&&t.ultima_novedad&&t.ultima_novedad.includes("Cliente propone")&&co2&&<Btn onClick={()=>window.open(buildWACambioFecha(co2,t,cl),"_blank")}>📱 Consultar cambio de fecha con {co2.nombre.split(" ")[0]}</Btn>}
              {t.estado==="Colaborador disponible"&&cl?.telefono&&<Btn onClick={async()=>{window.open(buildWAVisitaCliente(cl,t,co2),"_blank");await avanzar("Visita propuesta","Fecha propuesta al cliente por WhatsApp");}}>📱 Proponer fecha al cliente</Btn>}
@@ -1452,7 +1492,7 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
              <button onClick={()=>setAccionesAbiertas(v=>!v)} className="w-full text-[11px] font-bold text-gray-400 uppercase tracking-widest py-1.5 flex items-center justify-center gap-1 hover:text-gray-600">{accionesAbiertas?"▲ Ocultar acciones":"▼ Todas las acciones"}</button>
         {accionesAbiertas&&<div className="space-y-2">
           {getColabId(t)?<Btn onClick={()=>setSelectorColab(true)} ghost>👷 Cambiar colaborador</Btn>:<Btn onClick={()=>setSelectorColab(true)} ghost>👷 Asignar colaborador</Btn>}
-          {co2&&cl&&<Btn onClick={async()=>{window.open(buildWA(co2,t,cl),"_blank");if(t.estado==="Solicitud")await avanzar("Presupuestando","Trabajo enviado al colaborador");}} ghost>📱 Enviar trabajo al colaborador</Btn>}
+          {co2&&cl&&<Btn onClick={async()=>{if(t.estado==="Solicitud"&&!t.instrucciones_colaborador){setModalEnvio(true);return;}window.open(buildWA(co2,t,cl),"_blank");if(t.estado==="Solicitud")await avanzar("Presupuestando","Trabajo enviado al colaborador");}} ghost>📱 Enviar trabajo al colaborador</Btn>}
           {cl&&<Btn onClick={async()=>{window.open(buildWAVisitaCliente(cl,t,co2),"_blank");await avanzar("Visita propuesta","Visita propuesta al cliente");}} ghost>📱 Proponer visita al cliente</Btn>}
           {co2&&cl&&<Btn onClick={async()=>{window.open(buildWAConfirmacionColab(co2,t,cl),"_blank");await avanzar("En curso","Visita confirmada — colaborador avisado");}} ghost>📱 Avisar al colaborador (visita confirmada)</Btn>}
           <Btn onClick={()=>setModo("presupuesto")} ghost>📄 Generar / editar presupuesto</Btn>
@@ -1471,6 +1511,7 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
       </>;
     })()}
   </div>
+  {modalEnvio&&colabEnvio&&cl&&<ModalInstruccionesColab colab={colabEnvio} onCerrar={()=>setModalEnvio(false)} onEnviar={enviarTrabajoColab}/>}
   {modalRechazo&&<Modal title="Rechazar trabajo" onClose={()=>setModalRechazo(false)}>
     <div className="space-y-3">
       <div className="text-sm text-gray-600">Indica el motivo del rechazo. El trabajo se marcará como cancelado y se archivará.</div>
