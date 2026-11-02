@@ -1549,13 +1549,13 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
 
      {tab==="presupuesto"&&<div className="ui-page" style={{gap:10}}><UiStyles/>
         <div className="ui-card pp2-sum" aria-live="polite">
-          <div><small>Cliente</small><b>{precio>0?fmEur(precio):"—"}</b></div><span className="sep">−</span>
-          <div><small>Colaborador</small><b>{colab>0?fmEur(colab):"—"}</b></div><span className="sep">=</span>
-          <div><small>Margen</small><b>{precio>0&&colab>0?fmEur(margen):"—"}</b>{precio>0&&colab>0&&<span className="pp2-pct">{Math.round(margen/colab*100)} %</span>}</div>
+          <div><small>Colaborador</small><b>{colab>0?fmEur(colab):"—"}</b></div>
+          <div><small>Cliente</small><b>{precio>0?fmEur(precio):"—"}</b></div>
+          <div><small>Margen</small><b>{precio>0&&colab>0?fmEur(margen):"—"}{precio>0&&colab>0&&<span className="pp2-pct">{Math.round(margen/colab*100)} %</span>}</b></div>
         </div>
 
         <section className="ui-card pp2" aria-label="Presupuesto del colaborador">
-          <div className="pp2-h">
+          <div className="pp2-h col">
             <b>Colaborador</b><small>{co?co.nombre:"Sin colaborador asignado"}</small>
             <span className={`pp2-st ${pres?"ok":colab>0?"w":""}`}><i/>{pres?"Recibido":colab>0?"Falta el archivo":"Pendiente"}</span>
           </div>
@@ -1565,9 +1565,10 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
             <span className="ui-pp-hint">se guarda al salir del campo</span>
           </div>
           {pres?<div className="pp2-row">
-            <span className="pp2-fico">{/\.pdf($|\?)/i.test(pres)?"PDF":"IMG"}</span>
-            <div className="x">Archivo adjunto</div>
-            <a className="ui-sbtn" href={pres} target="_blank">Ver</a>
+            <a className="pp2-open" href={pres} target="_blank" title="Abrir el presupuesto del colaborador">
+              <span className="pp2-fico">{/\.pdf($|\?)/i.test(pres)?"PDF":"IMG"}</span>
+              <span className="x">Presupuesto adjunto<small>Pincha para abrirlo</small></span>
+            </a>
             <label className="ui-sbtn" style={{cursor:"pointer"}}>Reemplazar<input type="file" accept="image/*,application/pdf" className="hidden" onChange={e=>{subirPresupuestoColab(e.target.files?.[0]);e.target.value="";}}/></label>
           </div>:<>
             <label className="ui-pp-drop"><UiIcon n="upload" s={22}/>Subir presupuesto del colaborador<small>Foto o PDF</small><input type="file" accept="image/*,application/pdf" className="hidden" onChange={e=>{subirPresupuestoColab(e.target.files?.[0]);e.target.value="";}}/></label>
@@ -1577,15 +1578,16 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
         </section>
 
         <section className="ui-card pp2" aria-label="Presupuesto Domia">
-          <div className="pp2-h">
+          <div className="pp2-h dom">
             <b>Domia</b><small>{cl?.nombre||"Sin cliente"}</small>
             <span className={`pp2-st ${pdfD?"ok":""}`}><i/>{pdfD?"Generado":"Sin generar"}</span>
           </div>
           {pdfD?<>
             <div className="pp2-row">
-              <span className="pp2-fico">PDF</span>
-              <div className="x">{partes.filter(p=>p.startsWith('pdfhist:')).length>0?`Versión ${partes.filter(p=>p.startsWith('pdfhist:')).length+1}`:"Primera versión"}</div>
-              <a className="ui-sbtn" href={pdfD} target="_blank">Ver</a>
+              <a className="pp2-open" href={pdfD} target="_blank" title="Abrir el presupuesto de Domia">
+                <span className="pp2-fico">PDF</span>
+                <span className="x">{partes.filter(p=>p.startsWith('pdfhist:')).length>0?`Versión ${partes.filter(p=>p.startsWith('pdfhist:')).length+1}`:"Primera versión"}<small>Pincha para abrirlo</small></span>
+              </a>
               <button type="button" className="ui-sbtn" onClick={()=>setModo("presupuesto")}>Editar</button>
             </div>
             {(()=>{

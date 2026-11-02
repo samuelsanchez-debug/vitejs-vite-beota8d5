@@ -308,14 +308,18 @@ a.ui-sbtn{text-decoration:none}
 .ui-tl li b{display:block;font-size:13px;font-weight:600;color:#1F2937;line-height:1.4;overflow-wrap:anywhere}
 .ui-tl li small{display:block;font-size:11.5px;color:#9CA3AF;margin-top:1px}
 .pp2{padding:14px 16px;display:flex;flex-direction:column;gap:12px;box-shadow:0 1px 2px rgba(16,24,40,.06)}
-.pp2-sum{display:flex;align-items:center;flex-wrap:wrap;gap:6px 22px;padding:11px 16px;box-shadow:0 1px 2px rgba(16,24,40,.06)}
-.pp2-sum div{display:flex;align-items:baseline;gap:6px}
-.pp2-sum small{font-size:11.5px;color:#6B7280}
-.pp2-sum b{font-size:15px;font-weight:500;color:#111827;font-variant-numeric:tabular-nums}
-.pp2-sum .sep{color:#CBD2DC}
-@media (max-width:480px){.pp2-sum{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px 10px}.pp2-sum div{flex-direction:column;align-items:flex-start;gap:1px}.pp2-sum .sep{display:none}.pp2-sum b{font-size:14px}}
-.pp2-pct{font-size:11px;color:#6B7280;background:var(--soft);border-radius:999px;padding:1px 8px}
-.pp2-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pp2-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 16px;padding:12px 16px;box-shadow:0 1px 2px rgba(16,24,40,.06)}
+.pp2-sum div{display:flex;flex-direction:column;gap:1px;min-width:0}
+.pp2-sum small{font-size:11.5px;color:var(--navy)}
+.pp2-sum b{font-size:16px;font-weight:500;color:var(--navy);font-variant-numeric:tabular-nums;display:flex;align-items:baseline;flex-wrap:wrap;gap:3px 8px}
+.pp2-pct{font-size:11px;font-weight:400;color:var(--navy);background:#E3ECF6;border-radius:999px;padding:1px 8px}
+.pp2-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-14px -16px 0;padding:11px 16px;border-radius:12px 12px 0 0}
+.pp2-h.col{background:#E9EFF7}
+.pp2-h.dom{background:#FDF1DC}
+.pp2-open{flex:1;min-width:150px;display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;border-radius:8px;margin:-4px;padding:4px;transition:background .15s}
+.pp2-open:hover{background:rgba(30,58,95,.07)}
+.pp2-open .x{font-size:12.5px;color:#374151}
+.pp2-open small{display:block;font-size:11px;color:#9CA3AF;margin-top:1px}
 .pp2-h b{font-size:14px;font-weight:500;color:#111827}
 .pp2-h small{font-size:12px;color:#6B7280;overflow-wrap:anywhere;min-width:0}
 .pp2-st{margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:#6B7280}
