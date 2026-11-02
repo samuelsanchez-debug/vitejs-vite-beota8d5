@@ -1606,7 +1606,20 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
               const totalCobrado=cobrosTrabajo.reduce((s:number,c:any)=>s+(+c.importe||0),0);
               const pct=totalIva>0?Math.min(100,Math.round(totalCobrado/totalIva*100)):0;
               const pendiente=Math.max(0,totalIva-totalCobrado);
-              const tramos=totalIva>5000?[{lbl:"Adelanto",p:40,imp:Math.round(totalIva*0.4)},{lbl:"2º pago",p:40,imp:Math.round(totalIva*0.4)},{lbl:"Final",p:20,imp:Math.round(totalIva*0.2)}]:[{lbl:"Adelanto",p:50,imp:Math.round(totalIva*0.5)},{lbl:"Final",p:50,imp:Math.round(totalIva*0.5)}];
+              // Plan de cobro: el primer tramo es el adelanto fijado en el presupuesto y el resto se reparte a partes iguales
+              const ad=Math.min(Math.max(adelanto,0),totalIva);
+              const restoPlan=totalIva-ad;
+              const restantes=(totalIva>5000?3:2)-1;
+              let tramos:{lbl:string,p:number,imp:number}[]=[];
+              if(totalIva>0){
+                if(ad<=0||restoPlan<=0)tramos=[{lbl:ad<=0?"Pago único":"Adelanto",p:100,imp:totalIva}];
+                else{
+                  const parte=Math.round(restoPlan/restantes);
+                  tramos=[{lbl:"Adelanto",p:0,imp:ad}];
+                  for(let k=0;k<restantes;k++){const ultimo=k===restantes-1;tramos.push({lbl:ultimo?"Final":"2º pago",p:0,imp:ultimo?restoPlan-parte*(restantes-1):parte});}
+                  tramos=tramos.map(tr=>({...tr,p:Math.round(tr.imp/totalIva*100)}));
+                }
+              }
               let acum=0;
               const tipo=t.adelanto_tipo==='fijo'?'fijo':'porcentaje';
               const cambiarTipo=async(nuevo:string)=>{if(nuevo===tipo)return;await supabase.from('trabajos').update({adelanto_tipo:nuevo}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,adelanto_tipo:nuevo}:x)}));toast(`Adelanto en ${nuevo==='fijo'?'€ fijo':'%'}`);};
@@ -1632,7 +1645,7 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
                   })}</div>
                 </div>
                 <div className="ui-pp-pay">
-                  <div className="t"><b>Adelanto del presupuesto</b><small>Es lo que ve el cliente al aceptar y lo que se le pide para reservar la fecha.</small></div>
+                  <div className="t"><b>Adelanto del presupuesto</b><small>Es lo que ve el cliente al aceptar y el primer cobro del plan. El resto se reparte a partes iguales.</small></div>
                   <div className="c">
                     <input type="number" min={0} defaultValue={t.adelanto_valor||30} aria-label="Valor del adelanto" onBlur={async e=>{const v=+e.target.value||0;await supabase.from('trabajos').update({adelanto_valor:v}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,adelanto_valor:v}:x)}));toast("Adelanto actualizado");}}/>
                     <div className="ui-seg" role="group" aria-label="Tipo de adelanto">
