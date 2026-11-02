@@ -1567,7 +1567,7 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
           {pres?<div className="pp2-row">
             <a className="pp2-open" href={pres} target="_blank" title="Abrir el presupuesto del colaborador">
               <span className="pp2-fico">{/\.pdf($|\?)/i.test(pres)?"PDF":"IMG"}</span>
-              <span className="x">Presupuesto adjunto<small>Pincha para abrirlo</small></span>
+              <span className="x">Presupuesto adjunto</span>
             </a>
             <label className="ui-sbtn" style={{cursor:"pointer"}}>Reemplazar<input type="file" accept="image/*,application/pdf" className="hidden" onChange={e=>{subirPresupuestoColab(e.target.files?.[0]);e.target.value="";}}/></label>
           </div>:<>
@@ -1586,7 +1586,7 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
             <div className="pp2-row">
               <a className="pp2-open" href={pdfD} target="_blank" title="Abrir el presupuesto de Domia">
                 <span className="pp2-fico">PDF</span>
-                <span className="x">{partes.filter(p=>p.startsWith('pdfhist:')).length>0?`Versión ${partes.filter(p=>p.startsWith('pdfhist:')).length+1}`:"Primera versión"}<small>Pincha para abrirlo</small></span>
+                <span className="x">{partes.filter(p=>p.startsWith('pdfhist:')).length>0?`Versión ${partes.filter(p=>p.startsWith('pdfhist:')).length+1}`:"Primera versión"}</span>
               </a>
               <button type="button" className="ui-sbtn" onClick={()=>setModo("presupuesto")}>Editar</button>
             </div>
