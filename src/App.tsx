@@ -1430,6 +1430,10 @@ function SelectorColaborador({data,valorActual,onSeleccionar,onCerrar}){
     </div>
   </Modal>;
 }
+function IcoResumen({n}:{n:"cal"|"eur"|"nota"|"doc"}){
+  const p={cal:<><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></>,eur:<><path d="M17 6.5A6 6 0 1 0 17 17.5"/><line x1="4" y1="10" x2="13" y2="10"/><line x1="4" y1="14" x2="13" y2="14"/></>,nota:<path d="M4 5h16v11H9l-5 4z"/>,doc:<><path d="M6 3h9l4 4v14H6z"/><polyline points="14 3 14 8 19 8"/></>}[n];
+  return<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-[3px]">{p}</svg>;
+}
 function FichaTrabajo({t,cl,co,data,setData,onClose,toast,setModo,setSec,setFocoFinanzas}){
 const[tab,setTab]=useState("resumen");
 const[editColab,setEditColab]=useState(false);
@@ -1593,18 +1597,29 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
       </div>
 
       {tab==="resumen"&&<div className="space-y-3">
-       <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-          <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">Descripción del cliente</div>
-          <div className="text-sm text-gray-700 leading-relaxed">{t.descripcion}</div>
+        {t.ultima_novedad&&t.ultima_novedad.includes("Cliente propone")&&!t.atendido&&<div className="flex gap-2.5 bg-amber-50 border border-amber-200 border-l-[3px] border-l-amber-500 rounded-xl px-3.5 py-3">
+          <svg className="flex-shrink-0 mt-0.5 text-amber-600" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3 2 20h20z"/><line x1="12" y1="10" x2="12" y2="14"/><circle cx="12" cy="17.2" r=".6" fill="currentColor"/></svg>
+          <div><div className="text-[13px] font-semibold text-amber-800">El cliente propone otra fecha</div><div className="text-[15px] font-semibold text-gray-900 mt-0.5 tabular-nums">{fmt(t.fecha)} · {t.hora}</div><div className="text-xs text-amber-800 mt-0.5">Consulta con el colaborador si le viene bien.</div></div>
+        </div>}
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+          <div className="p-4">
+            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Descripción del cliente</div>
+            <div className="text-sm text-gray-700 leading-relaxed">{t.descripcion}</div>
+            {comentCli&&<div className="mt-3 pl-3 border-l-2 border-gray-200"><div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Comentario del cliente</div><div className="text-[13px] text-gray-600">{comentCli}</div></div>}
+          </div>
+          <div className="p-4 border-t border-gray-100">
+            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Instrucciones para el colaborador <span className="normal-case tracking-normal font-medium text-gray-300">· las verá el colaborador</span></div>
+            <textarea defaultValue={t.instrucciones_colaborador||""} onBlur={async e=>{const v=e.target.value;await supabase.from('trabajos').update({instrucciones_colaborador:v}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,instrucciones_colaborador:v}:x)}));toast("Instrucciones guardadas");}} rows={2} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1E3A5F] resize-none" placeholder="Ej: El cliente pone su material."/>
+          </div>
+          <div className="p-4 border-t border-gray-100">
+            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Respuesta del colaborador</div>
+            {!disp&&!(getPresupColab(t)>0)&&!notaColab&&!pres&&<div className="text-[13px] text-gray-400">Todavía no ha respondido.</div>}
+            {disp&&<div className="flex items-start gap-2 py-1"><IcoResumen n="cal"/><span className="w-[84px] flex-shrink-0 text-[10px] font-bold uppercase tracking-wide text-gray-400 pt-0.5">Disponible</span><span className="text-[13px] font-semibold text-gray-900">{disp}</span></div>}
+            {getPresupColab(t)>0&&<div className="flex items-start gap-2 py-1"><IcoResumen n="eur"/><span className="w-[84px] flex-shrink-0 text-[10px] font-bold uppercase tracking-wide text-gray-400 pt-0.5">Su precio</span><span className="text-[13px] font-semibold text-gray-900 tabular-nums">{getPresupColab(t)} €</span></div>}
+            {notaColab&&<div className="flex items-start gap-2 py-1"><IcoResumen n="nota"/><span className="w-[84px] flex-shrink-0 text-[10px] font-bold uppercase tracking-wide text-gray-400 pt-0.5">Nota</span><span className="text-[13px] text-gray-700">{notaColab}</span></div>}
+            {pres&&<div className="flex items-start gap-2 py-1"><IcoResumen n="doc"/><span className="w-[84px] flex-shrink-0 text-[10px] font-bold uppercase tracking-wide text-gray-400 pt-0.5">Presupuesto</span><a href={pres} target="_blank" className="text-[13px] font-semibold text-[#1E3A5F] hover:underline">Ver el del colaborador →</a></div>}
+          </div>
         </div>
-        <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-          <div className="text-[10px] text-blue-500 uppercase font-bold tracking-widest mb-2">📋 Instrucciones para el colaborador</div>
-          <textarea defaultValue={t.instrucciones_colaborador||""} onBlur={async e=>{const v=e.target.value;await supabase.from('trabajos').update({instrucciones_colaborador:v}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,instrucciones_colaborador:v}:x)}));toast("Instrucciones guardadas");}} rows={2} className="w-full border border-blue-200 rounded-xl px-3 py-2 text-sm bg-blue-50/40 focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none" placeholder="Ej: El cliente pone su material. (Esto lo verá el colaborador)"/>
-        </div>
-{disp&&<div className="bg-teal-50 border border-teal-100 rounded-2xl p-4"><div className="text-[10px] text-teal-600 uppercase font-bold mb-1">📅 Disponibilidad colaborador</div><div className="text-sm text-teal-800">{disp}</div>{notaColab&&getPresupColab(t)<=0&&<div className="text-sm text-teal-800 mt-2 pt-2 border-t border-teal-200">📝 {notaColab}</div>}</div>}
-        {getPresupColab(t)>0&&<div className="bg-purple-50 border border-purple-200 rounded-2xl p-4"><div className="text-[10px] text-purple-700 uppercase font-bold mb-1">💶 Precio propuesto por el colaborador</div><div className="text-2xl font-black text-purple-700">{getPresupColab(t)}€</div>{notaColab&&<div className="text-sm text-purple-800 mt-2 pt-2 border-t border-purple-200">📝 {notaColab}</div>}{pres&&<a href={pres} target="_blank" className="text-xs text-purple-600 font-semibold hover:underline mt-1 inline-block">📄 Ver presupuesto del colaborador →</a>}</div>}
-               {t.ultima_novedad&&t.ultima_novedad.includes("Cliente propone")&&!t.atendido&&<div className="bg-orange-50 border-2 border-orange-200 rounded-2xl p-4"><div className="text-[10px] text-orange-700 uppercase font-bold mb-1">🔄 El cliente ha propuesto otra fecha</div><div className="text-lg font-black text-orange-700">{fmt(t.fecha)} · {t.hora}</div><div className="text-xs text-orange-600 mt-1">Consulta con el colaborador si le viene bien.</div></div>}
-        {comentCli&&<div className="bg-yellow-50 border border-yellow-100 rounded-2xl p-4"><div className="text-[10px] text-yellow-700 uppercase font-bold mb-1">💬 Nota del cliente</div><div className="text-sm text-gray-700">{comentCli}</div></div>}
       </div>}
 
      {tab==="presupuesto"&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
