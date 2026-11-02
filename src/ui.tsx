@@ -21,6 +21,7 @@ const ICONOS: Record<string, ReactNode> = {
   shield: <path d="M12 3 5 6v6c0 4.5 3 7.6 7 9 4-1.4 7-4.5 7-9V6z" />,
   repeat: <><polyline points="17 2 21 6 17 10" /><path d="M3 11V9a3 3 0 0 1 3-3h15" /><polyline points="7 22 3 18 7 14" /><path d="M21 13v2a3 3 0 0 1-3 3H3" /></>,
   dot: <circle cx="12" cy="12" r="4" />,
+  pin: <><path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z" /><circle cx="12" cy="10" r="2.5" /></>,
   phone: <path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" />,
   trash: <><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6M14 11v6" /><path d="M9 6V4h6v2" /></>,
   calendar: <><rect x="3" y="5" width="18" height="16" rx="2" /><line x1="3" y1="10" x2="21" y2="10" /><line x1="8" y1="3" x2="8" y2="7" /><line x1="16" y1="3" x2="16" y2="7" /></>,
@@ -119,6 +120,17 @@ const UI_CSS = `
 .ui-sbtn.warn{background:#FEF3C7;color:#B45309}.ui-sbtn.warn:hover{background:#FDE9A0}
 .ui-sbtn.ok{background:#DDF6EC;color:#047857}.ui-sbtn.ok:hover{background:#C6EEDD}
 .ui-sbtn.danger{background:#FEECEC;color:#DC2626;margin-left:auto}.ui-sbtn.danger:hover{background:#FCD9D9}
+.ui-cli{background:var(--soft);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:5px}
+.ui-cli .n{display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:700;color:#111827}
+.ui-cli .n svg{color:#9CA3AF;flex:none}
+.ui-cli .r{display:flex;align-items:flex-start;gap:7px;font-size:12.5px;color:#6B7280;overflow-wrap:anywhere}
+.ui-cli .r svg{color:#B6BCC8;flex:none;margin-top:2px}
+.ui-sug{background:#FFF8E8;border:1px solid #FBE3AE;border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;margin-top:auto}
+.ui-sug .t{display:flex;align-items:center;gap:7px;font-size:12.5px;color:#92400E}
+.ui-sug .t b{color:#78350F}
+.ui-sug .a{display:flex;gap:6px;flex-wrap:wrap}
+.ui-dash{margin-top:auto;border:1.5px dashed #CBD2DC;background:#fff;color:#6B7280;padding:10px}
+.ui-dash:hover{border-color:var(--navy);color:var(--navy);background:#fff}
 .ui-attn{margin-top:16px;border-left:4px solid var(--or);overflow:hidden}
 .ui-attn-h{display:flex;align-items:center;gap:8px;padding:12px 14px 6px;font-size:13px;font-weight:700;color:#92400E}
 .ui-attn-h .n{background:var(--or);color:#2B1A00;border-radius:999px;font-size:11px;padding:1px 8px}

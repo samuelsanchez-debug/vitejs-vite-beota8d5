@@ -326,36 +326,60 @@ const proximas=[...data.trabajos].filter(t=>["Aceptado","En curso"].includes(t.e
   </div>;
 }
 function NuevasDemandas({data,setData,onBack,toast,onVer}){
-  const nuevas=data.trabajos.filter(t=>t.estado==="Solicitud");
-  return<div>
-    <Back title={`Nuevas demandas (${nuevas.length})`} onBack={onBack}/>
-    {nuevas.length===0&&<div className="text-center py-16"><div className="text-5xl mb-3">✅</div><div className="font-bold text-white">Todo gestionado</div></div>}
-    <div className="space-y-3">{nuevas.map(t=>{
-      const cl=data.clientes.find(c=>c.id===getClienteId(t));
+  const[busca,setBusca]=useState("");
+  const[fil,setFil]=useState("Todas");
+  const nuevas=data.trabajos.filter((t:any)=>t.estado==="Solicitud");
+  const altas=nuevas.filter((t:any)=>t.prioridad==="Alta").length;
+  const web=nuevas.filter((t:any)=>t.origen==="web").length;
+  const lista=nuevas.filter((t:any)=>{
+    if(fil==="Alta prioridad"&&t.prioridad!=="Alta")return false;
+    if(fil==="Desde la web"&&t.origen!=="web")return false;
+    if(busca.trim()){
+      const cl=data.clientes.find((c:any)=>c.id===getClienteId(t));
+      return `${t.tipo} ${t.descripcion||""} ${cl?.nombre||""} ${cl?.telefono||""}`.toLowerCase().includes(busca.trim().toLowerCase());
+    }
+    return true;
+  });
+  const tonoPrio:Record<string,string>={"Alta":"r","Media":"w","Baja":"i"};
+  return<div className="ui-page"><UiStyles/>
+    <PageHeader titulo="Nuevas demandas" subtitulo={nuevas.length===0?"Todo gestionado":`${nuevas.length} ${nuevas.length===1?"demanda sin asignar":"demandas sin asignar"}${lista.length!==nuevas.length?` · mostrando ${lista.length}`:""}`} onBack={onBack}/>
+    <KpiRow items={[{icono:"bell",valor:nuevas.length,etiqueta:"sin asignar"},{icono:"warn",valor:altas,etiqueta:"con prioridad alta"},{icono:"link",valor:web,etiqueta:"llegadas desde la web"}]}/>
+    {nuevas.length>0&&<Controles>
+      <Buscador value={busca} onChange={setBusca} placeholder="Buscar por cliente, servicio o teléfono"/>
+      <Segmentado etiqueta="Filtrar demandas" value={fil} onChange={setFil} opciones={[{id:"Todas",label:"Todas"},{id:"Alta prioridad",label:"Alta prioridad"},{id:"Desde la web",label:"Desde la web"}]}/>
+    </Controles>}
+    {nuevas.length===0&&<Tarjeta className="mt-4"><div className="ui-empty"><div style={{display:"flex",justifyContent:"center",color:"#10B981",marginBottom:8}}><UiIcon n="check" s={34}/></div>Todo gestionado. No hay demandas sin asignar.</div></Tarjeta>}
+    {nuevas.length>0&&lista.length===0&&<Tarjeta className="mt-4"><div className="ui-empty">Ninguna demanda coincide con el filtro.</div></Tarjeta>}
+    <div className="ui-cards">{lista.map((t:any)=>{
+      const cl=data.clientes.find((c:any)=>c.id===getClienteId(t));
       const sg=sugerirColab(t.tipo,data.colaboradores,data.trabajos);
       const notas=getNotas(t);
-      const fotoUrl=notas.startsWith('foto:')?notas.replace('foto:',''):null;
-      return<div key={t.id} onClick={()=>onVer(t.id)} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm cursor-pointer hover:border-[#1E3A5F] transition">
-        <div className="flex items-start justify-between gap-2 mb-3">
-          <div><div className="flex items-center gap-2 flex-wrap mb-0.5"><span className="font-black text-gray-800">{t.tipo}</span><span className={`text-[10px] font-bold ${PRIO_CFG[t.prioridad]?.text}`}>{PRIO_CFG[t.prioridad]?.icon} {t.prioridad}</span></div><div className="text-sm text-gray-600">{t.descripcion}</div></div>
-          <OrigenTag id={t.origen}/>
+      const fotoUrl=notas.startsWith('foto:')?notas.replace('foto:','').split('||')[0]:null;
+      return<Tarjeta key={t.id} className="ui-inc">
+        <div className="ui-inc-h" onClick={()=>onVer(t.id)} style={{cursor:"pointer"}}>
+          <span className="ui-tile" style={{background:"#E8EEF5",color:"#1E3A5F"}}><IconoTipoPipeline tipo={t.tipo}/></span>
+          <div className="x"><b>{t.tipo}</b><small>#{t.id} · {diasDesde(t.fecha)}</small></div>
+          <span className={`ui-st ${tonoPrio[t.prioridad]||"i"}`}><i/>{t.prioridad||"Media"}</span>
         </div>
-        {fotoUrl&&<img src={fotoUrl} alt="foto" className="w-full h-32 object-cover rounded-xl mb-3"/>}
-        <div className="bg-gray-50 rounded-xl p-3 mb-3 text-sm">
-          <div className="font-semibold text-gray-800">{cl?.nombre}</div>
-          <div className="text-xs text-gray-500 mt-0.5">{cl?.telefono}</div>
-          <div className="text-xs text-gray-400 truncate">📍 {cl?.direccion}</div>
-          <div className="text-xs text-gray-400 mt-0.5">📅 {fmt(t.fecha)} · {t.hora}</div>
-        </div>
-        {sg?<div className="bg-orange-50 border border-orange-200 rounded-xl p-3" onClick={e=>e.stopPropagation()}>
-          <div className="text-xs text-orange-700 mb-2">💡 Sugerido: <strong>{sg.nombre}</strong> ({sg.especialidades?.[0]})</div>
-          <div className="flex gap-2">
-            <button onClick={async(e)=>{e.stopPropagation();const updated={...t,colaboradorId:sg.id,estado:"Presupuestando",atendido:false,historial:[...getHistorial(t),{ts:now(),txt:`Asignado a ${sg.nombre}`,tipo:"sistema"}]};const saved=await dbSaveTrabajo(updated);if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Colaborador asignado");}}} className="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold py-2 rounded-xl transition">Asignar</button>
-            <button onClick={async(e)=>{e.stopPropagation();const waUrl=buildWA(sg,t,cl);const updated={...t,colaboradorId:sg.id,estado:"Presupuestando",historial:[...getHistorial(t),{ts:now(),txt:`Asignado a ${sg.nombre}`,tipo:"sistema"},{ts:now(),txt:"Presupuesto solicitado WA",tipo:"wa"}]};const saved=await dbSaveTrabajo(updated);if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Abriendo WhatsApp...");setTimeout(()=>window.open(waUrl,"_blank"),400);}}} className="flex-1 bg-green-500 hover:bg-green-600 text-white text-sm font-bold py-2 rounded-xl transition">Asignar y WA 📱</button>
-            <button onClick={e=>{e.stopPropagation();onVer(t.id);}} className="border border-gray-200 text-gray-500 px-3 rounded-xl text-sm">Ver</button>
+        <div onClick={()=>onVer(t.id)} style={{cursor:"pointer",display:"flex",flexDirection:"column",gap:10}}>
+          {t.descripcion&&<div className="ui-box">{t.descripcion}</div>}
+          {fotoUrl&&<img src={fotoUrl} alt="Foto de la demanda" style={{width:"100%",height:128,objectFit:"cover",borderRadius:12}}/>}
+          <div className="ui-cli">
+            <div className="n"><UiIcon n="user" s={14}/>{cl?.nombre||"Sin cliente"}<span style={{marginLeft:"auto"}}><OrigenTag id={t.origen}/></span></div>
+            {cl?.telefono&&<div className="r"><UiIcon n="phone" s={13}/>{cl.telefono}</div>}
+            {cl?.direccion&&<div className="r"><UiIcon n="pin" s={13}/><span>{cl.direccion}</span></div>}
+            <div className="r"><UiIcon n="calendar" s={13}/>{fmt(t.fecha)} · {t.hora}</div>
           </div>
-        </div>:<button onClick={e=>{e.stopPropagation();onVer(t.id);}} className="w-full border-2 border-dashed border-gray-200 text-gray-400 py-2.5 rounded-xl text-sm hover:border-[#1E3A5F] hover:text-[#1E3A5F] transition">Asignar manualmente →</button>}
-      </div>;
+        </div>
+        {sg?<div className="ui-sug" onClick={e=>e.stopPropagation()}>
+          <div className="t"><UiIcon n="user" s={14}/>Sugerido: <b>{sg.nombre}</b>{sg.especialidades?.[0]?` (${sg.especialidades[0]})`:""}</div>
+          <div className="a">
+            <button type="button" className="ui-sbtn pri" onClick={async(e)=>{e.stopPropagation();const updated={...t,colaboradorId:sg.id,estado:"Presupuestando",atendido:false,historial:[...getHistorial(t),{ts:now(),txt:`Asignado a ${sg.nombre}`,tipo:"sistema"}]};const saved=await dbSaveTrabajo(updated);if(saved){setData((d:any)=>({...d,trabajos:d.trabajos.map((x:any)=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Colaborador asignado");}}}>Asignar</button>
+            <button type="button" className="ui-sbtn wa" onClick={async(e)=>{e.stopPropagation();const waUrl=buildWA(sg,t,cl);const updated={...t,colaboradorId:sg.id,estado:"Presupuestando",historial:[...getHistorial(t),{ts:now(),txt:`Asignado a ${sg.nombre}`,tipo:"sistema"},{ts:now(),txt:"Presupuesto solicitado WA",tipo:"wa"}]};const saved=await dbSaveTrabajo(updated);if(saved){setData((d:any)=>({...d,trabajos:d.trabajos.map((x:any)=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Abriendo WhatsApp...");setTimeout(()=>window.open(waUrl,"_blank"),400);}}}><UiIcon n="phone" s={13}/>Asignar y avisar</button>
+            <button type="button" className="ui-sbtn" onClick={e=>{e.stopPropagation();onVer(t.id);}}>Ver</button>
+          </div>
+        </div>:<button type="button" className="ui-sbtn ui-dash" onClick={e=>{e.stopPropagation();onVer(t.id);}}>Asignar manualmente<UiIcon n="chev" s={13}/></button>}
+      </Tarjeta>;
     })}</div>
   </div>;
 }
@@ -3278,6 +3302,7 @@ const TITULO={home:"Inicio",nuevas:"Nuevas demandas",demandas:"Pipeline",cliente
     {toastMsg&&<Toast msg={toastMsg} clear={()=>setToastMsg(null)}/>}
   </div>;
 }
+
 
 
 
