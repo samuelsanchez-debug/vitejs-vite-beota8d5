@@ -23,25 +23,22 @@ export default function FormularioDomia() {
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
-  // «Cerrar»: cierra la pestaña si el navegador lo permite; si no (enlace directo), lleva a la web de Domia
+  // Cierra el aviso de «Solicitud enviada» y deja el formulario limpio para una nueva solicitud
+  // (y avisa a la web que lo incruste, por si es una ventana emergente).
   const cerrarAviso = () => {
-    try { window.close(); } catch (e) {}
-    window.setTimeout(() => { window.location.href = "https://domiaservices.es"; }, 300);
+    try { if (window.parent !== window) window.parent.postMessage({ tipo: "domia-solicitud-enviada" }, "*"); } catch (e) {}
+    setForm({ nombre: "", telefono: "", email: "", direccion: "", tipos: [], descripcion: "" });
+    setFotos([]);
+    setFotosPreview([]);
+    setWeb("");
+    setErrores({});
+    setPaso(1);
   };
 
-  // El aviso de «Solicitud enviada» se cierra solo a los 4 segundos: avisa a la web que lo incrusta
-  // (por si es una ventana emergente) y deja el formulario limpio para una nueva solicitud.
+  // El aviso se cierra solo a los 5 segundos
   useEffect(() => {
     if (paso !== 3) return;
-    const id = window.setTimeout(() => {
-      try { if (window.parent !== window) window.parent.postMessage({ tipo: "domia-solicitud-enviada" }, "*"); } catch (e) {}
-      setForm({ nombre: "", telefono: "", email: "", direccion: "", tipos: [], descripcion: "" });
-      setFotos([]);
-      setFotosPreview([]);
-      setWeb("");
-      setErrores({});
-      setPaso(1);
-    }, 4000);
+    const id = window.setTimeout(cerrarAviso, 5000);
     return () => window.clearTimeout(id);
   }, [paso]);
 
