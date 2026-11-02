@@ -13,6 +13,17 @@ const ICONOS: Record<string, ReactNode> = {
   tool: <path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.5-.5-.5-2.5z" />,
   eur: <><path d="M17 6.5A6 6 0 1 0 17 17.5" /><line x1="4" y1="10" x2="13" y2="10" /><line x1="4" y1="14" x2="13" y2="14" /></>,
   chev: <polyline points="9 6 15 12 9 18" />,
+  warn: <><path d="M12 3 2 20h20z" /><line x1="12" y1="10" x2="12" y2="14" /><circle cx="12" cy="17.2" r=".6" fill="currentColor" /></>,
+  clock: <><circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 15 14" /></>,
+  check: <><circle cx="12" cy="12" r="9" /><polyline points="8.5 12.5 11 15 15.5 9.5" /></>,
+  tick: <polyline points="20 6 9 17 4 12" />,
+  bell: <><path d="M12 4a4 4 0 0 0-4 4v3.4c0 .6-.2 1.2-.6 1.7L6 15h12l-1.4-1.9c-.4-.5-.6-1.1-.6-1.7V8a4 4 0 0 0-4-4z" /><path d="M10 18a2 2 0 0 0 4 0" /></>,
+  shield: <path d="M12 3 5 6v6c0 4.5 3 7.6 7 9 4-1.4 7-4.5 7-9V6z" />,
+  repeat: <><polyline points="17 2 21 6 17 10" /><path d="M3 11V9a3 3 0 0 1 3-3h15" /><polyline points="7 22 3 18 7 14" /><path d="M21 13v2a3 3 0 0 1-3 3H3" /></>,
+  dot: <circle cx="12" cy="12" r="4" />,
+  phone: <path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" />,
+  trash: <><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6M14 11v6" /><path d="M9 6V4h6v2" /></>,
+  calendar: <><rect x="3" y="5" width="18" height="16" rx="2" /><line x1="3" y1="10" x2="21" y2="10" /><line x1="8" y1="3" x2="8" y2="7" /><line x1="16" y1="3" x2="16" y2="7" /></>,
 };
 
 export function UiIcon({ n, s = 16 }: { n: string; s?: number }) {
@@ -85,6 +96,37 @@ const UI_CSS = `
 .ui-st.a{background:#DDF6EC;color:#047857}
 .ui-st.i{background:#F1F3F7;color:#6B7280}
 .ui-st.w{background:#FEF3C7;color:#B45309}
+.ui-st.r{background:#FEE2E2;color:#B91C1C}
+.ui-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;margin-top:14px}
+@media (max-width:420px){.ui-cards{grid-template-columns:minmax(0,1fr)}}
+.ui-inc{padding:14px;display:flex;flex-direction:column;gap:10px;transition:transform .15s,box-shadow .15s}
+.ui-inc:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(8,20,40,.24)}
+.ui-inc-h{display:flex;align-items:center;gap:11px}
+.ui-inc-h .x{flex:1;min-width:0}
+.ui-inc-h b{display:block;color:#111827;font-size:14px;font-weight:700;line-height:1.25}
+.ui-inc-h small{display:block;color:#6B7280;font-size:12px;overflow-wrap:anywhere}
+.ui-tile{flex:none;width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;color:#fff}
+.ui-box{display:flex;gap:8px;align-items:flex-start;background:var(--soft);border-radius:10px;padding:9px 11px;font-size:13px;color:#374151;line-height:1.45}
+.ui-box svg{flex:none;margin-top:2px;color:#9CA3AF}
+.ui-box.teal{background:#ECFAF7;color:#115E59}.ui-box.teal svg{color:#14B8A6}
+.ui-box.ok{background:#EAF8F1;color:#065F46}.ui-box.ok svg{color:#10B981}
+.ui-inc-a{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto}
+.ui-sbtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:9px;padding:7px 11px;font:inherit;font-size:12px;font-weight:700;cursor:pointer;background:#F1F3F7;color:#4B5563;transition:background .15s,transform .12s}
+.ui-sbtn:active{transform:scale(.97)}
+.ui-sbtn:hover{background:#E6EAF1}
+.ui-sbtn.pri{background:var(--navy);color:#fff}.ui-sbtn.pri:hover{background:#152d4a}
+.ui-sbtn.wa{background:#E3F8EA;color:#15803D}.ui-sbtn.wa:hover{background:#CDF1DA}
+.ui-sbtn.warn{background:#FEF3C7;color:#B45309}.ui-sbtn.warn:hover{background:#FDE9A0}
+.ui-sbtn.ok{background:#DDF6EC;color:#047857}.ui-sbtn.ok:hover{background:#C6EEDD}
+.ui-sbtn.danger{background:#FEECEC;color:#DC2626;margin-left:auto}.ui-sbtn.danger:hover{background:#FCD9D9}
+.ui-attn{margin-top:16px;border-left:4px solid var(--or);overflow:hidden}
+.ui-attn-h{display:flex;align-items:center;gap:8px;padding:12px 14px 6px;font-size:13px;font-weight:700;color:#92400E}
+.ui-attn-h .n{background:var(--or);color:#2B1A00;border-radius:999px;font-size:11px;padding:1px 8px}
+.ui-attn-r{display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--hair)}
+.ui-attn-r .x{flex:1;min-width:0}
+.ui-attn-r .x b{display:block;color:#111827;font-size:13.5px}
+.ui-attn-r .x span{display:block;color:#6B7280;font-size:12px}
+.ui-attn-r .a{flex:none;display:flex;gap:6px}
 .ui-t th.sort{cursor:pointer;user-select:none}
 .ui-t th.sort:hover{color:#374151}
 .ui-num{font-variant-numeric:tabular-nums;font-weight:600;color:#111827}

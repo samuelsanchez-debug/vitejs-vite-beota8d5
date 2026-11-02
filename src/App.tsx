@@ -2937,56 +2937,58 @@ function Incidencias({data,setData,onBack,toast}){
   const cfgEstado={"Abierta":"bg-red-100 text-red-700","En proceso":"bg-amber-100 text-amber-700","Resuelta":"bg-emerald-100 text-emerald-700"};
   const cfgTipo={"Garantía":"🛡️","Queja":"😠","Repetición":"🔁","Otro":"📋"};
    const atencion=incidencias.filter(i=>i.atendida===false&&i.estado!=="Resuelta");
-  return<div>
-    <Back title="Incidencias" onBack={onBack} right={<button onClick={()=>setNueva(true)} className="bg-[#1E3A5F] text-white text-xs font-bold px-3 py-1.5 rounded-xl hover:bg-[#152d4a] transition">+ Nueva</button>}/>
-    {atencion.length>0&&<div className="bg-red-50 border-2 border-red-200 rounded-2xl p-3 mb-4">
-      <div className="font-bold text-red-700 text-sm mb-2 flex items-center gap-2">🔔 Requiere tu atención ({atencion.length})</div>
-      <div className="space-y-2">{atencion.map(inc=>{
-        const cl=data.clientes.find(c=>c.id===inc.cliente_id);
-        const co=data.colaboradores.find(c=>c.id===inc.colaborador_id);
-        return<div key={inc.id} className="bg-white border border-red-200 rounded-xl p-3">
-          <div className="flex items-center justify-between gap-2 mb-1">
-            <div className="text-sm font-bold text-gray-800">{inc.tipo} · {cl?.nombre||"—"}</div>
-            <div className="flex gap-1.5">
-              <button onClick={()=>setVerInc(inc)} className="bg-[#1E3A5F] text-white text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-[#152d4a] transition">Ver</button>
-              <button onClick={async()=>{await supabase.from('incidencias').update({atendida:true}).eq('id',inc.id);setData(d=>({...d,incidencias:d.incidencias.map(x=>x.id===inc.id?{...x,atendida:true}:x)}));toast("✓ Atendido");}} className="bg-gray-100 text-gray-500 text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-emerald-100 hover:text-emerald-600 transition">✓</button>
-            </div>
+  const cuenta=(e:string)=>incidencias.filter((i:any)=>e==="Todas"||i.estado===e).length;
+  const TIPO_UI:Record<string,{ic:string,bg:string}>={"Garantía":{ic:"shield",bg:"#4F7FB8"},"Queja":{ic:"warn",bg:"#D0627A"},"Repetición":{ic:"repeat",bg:"#C27C3A"},"Otro":{ic:"dot",bg:"#7A8CA5"}};
+  const tonoEstado:Record<string,string>={"Abierta":"r","En proceso":"w","Resuelta":"a"};
+  const fechaCorta=(f:string)=>new Date(f+"T00:00:00").toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"});
+  return<div className="ui-page"><UiStyles/>
+    <PageHeader titulo="Incidencias" subtitulo={`${incidencias.length} ${incidencias.length===1?"incidencia":"incidencias"} · ${cuenta("Abierta")} ${cuenta("Abierta")===1?"abierta":"abiertas"}${atencion.length>0?` · ${atencion.length} ${atencion.length===1?"requiere":"requieren"} atención`:""}`} onBack={onBack}>
+      <Boton variante="pri" icono="plus" onClick={()=>setNueva(true)}>Nueva incidencia</Boton>
+    </PageHeader>
+    <KpiRow items={[{icono:"warn",valor:cuenta("Abierta"),etiqueta:"abiertas"},{icono:"clock",valor:cuenta("En proceso"),etiqueta:"en proceso"},{icono:"check",valor:cuenta("Resuelta"),etiqueta:"resueltas"}]}/>
+    {atencion.length>0&&<Tarjeta className="ui-attn">
+      <div className="ui-attn-h"><UiIcon n="bell" s={16}/>Requiere tu atención<span className="n">{atencion.length}</span></div>
+      {atencion.map((inc:any)=>{
+        const cl=data.clientes.find((c:any)=>c.id===inc.cliente_id);
+        const co=data.colaboradores.find((c:any)=>c.id===inc.colaborador_id);
+        return<div key={inc.id} className="ui-attn-r">
+          <div className="x">
+            <b>{inc.tipo} · {cl?.nombre||"—"}</b>
+            {inc.fecha_propuesta&&<span>{co?.nombre?.split(" ")[0]||"Colaborador"} disponible: {fechaCorta(inc.fecha_propuesta)} a las {inc.hora_propuesta}</span>}
+            {inc.nota_colaborador&&<span>{inc.nota_colaborador}</span>}
           </div>
-          {inc.fecha_propuesta&&<div className="text-sm text-teal-700">📅 {co?.nombre?.split(" ")[0]||"Colaborador"} disponible: {new Date(inc.fecha_propuesta+"T00:00:00").toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"})} a las {inc.hora_propuesta}</div>}
-          {inc.nota_colaborador&&<div className="text-xs text-gray-500 mt-0.5">📝 {inc.nota_colaborador}</div>}
-        </div>;
-      })}</div>
-    </div>}
-    <div className="flex gap-1.5 flex-wrap mb-4">
-      {["Abierta","En proceso","Resuelta","Todas"].map(f=><Pill key={f} label={f} active={filtro===f} onClick={()=>setFiltro(f)}/>)}
-    </div>
-    {filtradas.length===0&&<div className="text-center py-16 text-gray-400 text-sm">Sin incidencias {filtro!=="Todas"?`en estado "${filtro}"`:""}</div>}
-    <div className="space-y-2">
-      {filtradas.map(inc=>{
-        const cl=data.clientes.find(c=>c.id===inc.cliente_id);
-        const trab=data.trabajos.find(t=>t.id===inc.trabajo_id);
-        return<div key={inc.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-          <div className="flex items-start justify-between gap-2 mb-2">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">{cfgTipo[inc.tipo]||"📋"}</span>
-              <div>
-                <div className="font-bold text-gray-800 text-sm">{inc.tipo}</div>
-                <div className="text-xs text-gray-500">{cl?.nombre||"—"}{trab?` · ${trab.tipo} #${trab.id}`:""}</div>
-              </div>
-            </div>
-            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${cfgEstado[inc.estado]||"bg-gray-100 text-gray-500"}`}>{inc.estado}</span>
-          </div>
-          {inc.descripcion&&<div className="text-sm text-gray-600 bg-gray-50 rounded-lg p-2 mb-2">{inc.descripcion}</div>}
-          {inc.fecha_propuesta&&<div className="text-sm text-teal-700 bg-teal-50 rounded-lg p-2 mb-2">📅 Colaborador disponible: {new Date(inc.fecha_propuesta+"T00:00:00").toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"})} a las {inc.hora_propuesta}{inc.nota_colaborador?` · 📝 ${inc.nota_colaborador}`:""}</div>}
-          {inc.fecha_propuesta&&cl?.telefono&&<button onClick={()=>{const fechaFmt=new Date(inc.fecha_propuesta+"T00:00:00").toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"});window.open(buildWAIncidenciaCliente(cl,trab,inc,fechaFmt,inc.hora_propuesta),"_blank");}} className="w-full bg-cyan-500 text-white text-xs font-bold py-2 rounded-lg hover:bg-cyan-600 transition mb-2">📱 Avisar al cliente de la fecha</button>}
-          {inc.resolucion&&<div className="text-sm text-emerald-700 bg-emerald-50 rounded-lg p-2 mb-2">✅ {inc.resolucion}</div>}
-                    {(()=>{const co=data.colaboradores.find(c=>c.id===inc.colaborador_id);return co&&co.whatsapp?<button onClick={()=>window.open(buildWAIncidencia(co,trab,cl,inc),"_blank")} className="w-full bg-green-500 text-white text-xs font-bold py-2 rounded-lg hover:bg-green-600 transition mb-2">📱 Avisar a {co.nombre.split(" ")[0]} de la incidencia</button>:null;})()}
-          <div className="flex gap-2 mt-2">
-            {inc.estado==="Abierta"&&<button onClick={async()=>{await supabase.from('incidencias').update({estado:"En proceso"}).eq('id',inc.id);setData(d=>({...d,incidencias:d.incidencias.map(x=>x.id===inc.id?{...x,estado:"En proceso"}:x)}));toast("→ En proceso");}} className="flex-1 bg-amber-50 text-amber-700 text-xs font-bold py-2 rounded-lg hover:bg-amber-100 transition">▶️ En proceso</button>}
-            {inc.estado!=="Resuelta"&&<button onClick={async()=>{const res=prompt("¿Cómo se resolvió? (opcional)");await supabase.from('incidencias').update({estado:"Resuelta",resolucion:res||"",fecha_cierre:new Date().toISOString()}).eq('id',inc.id);setData(d=>({...d,incidencias:d.incidencias.map(x=>x.id===inc.id?{...x,estado:"Resuelta",resolucion:res||""}:x)}));toast("✅ Resuelta");}} className="flex-1 bg-emerald-50 text-emerald-700 text-xs font-bold py-2 rounded-lg hover:bg-emerald-100 transition">✅ Resolver</button>}
-            <button onClick={async()=>{if(!confirm("¿Eliminar esta incidencia?"))return;await supabase.from('incidencias').delete().eq('id',inc.id);setData(d=>({...d,incidencias:d.incidencias.filter(x=>x.id!==inc.id)}));toast("Eliminada");}} className="bg-red-50 text-red-500 text-xs font-bold px-3 py-2 rounded-lg hover:bg-red-100 transition">🗑</button>
+          <div className="a">
+            <button type="button" className="ui-sbtn pri" onClick={()=>setVerInc(inc)}>Ver</button>
+            <button type="button" className="ui-sbtn" aria-label="Marcar como atendido" title="Marcar como atendido" onClick={async()=>{await supabase.from('incidencias').update({atendida:true}).eq('id',inc.id);setData((d:any)=>({...d,incidencias:d.incidencias.map((x:any)=>x.id===inc.id?{...x,atendida:true}:x)}));toast("✓ Atendido");}}><UiIcon n="tick" s={13}/></button>
           </div>
         </div>;
+      })}
+    </Tarjeta>}
+    <Tabs tabs={[{id:"Abierta",label:"Abiertas",count:cuenta("Abierta")},{id:"En proceso",label:"En proceso",count:cuenta("En proceso")},{id:"Resuelta",label:"Resueltas",count:cuenta("Resuelta")},{id:"Todas",label:"Todas",count:cuenta("Todas")}]} value={filtro} onChange={setFiltro}/>
+    {filtradas.length===0&&<Tarjeta className="mt-4"><div className="ui-empty">Sin incidencias {filtro!=="Todas"?`en estado "${filtro}"`:""}</div></Tarjeta>}
+    <div className="ui-cards">
+      {filtradas.map((inc:any)=>{
+        const cl=data.clientes.find((c:any)=>c.id===inc.cliente_id);
+        const trab=data.trabajos.find((t:any)=>t.id===inc.trabajo_id);
+        const tu=TIPO_UI[inc.tipo]||TIPO_UI["Otro"];
+        const co=data.colaboradores.find((c:any)=>c.id===inc.colaborador_id);
+        return<Tarjeta key={inc.id} className="ui-inc">
+          <div className="ui-inc-h">
+            <span className="ui-tile" style={{background:tu.bg}}><UiIcon n={tu.ic} s={17}/></span>
+            <div className="x"><b>{inc.tipo}</b><small>{cl?.nombre||"—"}{trab?` · ${trab.tipo} #${trab.id}`:""}</small></div>
+            <span className={`ui-st ${tonoEstado[inc.estado]||"i"}`}><i/>{inc.estado}</span>
+          </div>
+          {inc.descripcion&&<div className="ui-box">{inc.descripcion}</div>}
+          {inc.fecha_propuesta&&<div className="ui-box teal"><UiIcon n="calendar" s={14}/><span>Colaborador disponible: {fechaCorta(inc.fecha_propuesta)} a las {inc.hora_propuesta}{inc.nota_colaborador?` · ${inc.nota_colaborador}`:""}</span></div>}
+          {inc.resolucion&&<div className="ui-box ok"><UiIcon n="check" s={14}/><span>{inc.resolucion}</span></div>}
+          <div className="ui-inc-a">
+            {inc.fecha_propuesta&&cl?.telefono&&<button type="button" onClick={()=>{window.open(buildWAIncidenciaCliente(cl,trab,inc,fechaCorta(inc.fecha_propuesta),inc.hora_propuesta),"_blank");}} className="ui-sbtn wa"><UiIcon n="phone" s={13}/>Avisar al cliente de la fecha</button>}
+            {co&&co.whatsapp?<button type="button" onClick={()=>window.open(buildWAIncidencia(co,trab,cl,inc),"_blank")} className="ui-sbtn wa"><UiIcon n="phone" s={13}/>Avisar a {co.nombre.split(" ")[0]}</button>:null}
+            {inc.estado==="Abierta"&&<button type="button" onClick={async()=>{await supabase.from('incidencias').update({estado:"En proceso"}).eq('id',inc.id);setData((d:any)=>({...d,incidencias:d.incidencias.map((x:any)=>x.id===inc.id?{...x,estado:"En proceso"}:x)}));toast("→ En proceso");}} className="ui-sbtn warn"><UiIcon n="clock" s={13}/>En proceso</button>}
+            {inc.estado!=="Resuelta"&&<button type="button" onClick={async()=>{const res=prompt("¿Cómo se resolvió? (opcional)");await supabase.from('incidencias').update({estado:"Resuelta",resolucion:res||"",fecha_cierre:new Date().toISOString()}).eq('id',inc.id);setData((d:any)=>({...d,incidencias:d.incidencias.map((x:any)=>x.id===inc.id?{...x,estado:"Resuelta",resolucion:res||""}:x)}));toast("✅ Resuelta");}} className="ui-sbtn ok"><UiIcon n="check" s={13}/>Resolver</button>}
+            <button type="button" aria-label="Eliminar incidencia" title="Eliminar" onClick={async()=>{if(!confirm("¿Eliminar esta incidencia?"))return;await supabase.from('incidencias').delete().eq('id',inc.id);setData((d:any)=>({...d,incidencias:d.incidencias.filter((x:any)=>x.id!==inc.id)}));toast("Eliminada");}} className="ui-sbtn danger"><UiIcon n="trash" s={13}/></button>
+          </div>
+        </Tarjeta>;
       })}
     </div>
         {nueva&&<Modal title="Nueva incidencia" onClose={()=>setNueva(false)} wide><FormIncidencia data={data} setData={setData} onClose={()=>setNueva(false)} toast={toast}/></Modal>}
@@ -3276,5 +3278,6 @@ const TITULO={home:"Inicio",nuevas:"Nuevas demandas",demandas:"Pipeline",cliente
     {toastMsg&&<Toast msg={toastMsg} clear={()=>setToastMsg(null)}/>}
   </div>;
 }
+
 
 
