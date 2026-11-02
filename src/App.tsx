@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { jsPDF } from 'jspdf';
 import AltaColaborador from "./alta-colaborador";
 import PanelInicio from "./panel-inicio";
-import {UiStyles,PageHeader,Boton,Tabs,KpiRow,Tarjeta,Controles,SeccionEtiqueta,Buscador,Selector,Segmentado,Avatar,EstadoActivo,UiIcon} from "./ui";
+import {UiStyles,PageHeader,Boton,Tabs,KpiRow,Tarjeta,Controles,SeccionEtiqueta,Buscador,Selector,Segmentado,Avatar,EstadoActivo,UiIcon,Cajon,useEstrecho} from "./ui";
 const supabase = createClient('https://opijkazhbktiikdzbanb.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9waWprYXpoYmt0aWlrZHpiYW5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNDcyNjIsImV4cCI6MjA5NzcyMzI2Mn0.HmTXEO848sPMhi2NxNxvshLxntk1EDI6D4NCMAdUINI');
 
 const TIPOS = ["Fontanería","Electricidad","Albañilería","Carpintería","Pintura","Cerrajería","Climatización","Mantenimiento","Jardinería","Limpieza","Otros"];
@@ -395,12 +395,12 @@ const ESTADO_DOT_PIPELINE = {
 const PRIO_HEX:Record<string,string> = {"Alta":"#F87171","Media":"#FBBF24","Baja":"#CBD2DC"};
 const ESTADO_HEX:Record<string,string> = {"Solicitud":"#818CF8","Cliente confirmó":"#818CF8","Presupuesto recibido":"#818CF8","Visita propuesta":"#22D3EE","Presupuestando":"#F59E0B","Colaborador disponible":"#22D3EE","Presupuesto enviado":"#A78BFA","Aceptado":"#FB923C","En curso":"#F97316","Completado":"#10B981"};
 const COLUMNAS_MATRIZ = [
-  {key:"gestion",titulo:"En gestión",estados:["Solicitud","Cliente confirmó","Presupuesto recibido","Visita propuesta"],c:"#818CF8"},
-  {key:"presupuestando",titulo:"Presupuestando",estados:["Presupuestando"],c:"#F59E0B"},
-  {key:"colabdisp",titulo:"Colaborador disp.",estados:["Colaborador disponible"],c:"#22D3EE"},
-  {key:"presupenv",titulo:"Presupuesto enviado",estados:["Presupuesto enviado"],c:"#A78BFA"},
-  {key:"aceptados",titulo:"Aceptados",estados:["Aceptado","En curso"],c:"#FB923C"},
-  {key:"completados",titulo:"Completados",estados:["Completado"],c:"#34D399"},
+  {key:"gestion",titulo:"En gestión",estados:["Solicitud","Cliente confirmó","Presupuesto recibido","Visita propuesta"],c:"#818CF8",to:"Solicitud"},
+  {key:"presupuestando",titulo:"Presupuestando",estados:["Presupuestando"],c:"#F59E0B",to:"Presupuestando"},
+  {key:"colabdisp",titulo:"Colaborador disp.",estados:["Colaborador disponible"],c:"#22D3EE",to:"Colaborador disponible"},
+  {key:"presupenv",titulo:"Presupuesto enviado",estados:["Presupuesto enviado"],c:"#A78BFA",to:"Presupuesto enviado"},
+  {key:"aceptados",titulo:"Aceptados",estados:["Aceptado","En curso"],c:"#FB923C",to:"Aceptado"},
+  {key:"completados",titulo:"Completados",estados:["Completado"],c:"#34D399",to:"Completado"},
 ];
 const diasDesde = f=>{
   if(!f)return"—";
@@ -427,8 +427,8 @@ function IconoTipoPipeline({tipo}){
   }
 }
 
-function TarjetaTrabajo({t,data,setData,toast,onVer}:{t:any,data:any,setData:any,toast:any,onVer:any}){
-  const[abierta,setAbierta]=useState(false);
+// Acciones de un trabajo según su estado (las mismas que ya existían), reutilizadas en el panel de detalle y en la lista móvil
+function accionesDeTrabajo(t:any,{data,setData,toast,onVer}:{data:any,setData:any,toast:any,onVer:any}){
   const cl=data.clientes.find((c:any)=>c.id===getClienteId(t));
   const co=data.colaboradores.find((c:any)=>c.id===getColabId(t));
   const notas=getNotas(t);
@@ -479,24 +479,25 @@ function TarjetaTrabajo({t,data,setData,toast,onVer}:{t:any,data:any,setData:any
   if(t.estado==="En curso"&&t.verificacion_rechazo&&co)acciones.push({txt:"Reenviar al colaborador con motivo",tono:"wa",onClick:()=>window.open(buildWARechazoVerificacion(co,t,cl,t.verificacion_rechazo),"_blank")});
   if(t.estado==="En curso"&&t.cliente_verificado&&cl?.telefono)acciones.push({txt:"Reclamar cobro",tono:"ok",onClick:()=>window.open(buildWACobroFinal(cl,t),"_blank")});
 
-  // La acción principal que se ve sin desplegar: el siguiente paso natural del trabajo
+  // El siguiente paso natural del trabajo (el que se ve sin abrir el detalle)
   const principal=acciones.find(a=>t.estado==="Presupuesto recibido"?a.txt==="Generar presupuesto Domia":a.txt!=="Generar presupuesto Domia")||null;
-  const novedad=t.ultima_novedad&&!t.atendido?String(t.ultima_novedad).replace(/^[^\p{L}\p{N}¿¡"]+/u,""):`Pendiente de gestionar: ${t.estado}`;
-  const precioC=getPrecioCliente(t),precioK=getPresupColab(t);
+  return {cl,co,acciones,principal,marcarAtendido,abrirPresupuesto,disponibilidad,fotoCliente,presupUrl,pdfDomiaUrl,comentCliente};
+}
 
-  return <div className="ui-ac" data-open={abierta}>
-    <div className="ui-ac-h">
+const quitarEmoji=(s:string)=>String(s).replace(/^[^\p{L}\p{N}¿¡"]+/u,"");
+
+function PanelTrabajo({t,data,setData,toast,onVer}:{t:any,data:any,setData:any,toast:any,onVer:any}){
+  const {cl,co,acciones,marcarAtendido,abrirPresupuesto,disponibilidad,fotoCliente,presupUrl,pdfDomiaUrl,comentCliente}=accionesDeTrabajo(t,{data,setData,toast,onVer});
+  const hay=!!t.ultima_novedad&&!t.atendido;
+  const precioC=getPrecioCliente(t),precioK=getPresupColab(t);
+  return <div className="ui-panel">
+    <div className="ui-panel-h">
       <span className="ui-tile" style={{background:"#E8EEF5",color:"#1E3A5F"}}><IconoTipoPipeline tipo={t.tipo}/></span>
-      <div className="x" onClick={()=>onVer(t.id)}><b>{cl?.nombre||"Sin cliente"}</b><small>{t.tipo} · #{t.id} · {co?.nombre||"Sin asignar"}</small></div>
-      <button type="button" className="ui-sbtn ui-ib2" aria-label={abierta?"Ocultar detalle":"Ver detalle"} aria-expanded={abierta} onClick={()=>setAbierta(v=>!v)}><span className="chev" style={{display:"flex"}}><UiIcon n="chevd" s={14}/></span></button>
+      <div style={{minWidth:0}}><div className="k">{t.tipo} · #{t.id}</div><h3>{cl?.nombre||"Sin cliente"}</h3></div>
     </div>
-    <div className="ui-nov"><UiIcon n="bell" s={12}/>{novedad}</div>
-    <div className="ui-ac-a">
-      {principal&&<button type="button" className={`ui-sbtn ${principal.tono==="wa"?"wa":principal.tono==="ok"?"ok":"pri"}`} onClick={principal.onClick}>{principal.txt}</button>}
-      <button type="button" className="ui-sbtn" onClick={()=>onVer(t.id)}>Ver ficha</button>
-      <button type="button" className="ui-sbtn ok ui-ib2" style={{marginLeft:"auto"}} aria-label="Marcar como atendido" title="Marcar como atendido" onClick={marcarAtendido}><UiIcon n="tick" s={13}/></button>
-    </div>
-    {abierta&&<div className="ui-det">
+    <span className="ui-st i" style={{alignSelf:"flex-start"}}><i style={{background:ESTADO_HEX[t.estado]||"#CBD2DC"}}/>{t.estado}</span>
+    {hay&&<div className="ui-nov"><UiIcon n="bell" s={12}/>{quitarEmoji(t.ultima_novedad)}</div>}
+    <div className="ui-det on">
       <div className="g">
         <div><div className="k">Cliente</div>{cl?.nombre||"—"}<div style={{color:"#6B7280"}}>{cl?.telefono}</div></div>
         <div><div className="k">Colaborador</div>{co?.nombre||"Sin asignar"}<div style={{color:"#6B7280"}}>{co?.telefono||co?.whatsapp}</div></div>
@@ -519,62 +520,115 @@ function TarjetaTrabajo({t,data,setData,toast,onVer}:{t:any,data:any,setData:any
       {t.estado==="En curso"&&t.verificacion_rechazo&&<div className="ui-box" style={{background:"#FEF2F2",color:"#B91C1C"}}><UiIcon n="warn" s={14}/><span><b>El cliente indica que falta algo:</b><br/>{t.verificacion_rechazo}</span></div>}
       <div style={{display:"flex",flexDirection:"column",gap:6}}>
         <div className="k">Acciones</div>
-        {acciones.map(a=><button key={a.txt} type="button" className={`ui-sbtn ui-full ${a.tono==="wa"?"wa":a.tono==="ok"?"ok":"pri"}`} style={{padding:"9px"}} onClick={a.onClick}>{a.txt}</button>)}
-        <button type="button" className="ui-sbtn ui-full" style={{padding:"9px"}} onClick={()=>onVer(t.id)}>Ver ficha completa / Editar</button>
+        {acciones.map(a=><button key={a.txt} type="button" className={`ui-sbtn ui-full ${a.tono==="wa"?"wa":a.tono==="ok"?"ok":"pri"}`} style={{padding:"10px"}} onClick={a.onClick}>{a.txt}</button>)}
+        {hay&&<button type="button" className="ui-sbtn ui-full" style={{padding:"10px"}} onClick={marcarAtendido}><UiIcon n="tick" s={13}/>Marcar aviso como atendido</button>}
+        <button type="button" className="ui-sbtn ui-full" style={{padding:"10px"}} onClick={()=>onVer(t.id)}>Abrir ficha completa / Editar</button>
       </div>
-    </div>}
+    </div>
   </div>;
 }
 
-function MiniTarjeta({t,data,onVer,conEstado}:{t:any,data:any,onVer:any,conEstado:boolean}){
+function MiniTarjeta({t,data,onAbrir,arrastrable,onArrastrar,onSoltar,arrastrando}:{t:any,data:any,onAbrir:any,arrastrable:boolean,onArrastrar:any,onSoltar:any,arrastrando:boolean}){
   const cl=data.clientes.find((c:any)=>c.id===getClienteId(t));
+  const co=data.colaboradores.find((c:any)=>c.id===getColabId(t));
   const hay=!!t.ultima_novedad&&!t.atendido;
-  return <div className={`ui-mc${hay?" hay":""}`} style={{["--p" as any]:PRIO_HEX[t.prioridad]||"#CBD2DC"}} tabIndex={0} onClick={()=>onVer(t.id)} onKeyDown={e=>{if(e.key==="Enter")onVer(t.id);}}>
+  return <div className={`ui-mc${hay?" hay":""}${arrastrando?" arr":""}`} style={{["--p" as any]:PRIO_HEX[t.prioridad]||"#CBD2DC"}} tabIndex={0} draggable={arrastrable}
+    onDragStart={e=>{e.dataTransfer.effectAllowed="move";try{e.dataTransfer.setData("text/plain",String(t.id));}catch(err){}onArrastrar(t.id);}} onDragEnd={onSoltar}
+    onClick={()=>onAbrir(t.id)} onKeyDown={e=>{if(e.key==="Enter")onAbrir(t.id);}}>
     {hay&&<span className="dot" title="Aviso sin atender"/>}
     <div className="t"><span className="tl"><IconoTipoPipeline tipo={t.tipo}/></span>{t.tipo}<span className="id">#{t.id}</span></div>
     <div className="cl">{cl?.nombre}</div>
     {cl?.direccion&&<div className="dr">{cl.direccion}</div>}
-    {conEstado&&<div className="es"><i style={{background:ESTADO_HEX[t.estado]||"#CBD2DC"}}/>{t.estado}</div>}
+    <div className={`co${co?"":" sin"}`}><UiIcon n="user" s={11}/>{co?co.nombre:"Sin asignar"}</div>
     <div className="f"><b>{getPrecioCliente(t)?eur(getPrecioCliente(t)):"—"}</b><span>{diasDesde(t.fecha)}</span></div>
   </div>;
 }
 
+function FilaLista({t,data,setData,toast,onVer,onAbrir}:{t:any,data:any,setData:any,toast:any,onVer:any,onAbrir:any}){
+  const {cl,co,principal}=accionesDeTrabajo(t,{data,setData,toast,onVer});
+  const hay=!!t.ultima_novedad&&!t.atendido;
+  return <div className="ui-lc" onClick={()=>onAbrir(t.id)}>
+    <div className="a">
+      <span className="ui-tile" style={{background:"#E8EEF5",color:"#1E3A5F"}}><IconoTipoPipeline tipo={t.tipo}/></span>
+      <div className="x"><b className="n">{cl?.nombre||"Sin cliente"}{hay&&<span className="dotn" title="Aviso sin atender"/>}</b><small>{t.tipo} · #{t.id} · {co?.nombre||"Sin asignar"}</small></div>
+      <b style={{fontSize:13,color:"#111827"}}>{getPrecioCliente(t)?eur(getPrecioCliente(t)):"—"}</b>
+    </div>
+    <div className="m">
+      <span className="ui-st i"><i style={{background:ESTADO_HEX[t.estado]||"#CBD2DC"}}/>{t.estado}</span>
+      <span className="d">{diasDesde(t.fecha)}</span>
+      <button type="button" className={`ui-sbtn ${principal?.tono==="wa"?"wa":principal?.tono==="ok"?"ok":"pri"}`} style={{marginLeft:"auto"}} onClick={e=>{e.stopPropagation();if(principal)principal.onClick();else onAbrir(t.id);}}>{principal?principal.txt:"Ver detalle"}</button>
+    </div>
+  </div>;
+}
+
 function EstadoDemandas({data,setData,onBack,toast,onVer}:{data:any,setData:any,onBack:any,toast:any,onVer:any}){
+  const estrecho=useEstrecho(700);
   const[busca,setBusca]=useState("");
   const[fColab,setFColab]=useState("Todos");
   const[fTipo,setFTipo]=useState("Todos");
   const[fZona,setFZona]=useState("Todas");
+  const[soloAviso,setSoloAviso]=useState(false);
   const[verArchivados,setVerArchivados]=useState(false);
-  const[vista,setVista]=useState("colaborador");
-  const[colapsados,setColapsados]=useState<Record<string,boolean>>({});
+  const[agrupar,setAgrupar]=useState("estado");
+  const[cerrados,setCerrados]=useState<Record<string,boolean>>({});
+  const[abiertoId,setAbiertoId]=useState<any>(null);
+  const[arrastrando,setArrastrando]=useState<any>(null);
+  const[sobre,setSobre]=useState<string|null>(null);
+  const[deshacer,setDeshacer]=useState<any>(null);
   const activosBase=data.trabajos.filter((t:any)=>!t.archivado);
-  let items=[...data.trabajos].filter((t:any)=>verArchivados?t.archivado:!t.archivado);
-  if(fColab!=="Todos")items=items.filter((t:any)=>String(getColabId(t))===fColab);
-  if(fTipo!=="Todos")items=items.filter((t:any)=>t.tipo===fTipo);
-  if(fZona!=="Todas")items=items.filter((t:any)=>{const co=data.colaboradores.find((c:any)=>c.id===getColabId(t));return co?.zona===fZona;});
-  if(busca.trim()){const q=busca.toLowerCase();items=items.filter((t:any)=>{const cl=data.clientes.find((c:any)=>c.id===getClienteId(t));return t.descripcion?.toLowerCase().includes(q)||cl?.nombre.toLowerCase().includes(q)||t.tipo?.toLowerCase().includes(q);});}
-  const hayFiltros=fColab!=="Todos"||fTipo!=="Todos"||fZona!=="Todas"||busca.trim()!=="";
-  const limpiarFiltros=()=>{setFColab("Todos");setFTipo("Todos");setFZona("Todas");setBusca("");};
-
-  const atencion=items.filter((t:any)=>["Solicitud","Colaborador disponible","Cliente confirmó","Presupuesto recibido","Aceptado","En curso"].includes(t.estado)&&!t.atendido);
-
-  const porColaborador=(()=>{
-    const map=new Map<string,any>();
-    items.forEach((t:any)=>{
-      const co=data.colaboradores.find((c:any)=>c.id===getColabId(t));
-      const key=co?String(co.id):"__sin__";
-      if(!map.has(key))map.set(key,{id:co?co.id:null,nombre:co?co.nombre:"Sin asignar",items:[]});
-      map.get(key).items.push(t);
-    });
-    const grupos=[...map.values()];
-    grupos.sort((a:any,b:any)=>a.nombre==="Sin asignar"?1:b.nombre==="Sin asignar"?-1:b.items.length-a.items.length);
-    return grupos;
-  })();
+  let base=[...data.trabajos].filter((t:any)=>verArchivados?t.archivado:!t.archivado);
+  if(fColab!=="Todos")base=base.filter((t:any)=>String(getColabId(t))===fColab);
+  if(fTipo!=="Todos")base=base.filter((t:any)=>t.tipo===fTipo);
+  if(fZona!=="Todas")base=base.filter((t:any)=>{const co=data.colaboradores.find((c:any)=>c.id===getColabId(t));return co?.zona===fZona;});
+  if(busca.trim()){const q=busca.toLowerCase();base=base.filter((t:any)=>{const cl=data.clientes.find((c:any)=>c.id===getClienteId(t));return t.descripcion?.toLowerCase().includes(q)||cl?.nombre.toLowerCase().includes(q)||t.tipo?.toLowerCase().includes(q);});}
+  const conAviso=(t:any)=>!!t.ultima_novedad&&!t.atendido;
+  const nAvisos=base.filter(conAviso).length;
+  const items=soloAviso?base.filter(conAviso):base;
+  const hayFiltros=fColab!=="Todos"||fTipo!=="Todos"||fZona!=="Todas"||busca.trim()!==""||soloAviso;
+  const limpiarFiltros=()=>{setFColab("Todos");setFTipo("Todos");setFZona("Todas");setBusca("");setSoloAviso(false);};
 
   const zonas=["Todas",...new Set(data.colaboradores.map((c:any)=>c.zona).filter(Boolean))] as string[];
   const statValor=activosBase.reduce((s:number,t:any)=>s+(getPrecioCliente(t)||0),0);
   const nArch=data.trabajos.filter((t:any)=>t.archivado).length;
-  const AvatarGrupo=({nombre}:{nombre:string})=>nombre==="Sin asignar"?<div className="ui-av ui-av-sin" aria-hidden="true">—</div>:<Avatar nombre={nombre}/>;
+  const sel=abiertoId!=null?data.trabajos.find((t:any)=>t.id===abiertoId):null;
+  const abrirFicha=(id:any)=>{setAbiertoId(null);onVer(id);};
+
+  // Arrastrar un trabajo a otra columna cambia su estado (igual que el desplegable de la ficha) y se puede deshacer
+  const refrescar=(saved:any)=>setData((d:any)=>({...d,trabajos:d.trabajos.map((x:any)=>x.id===saved.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));
+  const cambiarEstado=async(t:any,nuevo:string,texto:string)=>{
+    const hist=[...getHistorial(t),{ts:now(),txt:texto,tipo:"sistema"}];
+    const saved=await dbSaveTrabajo({...t,estado:nuevo,historial:hist});
+    if(saved)refrescar(saved);
+    return saved;
+  };
+  const soltarEn=async(col:any)=>{
+    const t=data.trabajos.find((x:any)=>x.id===arrastrando);
+    setArrastrando(null);setSobre(null);
+    if(!t||col.estados.includes(t.estado))return;
+    const prev=t.estado;
+    const saved=await cambiarEstado(t,col.to,`Estado cambiado de «${prev}» a «${col.to}» desde el Pipeline`);
+    if(saved){toast(`→ ${col.to}`);setDeshacer({id:t.id,prev,nuevo:col.to});window.setTimeout(()=>setDeshacer((d:any)=>d&&d.id===t.id&&d.nuevo===col.to?null:d),7000);}
+  };
+  const deshacerCambio=async()=>{
+    const u=deshacer;if(!u)return;
+    setDeshacer(null);
+    const t=data.trabajos.find((x:any)=>x.id===u.id);
+    if(!t)return;
+    const saved=await cambiarEstado(t,u.prev,`Cambio de estado deshecho: vuelve a «${u.prev}»`);
+    if(saved)toast(`↩ Vuelve a ${u.prev}`);
+  };
+
+  // Lista para móvil: agrupada
+  const grupos=(()=>{
+    const m=new Map<string,any[]>();
+    const clave=(t:any)=>agrupar==="estado"?(COLUMNAS_MATRIZ.find(c=>c.estados.includes(t.estado))?.titulo||t.estado):agrupar==="colab"?(data.colaboradores.find((c:any)=>c.id===getColabId(t))?.nombre||"Sin asignar"):agrupar==="prio"?(t.prioridad||"Media"):"Todos";
+    items.forEach((t:any)=>{const k=clave(t);m.set(k,[...(m.get(k)||[]),t]);});
+    let arr=[...m.entries()].map(([k,v])=>({k,items:v}));
+    if(agrupar==="estado")arr.sort((a,b)=>COLUMNAS_MATRIZ.findIndex(c=>c.titulo===a.k)-COLUMNAS_MATRIZ.findIndex(c=>c.titulo===b.k));
+    else if(agrupar==="prio")arr.sort((a,b)=>["Alta","Media","Baja"].indexOf(a.k)-["Alta","Media","Baja"].indexOf(b.k));
+    else if(agrupar==="colab")arr.sort((a,b)=>a.k==="Sin asignar"?1:b.k==="Sin asignar"?-1:b.items.length-a.items.length);
+    return arr;
+  })();
 
   return<div className="ui-page"><UiStyles/>
     <PageHeader titulo="Pipeline" subtitulo={`${activosBase.length} ${activosBase.length===1?"oportunidad":"oportunidades"} · ${eur(statValor)} en juego${items.length!==data.trabajos.filter((t:any)=>verArchivados?t.archivado:!t.archivado).length?` · mostrando ${items.length}`:""}`} onBack={onBack}/>
@@ -598,53 +652,40 @@ function EstadoDemandas({data,setData,onBack,toast,onVer}:{data:any,setData:any,
       {zonas.length>1&&<Selector etiqueta="Zona" value={fZona} onChange={setFZona}>
         {zonas.map(z=><option key={z} value={z}>{z==="Todas"?"Todas las zonas":z}</option>)}
       </Selector>}
+      <button type="button" className="ui-chipb avs" aria-pressed={soloAviso} onClick={()=>setSoloAviso(v=>!v)}><i/>Con aviso ({nAvisos})</button>
       <button type="button" className="ui-chipb" aria-pressed={verArchivados} onClick={()=>setVerArchivados(v=>!v)}>Archivados ({nArch})</button>
       {hayFiltros&&<button type="button" className="ui-link" onClick={limpiarFiltros}>Limpiar filtros</button>}
-      <Segmentado etiqueta="Vista" value={vista} onChange={setVista} opciones={[{id:"colaborador",label:"Por colaborador"},{id:"tablero",label:"Tablero"}]}/>
     </Controles>
 
-    {atencion.length>0&&<>
-      <div className="ui-ahead"><UiIcon n="bell" s={14}/>Requiere tu atención<span className="n">{atencion.length}</span></div>
-      <div className="ui-arow">{atencion.map((t:any)=><TarjetaTrabajo key={t.id} t={t} data={data} setData={setData} toast={toast} onVer={onVer}/>)}</div>
-    </>}
-
-    {items.length===0?<Tarjeta className="mt-4"><div className="ui-empty">Sin demandas{hayFiltros?" con esos filtros":""}.</div></Tarjeta>
-    :vista==="tablero"?
-      <div className="ui-board"><div className="ui-lane">
-        {porColaborador.map((g:any)=>
-          <div key={g.nombre} className="ui-tcol">
-            <div className="ui-col-h"><AvatarGrupo nombre={g.nombre}/>{g.nombre}<span className="c">{g.items.length}</span></div>
-            {g.items.map((t:any)=><MiniTarjeta key={t.id} t={t} data={data} onVer={onVer} conEstado={true}/>)}
-          </div>
-        )}
-      </div></div>
+    {items.length===0?<Tarjeta className="mt-4"><div className="ui-empty">{soloAviso&&nAvisos===0?"No hay ningún aviso pendiente.":`Sin demandas${hayFiltros?" con esos filtros":""}.`}</div></Tarjeta>
+    :estrecho?
+      <Tarjeta className="ui-ls">
+        <div className="ui-gtools">Agrupar por <Segmentado etiqueta="Agrupar por" value={agrupar} onChange={setAgrupar} opciones={[{id:"estado",label:"Estado"},{id:"colab",label:"Colaborador"},{id:"prio",label:"Prioridad"},{id:"nada",label:"Sin agrupar"}]}/></div>
+        {grupos.map(g=><div key={g.k}>
+          {agrupar!=="nada"&&<div className="ui-gh" onClick={()=>setCerrados(p=>({...p,[g.k]:!p[g.k]}))}>{cerrados[g.k]?"▸":"▾"} {g.k}<span>({g.items.length})</span></div>}
+          {!cerrados[g.k]&&g.items.map((t:any)=><FilaLista key={t.id} t={t} data={data} setData={setData} toast={toast} onVer={onVer} onAbrir={setAbiertoId}/>)}
+        </div>)}
+      </Tarjeta>
     :
-      <div className="ui-board">
-        {porColaborador.map((g:any)=>{
-          const colsConItems=COLUMNAS_MATRIZ.filter(col=>g.items.some((t:any)=>col.estados.includes(t.estado)));
-          const key=g.nombre;
-          const enCurso=g.items.filter((t:any)=>["Presupuestando","Aceptado","En curso"].includes(t.estado)).length;
-          const valor=g.items.reduce((s:number,t:any)=>s+(getPrecioCliente(t)||0),0);
-          return <div key={key} className="ui-lane">
-            <div className="ui-lh">
-              <div className="who"><AvatarGrupo nombre={g.nombre}/><b>{g.nombre}</b></div>
-              <div className="m"><div><strong>{g.items.length}</strong>activas</div><div><strong>{enCurso}</strong>en curso</div><div><strong>{eur(valor)}</strong>valor</div></div>
-              {g.id!=null&&<button type="button" className="lk" onClick={()=>setFColab(String(g.id))}>Ver todas →</button>}
-              <button type="button" className="tg" onClick={()=>setColapsados(p=>({...p,[key]:!p[key]}))}>{colapsados[key]?"Mostrar tarjetas":"Ocultar tarjetas"}</button>
-            </div>
-            {!colapsados[key]&&(colsConItems.length===0
-              ?<div className="ui-vac">Sin oportunidades activas en el pipeline</div>
-              :colsConItems.map(col=>{
-                const its=g.items.filter((t:any)=>col.estados.includes(t.estado));
-                return <div key={col.key} className="ui-col">
-                  <div className="ui-col-h"><i style={{background:col.c}}/>{col.titulo}<span className="c">{its.length}</span></div>
-                  {its.map((t:any)=><MiniTarjeta key={t.id} t={t} data={data} onVer={onVer} conEstado={false}/>)}
-                </div>;
-              }))}
+      <div className="ui-kb">
+        {COLUMNAS_MATRIZ.map(col=>{
+          const its=items.filter((t:any)=>col.estados.includes(t.estado));
+          const valor=its.reduce((s:number,t:any)=>s+(getPrecioCliente(t)||0),0);
+          return <div key={col.key} className={`ui-kcol${sobre===col.key?" over":""}`}
+            onDragOver={e=>{if(arrastrando!=null){e.preventDefault();if(sobre!==col.key)setSobre(col.key);}}}
+            onDragLeave={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node))setSobre(s=>s===col.key?null:s);}}
+            onDrop={e=>{e.preventDefault();soltarEn(col);}}>
+            <div className="ui-col-h"><i style={{background:col.c}}/>{col.titulo}<span className="v">{eur(valor)}</span><span className="c">{its.length}</span></div>
+            {its.length?its.map((t:any)=><MiniTarjeta key={t.id} t={t} data={data} onAbrir={setAbiertoId} arrastrable={!verArchivados} onArrastrar={setArrastrando} onSoltar={()=>{setArrastrando(null);setSobre(null);}} arrastrando={arrastrando===t.id}/>):<div className="ui-vac">Suelta aquí un trabajo</div>}
           </div>;
         })}
       </div>
     }
+
+    <Cajon abierto={!!sel} onCerrar={()=>setAbiertoId(null)}>
+      {sel&&<PanelTrabajo t={sel} data={data} setData={setData} toast={toast} onVer={abrirFicha}/>}
+    </Cajon>
+    {deshacer&&<div className="ui-undo" role="status"><span>Pasado a «{deshacer.nuevo}»</span><button type="button" onClick={deshacerCambio}>Deshacer</button></div>}
   </div>;
 }
 
@@ -3171,6 +3212,7 @@ const TITULO={home:"Inicio",nuevas:"Nuevas demandas",demandas:"Pipeline",cliente
     {toastMsg&&<Toast msg={toastMsg} clear={()=>setToastMsg(null)}/>}
   </div>;
 }
+
 
 
 

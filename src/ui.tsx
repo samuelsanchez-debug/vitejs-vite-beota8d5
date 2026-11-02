@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 
 // Piezas compartidas del sistema visual de Domia:
@@ -220,6 +221,46 @@ const UI_CSS = `
 .ui-mc .es i{width:6px;height:6px;border-radius:50%}
 .ui-mc .dot{position:absolute;right:8px;top:8px;width:9px;height:9px;border-radius:50%;background:var(--or);box-shadow:0 0 0 3px rgba(245,158,11,.25)}
 .ui-vac{color:#B9CBE3;font-size:12px;padding:8px 4px}
+.ui-chipb.avs{display:inline-flex;align-items:center;gap:6px}
+.ui-chipb.avs i{width:8px;height:8px;border-radius:50%;background:var(--or)}
+.ui-chipb.avs[aria-pressed="true"]{background:var(--or);color:#2B1A00;border-color:var(--or)}
+.ui-det.on{display:flex}
+.ui-kb{margin-top:14px;display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;align-items:flex-start}
+.ui-kcol{flex:1 0 210px;max-width:300px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:9px;display:flex;flex-direction:column;gap:7px;min-height:130px;transition:background .15s,border-color .15s}
+.ui-kcol.over{background:rgba(245,158,11,.18);border-color:var(--or)}
+.ui-kcol .ui-col-h .v{font-size:10.5px;font-weight:600;color:#B9CBE3}
+.ui-kcol .ui-col-h .c{margin-left:0}
+.ui-kcol .ui-col-h .v{margin-left:auto}
+.ui-mc.arr{opacity:.4}
+.ui-mc[draggable="true"]{cursor:grab}
+.ui-mc .co{display:flex;align-items:center;gap:5px;font-size:10.5px;color:#6B7280;margin-top:2px}
+.ui-mc .co.sin{color:#9CA3AF;font-style:italic}
+.ui-ls{margin-top:14px;overflow:hidden}
+.ui-gtools{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--hair);flex-wrap:wrap;font-size:12.5px;color:#6B7280}
+.ui-gh{padding:8px 12px;background:#F6F8FB;font-size:11.5px;font-weight:700;color:#4B5563;cursor:pointer;user-select:none;display:flex;gap:6px;align-items:center}
+.ui-gh span{color:#9CA3AF;font-weight:600}
+.ui-lc{display:flex;flex-direction:column;gap:7px;padding:11px 12px;border-bottom:1px solid #F1F3F7;cursor:pointer;position:relative}
+.ui-lc:active{background:#F1F6FD}
+.ui-lc .a{display:flex;align-items:center;gap:10px}
+.ui-lc .a .x{flex:1;min-width:0}
+.ui-lc b.n{font-size:13.5px;color:#111827;display:flex;align-items:center;gap:6px}
+.ui-lc small{font-size:11.5px;color:#6B7280;display:block}
+.ui-lc .m{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ui-lc .m .d{font-size:11.5px;color:#9CA3AF}
+.ui-lc .dotn{width:9px;height:9px;border-radius:50%;background:var(--or);box-shadow:0 0 0 3px rgba(245,158,11,.25);flex:none}
+.ui-shade{position:fixed;inset:0;background:rgba(8,20,40,.5);z-index:60;animation:uifade .15s ease}
+.ui-drawer{position:fixed;top:0;right:0;bottom:0;width:min(420px,100%);background:#fff;color:#111827;z-index:61;padding:18px;display:flex;flex-direction:column;gap:12px;overflow:auto;box-shadow:-10px 0 40px rgba(8,20,40,.3);animation:uislide .2s ease}
+@media (max-width:640px){.ui-drawer{top:auto;width:100%;max-height:86vh;border-radius:18px 18px 0 0;animation:uiup .2s ease}}
+@keyframes uifade{from{opacity:0}to{opacity:1}}
+@keyframes uislide{from{transform:translateX(24px);opacity:.6}to{transform:none;opacity:1}}
+@keyframes uiup{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}}
+.ui-drawer .cerrar{align-self:flex-end;border:0;background:#F1F3F7;border-radius:9px;width:30px;height:30px;cursor:pointer;font-size:18px;line-height:1;color:#4B5563}
+.ui-panel{display:flex;flex-direction:column;gap:12px}
+.ui-panel-h{display:flex;align-items:center;gap:11px}
+.ui-panel-h h3{margin:0;font-size:18px;line-height:1.2;color:#111827;overflow-wrap:anywhere}
+.ui-panel-h .k{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#9CA3AF}
+.ui-undo{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#111827;color:#fff;border-radius:12px;padding:10px 16px;font-size:13px;z-index:70;display:flex;gap:14px;align-items:center;box-shadow:0 10px 30px rgba(0,0,0,.35);max-width:calc(100vw - 24px)}
+.ui-undo button{border:0;background:none;color:#FBB023;font:inherit;font-weight:700;cursor:pointer}
 .ui-attn{margin-top:16px;border-left:4px solid var(--or);overflow:hidden}
 .ui-attn-h{display:flex;align-items:center;gap:8px;padding:12px 14px 6px;font-size:13px;font-weight:700;color:#92400E}
 .ui-attn-h .n{background:var(--or);color:#2B1A00;border-radius:999px;font-size:11px;padding:1px 8px}
@@ -325,3 +366,37 @@ export function Avatar({ nombre }: { nombre: string }) {
 
 export const EstadoActivo = ({ activo }: { activo: boolean }) =>
   activo ? <span className="ui-st a"><i />Activo</span> : <span className="ui-st i"><i />Inactivo</span>;
+
+// Verdadero cuando la pantalla es estrecha (móvil o ventana pequeña)
+export function useEstrecho(px = 700): boolean {
+  const consulta = `(max-width:${px}px)`;
+  const [e, setE] = useState(() => typeof window !== "undefined" && window.matchMedia(consulta).matches);
+  useEffect(() => {
+    const m = window.matchMedia(consulta);
+    const f = () => setE(m.matches);
+    m.addEventListener("change", f);
+    f();
+    return () => m.removeEventListener("change", f);
+  }, [consulta]);
+  return e;
+}
+
+// Cajón: panel lateral en escritorio y hoja inferior en móvil
+export function Cajon({ abierto, onCerrar, children }: { abierto: boolean; onCerrar: () => void; children: ReactNode }) {
+  useEffect(() => {
+    if (!abierto) return;
+    const f = (ev: KeyboardEvent) => { if (ev.key === "Escape") onCerrar(); };
+    document.addEventListener("keydown", f);
+    return () => document.removeEventListener("keydown", f);
+  }, [abierto, onCerrar]);
+  if (!abierto) return null;
+  return (
+    <>
+      <div className="ui-shade" onClick={onCerrar} />
+      <aside className="ui-drawer" role="dialog" aria-modal="true" aria-label="Detalle del trabajo">
+        <button type="button" className="cerrar" onClick={onCerrar} aria-label="Cerrar">&times;</button>
+        {children}
+      </aside>
+    </>
+  );
+}
