@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { createClient } from '@supabase/supabase-js';
 import { jsPDF } from 'jspdf';
 import AltaColaborador from "./alta-colaborador";
+import PanelInicio from "./panel-inicio";
 const supabase = createClient('https://opijkazhbktiikdzbanb.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9waWprYXpoYmt0aWlrZHpiYW5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNDcyNjIsImV4cCI6MjA5NzcyMzI2Mn0.HmTXEO848sPMhi2NxNxvshLxntk1EDI6D4NCMAdUINI');
 
 const TIPOS = ["Fontanería","Electricidad","Albañilería","Carpintería","Pintura","Cerrajería","Climatización","Mantenimiento","Jardinería","Limpieza","Otros"];
@@ -309,58 +310,16 @@ const estadoFinal=esNuevo?(colab?"Presupuestando":"Solicitud"):(f.estado==="Soli
   </div>;
 }
 
-function Home({data,setData,go,setTid,toast}){
-  const nuevas=data.trabajos.filter(t=>t.estado==="Solicitud").length;
-  const sinAsignar=data.trabajos.filter(t=>t.estado==="Solicitud");
+function Home({data,setData,go,setTid,toast,verEconomico}:{data:any,setData:any,go:any,setTid:any,toast:any,verEconomico:boolean}){
 const proximas=[...data.trabajos].filter(t=>["Aceptado","En curso"].includes(t.estado)&&t.fecha>=hoy()).sort((a,b)=>a.fecha.localeCompare(b.fecha)).slice(0,4);
-  const estadosVivos=["Solicitud","Presupuestando","Colaborador disponible","Visita propuesta","Cliente confirmó","Presupuesto recibido","Presupuesto enviado"];
-  const parados=data.trabajos.filter(t=>{if(!estadosVivos.includes(t.estado))return false;const ref=t.fecha_ultimo_estado?new Date(t.fecha_ultimo_estado).getTime():null;if(!ref)return false;const horas=(Date.now()-ref)/(1000*60*60);return horas>=48;});
-  const adelantosPendientes=data.trabajos.filter(t=>["Aceptado","En curso"].includes(t.estado)&&!t.adelanto_pagado&&getPrecioCliente(t)>0);
-  const visitasHoy=data.trabajos.filter(t=>["Cliente confirmó","Aceptado","En curso"].includes(t.estado)&&t.fecha===hoy());
- return<div className="space-y-4">
-    {(parados.length>0||adelantosPendientes.length>0||visitasHoy.length>0)&&<div className="bg-white border-2 border-gray-100 rounded-2xl p-4 shadow-sm">
-      <div className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3">🔔 Resumen del día</div>
-      <div className="grid grid-cols-3 gap-2">
-        <button onClick={()=>go("demandas")} className={`rounded-xl p-3 text-center transition ${parados.length>0?"bg-red-50 hover:bg-red-100":"bg-gray-50"}`}>
-          <div className={`text-2xl font-black ${parados.length>0?"text-red-600":"text-gray-300"}`}>{parados.length}</div>
-          <div className="text-[10px] text-gray-500 mt-0.5 leading-tight">🔴 Parados +48h</div>
-        </button>
-        <button onClick={()=>go("finanzas")} className={`rounded-xl p-3 text-center transition ${adelantosPendientes.length>0?"bg-amber-50 hover:bg-amber-100":"bg-gray-50"}`}>
-          <div className={`text-2xl font-black ${adelantosPendientes.length>0?"text-amber-600":"text-gray-300"}`}>{adelantosPendientes.length}</div>
-          <div className="text-[10px] text-gray-500 mt-0.5 leading-tight">💶 Adelantos por cobrar</div>
-        </button>
-        <button onClick={()=>go("demandas")} className={`rounded-xl p-3 text-center transition ${visitasHoy.length>0?"bg-blue-50 hover:bg-blue-100":"bg-gray-50"}`}>
-          <div className={`text-2xl font-black ${visitasHoy.length>0?"text-blue-600":"text-gray-300"}`}>{visitasHoy.length}</div>
-          <div className="text-[10px] text-gray-500 mt-0.5 leading-tight">📅 Visitas hoy</div>
-        </button>
-      </div>
-    </div>}
-
-    {nuevas>0&&<div className="bg-white border border-amber-200 rounded-2xl p-4 shadow-sm">
-      <div className="font-semibold text-amber-700 text-sm mb-2 flex items-center gap-2">⚡ {nuevas} demanda{nuevas>1?"s":""} sin asignar</div>
-      {sinAsignar.slice(0,2).map(t=>{
-        const cl=data.clientes.find(c=>c.id===getClienteId(t));
-        const sg=sugerirColab(t.tipo,data.colaboradores,data.trabajos);
-        return<div key={t.id} className="flex items-center justify-between gap-2 mt-2 bg-gray-50 rounded-xl px-3 py-2 border border-gray-100">
-          <div><div className="text-sm font-medium text-gray-800">{t.tipo} — {cl?.nombre}</div>{sg&&<div className="text-[11px] text-gray-500 mt-0.5">Sugerido: {sg.nombre}</div>}</div>
-          {sg&&<button onClick={async()=>{const updated={...t,colaboradorId:sg.id,estado:"Presupuestando",atendido:false,historial:[...getHistorial(t),{ts:now(),txt:`Asignado a ${sg.nombre}`,tipo:"sistema"}]};const saved=await dbSaveTrabajo(updated);if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Colaborador asignado");}}} className="bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg transition whitespace-nowrap">Asignar</button>}
-        </div>;
-      })}
-      <button onClick={()=>go("nuevas")} className="mt-2 text-xs text-amber-600 font-medium">Ver todas →</button>
-    </div>}
+  return<div className="space-y-4">
+    <PanelInicio data={data} setData={setData} go={go} setTid={setTid} toast={toast} verEconomico={verEconomico} supabase={supabase}/>
 
     {proximas.length>0&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
       <div className="flex items-center justify-between mb-3"><div className="text-xs font-semibold text-gray-500 uppercase tracking-widest">Próximas visitas</div><button onClick={()=>go("demandas")} className="text-xs text-gray-400 hover:text-gray-600">Ver todo →</button></div>
       <div className="space-y-2">{proximas.map(t=>{const cl=data.clientes.find(c=>c.id===getClienteId(t));const co=data.colaboradores.find(c=>c.id===getColabId(t));return<div key={t.id} onClick={()=>setTid(t.id)} className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 rounded-xl px-2 py-2 transition"><div className="text-center min-w-[36px]"><div className="text-lg font-bold text-[#1E3A5F] leading-none">{new Date(t.fecha+"T00:00:00").getDate()}</div><div className="text-[9px] text-gray-400 uppercase">{new Date(t.fecha+"T00:00:00").toLocaleDateString("es-ES",{month:"short"})}</div></div><div className="flex-1 min-w-0"><div className="font-medium text-sm text-gray-800 truncate">{t.tipo} — {cl?.nombre}</div><div className="text-xs text-gray-400">{t.hora} · {co?.nombre||"Sin asignar"}</div></div><Badge text={t.estado}/></div>;})}
       </div>
     </div>}
-
-    {parados.length===0&&adelantosPendientes.length===0&&visitasHoy.length===0&&nuevas===0&&proximas.length===0&&
-      <div className="text-center py-16">
-        <div className="text-5xl mb-3">✅</div>
-        <div className="font-bold text-gray-700">Todo al día</div>
-        <div className="text-sm text-gray-400 mt-1">No hay nada urgente ahora mismo</div>
-      </div>}
   </div>;
 }
 function NuevasDemandas({data,setData,onBack,toast,onVer}){
@@ -3138,6 +3097,19 @@ function FormIncidencia({data,setData,onClose,toast,trabajoPre}){
   </div>;
 }
 const ADMIN_EMAIL = "samuel.sanchez@olcproperties.net";
+// Permisos por usuario: qué ve cada persona al entrar. "todo" = acceso completo.
+// Claves: nuevas, demandas (Pipeline), clientes, colaboradores, finanzas, incidencias, economico (panel económico de Inicio).
+const PERMISOS_USUARIO:Record<string,string[]|"todo">={
+  "samuel.sanchez@olcproperties.net":"todo",
+  "francisco.orts@olcproperties.net":"todo",
+};
+const PERMISOS_POR_DEFECTO=["nuevas","demandas","clientes","colaboradores","incidencias"];
+const puede=(email:string|null|undefined,clave:string):boolean=>{
+  if(clave==="home")return true;
+  const p=PERMISOS_USUARIO[(email||"").toLowerCase()];
+  if(p==="todo")return true;
+  return (p||PERMISOS_POR_DEFECTO).includes(clave);
+};
 function AdminPanel({data}){
   const[tab,setTab]=useState("resumen");
   const[periodo,setPeriodo]=useState("Todo");
@@ -3227,14 +3199,14 @@ const SIDEBAR_GRUPOS = [
   {grupo:"Directorio",items:[{id:"clientes",label:"Clientes"},{id:"colaboradores",label:"Colaboradores"}]},
   {grupo:"Gestión",items:[{id:"finanzas",label:"Finanzas"},{id:"incidencias",label:"Incidencias"}]},
 ];
-function Sidebar({sec,setSec,nuevasCount,pipelineCount,incidenciasCount}){
+function Sidebar({sec,setSec,nuevasCount,pipelineCount,incidenciasCount,puede}:{sec:string,setSec:(s:string)=>void,nuevasCount:number,pipelineCount:number,incidenciasCount:number,puede:(clave:string)=>boolean}){
   const badges={nuevas:nuevasCount,demandas:pipelineCount,incidencias:incidenciasCount};
   return<aside className="w-[68px] sm:w-64 flex-shrink-0 bg-white border-r border-gray-200 flex flex-col items-center sm:items-stretch py-5 px-2 sm:px-3.5 sticky top-0 h-screen overflow-y-auto">
     <div className="flex items-center justify-center pb-6">
       <div className="sm:hidden w-10 h-10 rounded-lg bg-[#1E3A5F] flex items-center justify-center text-white font-bold text-base flex-shrink-0">D</div>
       <img src="/logo-domia.png" alt="Domia" className="hidden sm:block h-24 w-auto max-w-full object-contain"/>
     </div>
-    {SIDEBAR_GRUPOS.map(g=><div key={g.grupo} className="w-full">
+    {SIDEBAR_GRUPOS.map(g=>({...g,items:g.items.filter(it=>puede(it.id))})).filter(g=>g.items.length>0).map(g=><div key={g.grupo} className="w-full">
       <div className="hidden sm:block text-[11px] font-bold uppercase tracking-wider text-gray-400 px-2.5 pt-4 pb-2">{g.grupo}</div>
       {g.items.map(it=>{
         const activo=sec===it.id;
@@ -3277,7 +3249,7 @@ export default function App(){
   },[]);
 const[data,setData]=useState({clientes:[],colaboradores:[],trabajos:[],incidencias:[]});
   const[cargando,setCargando]=useState(true);
-  const[sec,setSec]=useState("home");
+  const[secPedida,setSec]=useState("home");
     const[tid,setTid]=useState(null);
   const[focoFinanzas,setFocoFinanzas]=useState(null);
   const[showNuevo,setShowNuevo]=useState(false);
@@ -3302,20 +3274,22 @@ const[c,col,t,inc]=await Promise.all([supabase.from('clientes').select('*').orde
   if(cargando)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-center"><div className="text-4xl mb-3">⚙️</div><div className="font-bold text-gray-700">Cargando Domia CRM...</div></div></div>;
   if(noStaff)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4 text-center" style={{fontFamily:"'Inter',system-ui,sans-serif"}}><div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 max-w-sm w-full"><img src="/logo-domia.png" alt="Domia" className="w-24 mx-auto mb-4"/><div className="font-black text-gray-800 text-lg mb-1">Sin acceso al CRM</div><div className="text-sm text-gray-500 mb-5">Esta cuenta no tiene permiso para entrar aquí. Si eres colaborador, usa tu portal.</div><a href="/portal" className="block w-full bg-[#1E3A5F] text-white py-3 rounded-xl font-bold text-sm mb-2">Ir al portal de colaboradores</a><button onClick={async()=>{await supabase.auth.signOut();window.location.href="/";}} className="w-full text-xs text-gray-400 hover:text-gray-600 py-2">Cerrar sesión</button></div></div>;
   if(path==="/admin"&&emailUsuario===ADMIN_EMAIL)return<AdminPanel data={data}/>;
+  const permiso=(clave:string)=>puede(emailUsuario,clave);
+  const sec=permiso(secPedida)?secPedida:"home";
   const sinAsignar=data.trabajos.filter(t=>t.estado==="Solicitud").length;
 const TITULO={home:"Inicio",nuevas:"Nuevas demandas",demandas:"Pipeline",clientes:"Clientes",colaboradores:"Colaboradores",incidencias:"Incidencias"};
   const incidenciasAbiertas=(data.incidencias||[]).filter(i=>i.estado==="Abierta").length;
   const pipelineActivos=data.trabajos.filter(t=>["Presupuestando","Presupuesto enviado","Aceptado","En curso"].includes(t.estado)).length;
   return<div className="min-h-screen flex" style={{background:"#F0F2F5",fontFamily:"'Inter',system-ui,sans-serif"}}>
-    <Sidebar sec={sec} setSec={setSec} nuevasCount={sinAsignar} pipelineCount={pipelineActivos} incidenciasCount={incidenciasAbiertas}/>
+    <Sidebar sec={sec} setSec={setSec} nuevasCount={sinAsignar} pipelineCount={pipelineActivos} incidenciasCount={incidenciasAbiertas} puede={permiso}/>
     <div className="flex-1 min-w-0 flex flex-col">
       <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 flex items-center gap-3 sticky top-0 z-30">
         <div className="flex-1 min-w-0">
           <div className="font-black text-sm text-gray-800 leading-none">{TITULO[sec]||"Domia CRM"}</div>
         </div>
       </div>
-      <main className={`flex-1 px-4 py-5 mx-auto w-full pb-8 ${sec==="demandas"?"max-w-[1440px]":sec==="clientes"||sec==="colaboradores"?"max-w-[1180px]":"max-w-2xl"}`}>
-        {sec==="home"&&<Home data={data} setData={setData} go={setSec} setTid={setTid} toast={T}/>}
+      <main className={`flex-1 px-4 py-5 mx-auto w-full pb-8 ${sec==="demandas"?"max-w-[1440px]":sec==="clientes"||sec==="colaboradores"||sec==="home"?"max-w-[1180px]":"max-w-2xl"}`}>
+        {sec==="home"&&<Home data={data} setData={setData} go={setSec} setTid={setTid} toast={T} verEconomico={permiso("economico")}/>}
         {sec==="nuevas"&&<NuevasDemandas data={data} setData={setData} onBack={()=>setSec("home")} toast={T} onVer={id=>{setTid(id);}}/>}
         {sec==="demandas"&&<EstadoDemandas data={data} setData={setData} onBack={()=>setSec("home")} toast={T} onVer={id=>{setTid(id);}}/>}
         {sec==="clientes"&&<Clientes data={data} setData={setData} onBack={()=>setSec("home")} toast={T}/>}

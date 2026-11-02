@@ -38,7 +38,9 @@ const errores = new Map();
 for (const linea of (run.stdout || "").split(/\r?\n/)) {
   const m = linea.match(/^(src\/[^(]+)\((\d+),(\d+)\): error (TS\d+): (.*)$/);
   if (!m) continue;
-  const clave = `${m[1]}|${m[4]}|${m[5].slice(0, 160)}`;
+  // TypeScript puede reordenar las uniones ("a" | "b") entre ejecuciones: se ordenan para comparar igual.
+  const msgNorm = m[5].replace(/"[^"]*"(?:\s*\|\s*"[^"]*")+/g, (u) => u.split(/\s*\|\s*/).sort().join(" | "));
+  const clave = `${m[1]}|${m[4]}|${msgNorm.slice(0, 160)}`;
   const e = errores.get(clave) ?? { n: 0, ejemplo: `${m[1]}:${m[2]} ${m[4]} ${m[5].slice(0, 200)}` };
   e.n++;
   errores.set(clave, e);

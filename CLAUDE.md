@@ -21,6 +21,8 @@ CRM interno de Domia (gestión de clientes, trabajos/demandas, colaboradores, in
 - En rediseños visuales: enseñar primero un mockup y aplicar cuando Samuel lo apruebe.
 - Estilo: profesional, minimalista, tipo SaaS; pocos emojis; fuentes suaves (no demasiado negrita).
 - El panel `/admin` es privado e invisible: solo `ADMIN_EMAIL` (samuel.sanchez@olcproperties.net) lo ve; para el resto la app se comporta como si la ruta no existiera. No añadir enlaces visibles a él.
+- Permisos por usuario: `PERMISOS_USUARIO` y `puede()` (junto a `ADMIN_EMAIL` en `src/App.tsx`) deciden qué secciones del menú y qué tarjetas de Inicio ve cada email (claves: nuevas, demandas, clientes, colaboradores, finanzas, incidencias, economico). Hoy es solo visual: el acceso real a los datos lo da la tabla `staff` de Supabase.
+- El Inicio es `src/panel-inicio.tsx` (trabajos, novedades y tareas, económico); se refresca solo cada 30 s.
 - Cada edición o borrado de un trabajo se registra en `historial_trabajos` (`registrarHistorial`, `dbSaveTrabajo`, `dbDeleteTrabajo`). Mantenerlo al tocar esos flujos.
 - Teléfonos de colaboradores: mostrar `telefono || whatsapp`; los enlaces `wa.me` se construyen quitando espacios (`replace(/\s/g,'')`).
 
