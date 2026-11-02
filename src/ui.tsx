@@ -22,6 +22,8 @@ const ICONOS: Record<string, ReactNode> = {
   repeat: <><polyline points="17 2 21 6 17 10" /><path d="M3 11V9a3 3 0 0 1 3-3h15" /><polyline points="7 22 3 18 7 14" /><path d="M21 13v2a3 3 0 0 1-3 3H3" /></>,
   dot: <circle cx="12" cy="12" r="4" />,
   edit: <><path d="M4 20h4L19 9l-4-4L4 16z" /><line x1="13.5" y1="6.5" x2="17.5" y2="10.5" /></>,
+  chevd: <polyline points="6 9 12 15 18 9" />,
+  note: <path d="M4 5h16v11H9l-5 4z" />,
   pin: <><path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z" /><circle cx="12" cy="10" r="2.5" /></>,
   phone: <path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" />,
   trash: <><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6M14 11v6" /><path d="M9 6V4h6v2" /></>,
@@ -149,6 +151,75 @@ const UI_CSS = `
 .ui-ib.del:hover{background:#FDE2E2;color:#DC2626}
 .ui-ven{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;font-size:11.5px;font-weight:700;border-radius:8px;padding:4px 9px}
 .ui-ven.r{background:#FEE2E2;color:#B91C1C}.ui-ven.o{background:#FFEDD5;color:#C2410C}.ui-ven.b{background:#E7F0FD;color:#2563EB}
+.ui-kpis.k5{grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+@media (max-width:900px){.ui-kpis.k5{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:520px){.ui-kpis.k5{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.ui-chipb{border:1px solid #E5E9F0;background:#fff;border-radius:10px;padding:0 11px;height:40px;font:inherit;font-size:12.5px;font-weight:600;color:#6B7280;cursor:pointer;transition:background .15s,color .15s}
+.ui-chipb:hover{color:#111827}
+.ui-chipb[aria-pressed="true"]{background:#374151;color:#fff;border-color:#374151}
+.ui-link{border:0;background:none;font:inherit;font-size:12.5px;font-weight:700;color:#6B7280;cursor:pointer;padding:0 6px}
+.ui-link:hover{color:#111827}
+.ui-av-sin{background:#EF6B6B!important}
+.ui-ahead{display:flex;align-items:center;gap:8px;color:#fff;font-size:13px;font-weight:700;margin:16px 0 8px}
+.ui-ahead .n{background:var(--or);color:#2B1A00;border-radius:999px;font-size:11px;padding:1px 8px}
+.ui-arow{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;align-items:start}
+@media (max-width:420px){.ui-arow{grid-template-columns:minmax(0,1fr)}}
+.ui-ac{background:#fff;border-radius:14px;border-left:4px solid var(--or);box-shadow:0 6px 18px rgba(8,20,40,.18);padding:12px 13px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.ui-ac-h{display:flex;align-items:center;gap:10px}
+.ui-ac-h .x{flex:1;min-width:0;cursor:pointer}
+.ui-ac-h b{display:block;font-size:13.5px;color:#111827;line-height:1.25;overflow-wrap:anywhere}
+.ui-ac-h small{display:block;font-size:11.5px;color:#6B7280}
+.ui-nov{display:inline-flex;align-items:center;gap:6px;background:#FFF7E6;color:#B45309;font-size:11.5px;font-weight:700;border-radius:8px;padding:4px 9px;align-self:flex-start;overflow-wrap:anywhere}
+.ui-ac-a{display:flex;gap:6px;flex-wrap:wrap}
+.ui-ib2{width:30px;height:30px;padding:0}
+.ui-ac .chev{transition:transform .2s}
+.ui-ac[data-open="true"] .chev{transform:rotate(180deg)}
+.ui-det{display:none;border-top:1px dashed #E1E5EB;padding-top:10px;flex-direction:column;gap:10px;font-size:12.5px;color:#374151}
+.ui-ac[data-open="true"] .ui-det{display:flex}
+.ui-det .g{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px}
+.ui-det .g .w{grid-column:1/-1}
+.ui-det .k{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#9CA3AF;margin-bottom:1px}
+.ui-det a{color:var(--navy);font-weight:600;text-decoration:none}
+.ui-det a:hover{text-decoration:underline}
+.ui-det .eco{display:flex;align-items:center;justify-content:space-between;background:var(--soft);border-radius:10px;padding:8px 10px;text-align:center}
+.ui-det .eco b{display:block;font-size:15px}
+.ui-det .eco span{font-size:10px;color:#9CA3AF}
+.ui-det .eco i{font-style:normal;color:#C4C9D2;font-weight:700}
+.ui-full{width:100%}
+.ui-sbtn.info{background:#E7F0FD;color:#1D4ED8}.ui-sbtn.info:hover{background:#D5E5FB}
+.ui-board{margin-top:16px;display:flex;flex-direction:column;gap:16px}
+.ui-lane{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+.ui-lh{flex:none;width:210px;background:#fff;border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:6px;scroll-snap-align:start;box-shadow:0 6px 18px rgba(8,20,40,.18)}
+.ui-lh .who{display:flex;align-items:center;gap:10px}
+.ui-lh b{font-size:13.5px;color:#111827;line-height:1.2;overflow-wrap:anywhere}
+.ui-lh .m{display:flex;gap:10px;font-size:11.5px;color:#6B7280}
+.ui-lh .m strong{color:#111827;font-size:15px;display:block;line-height:1.1}
+.ui-lh .lk{margin-top:auto;border:0;background:none;color:var(--navy);font:inherit;font-size:12px;font-weight:700;text-align:left;cursor:pointer;padding:0}
+.ui-lh .tg{border:0;background:#F1F3F7;border-radius:8px;font:inherit;font-size:11.5px;font-weight:700;color:#4B5563;padding:5px 8px;cursor:pointer;align-self:flex-start}
+.ui-col{flex:none;width:200px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:9px;scroll-snap-align:start;display:flex;flex-direction:column;gap:7px}
+.ui-tcol{flex:none;width:262px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:7px;scroll-snap-align:start}
+.ui-col-h{display:flex;align-items:center;gap:7px;color:#fff;font-size:11.5px;font-weight:700;padding:1px 3px}
+.ui-col-h i{width:8px;height:8px;border-radius:50%}
+.ui-col-h .c{margin-left:auto;background:rgba(255,255,255,.14);border-radius:999px;padding:0 8px;font-size:11px}
+.ui-tcol .ui-col-h{padding:2px 4px 6px}
+.ui-tcol .ui-av{width:28px;height:28px;border-radius:9px;font-size:11px}
+.ui-mc{position:relative;background:#fff;border-radius:11px;padding:9px 10px 9px 12px;cursor:pointer;transition:transform .14s,box-shadow .14s;box-shadow:0 2px 6px rgba(8,20,40,.12)}
+.ui-mc::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:var(--p,#CBD2DC)}
+.ui-mc:hover,.ui-mc:focus-visible{transform:translateY(-2px);box-shadow:0 8px 18px rgba(8,20,40,.25);outline:none}
+.ui-mc .t{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:#4B5563}
+.ui-mc .tl{width:20px;height:20px;border-radius:6px;background:#E8EEF5;color:var(--navy);display:flex;align-items:center;justify-content:center;flex:none}
+.ui-mc .tl svg{width:13px;height:13px}
+.ui-mc .id{margin-left:auto;color:#9CA3AF;font-weight:600}
+.ui-mc.hay .id{margin-right:16px}
+.ui-mc .cl{font-size:12.5px;font-weight:700;color:#111827;margin-top:5px;line-height:1.25;overflow-wrap:anywhere}
+.ui-mc .dr{font-size:10.5px;color:#9CA3AF;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ui-mc .f{display:flex;align-items:center;gap:6px;margin-top:6px}
+.ui-mc .f b{font-size:12px;color:#111827;font-variant-numeric:tabular-nums}
+.ui-mc .f span{font-size:10.5px;color:#9CA3AF;margin-left:auto}
+.ui-mc .es{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#6B7280;margin-top:5px}
+.ui-mc .es i{width:6px;height:6px;border-radius:50%}
+.ui-mc .dot{position:absolute;right:8px;top:8px;width:9px;height:9px;border-radius:50%;background:var(--or);box-shadow:0 0 0 3px rgba(245,158,11,.25)}
+.ui-vac{color:#B9CBE3;font-size:12px;padding:8px 4px}
 .ui-attn{margin-top:16px;border-left:4px solid var(--or);overflow:hidden}
 .ui-attn-h{display:flex;align-items:center;gap:8px;padding:12px 14px 6px;font-size:13px;font-weight:700;color:#92400E}
 .ui-attn-h .n{background:var(--or);color:#2B1A00;border-radius:999px;font-size:11px;padding:1px 8px}
@@ -206,13 +277,13 @@ export function Tabs({ tabs, value, onChange }: { tabs: { id: string; label: str
   );
 }
 
-export function KpiRow({ items }: { items: { icono: string; valor: ReactNode; etiqueta: string }[] }) {
+export function KpiRow({ items }: { items: { icono?: string; valor: ReactNode; etiqueta: string }[] }) {
   return (
-    <div className="ui-kpis">
+    <div className={`ui-kpis${items.length === 5 ? " k5" : ""}`}>
       {items.map((k) => (
         <div className="ui-kpi" key={k.etiqueta}>
-          <div className="ic"><UiIcon n={k.icono} s={17} /></div>
-          <div><b>{k.valor}</b><span className="l">{k.etiqueta}</span></div>
+          {k.icono ? <div className="ic"><UiIcon n={k.icono} s={17} /></div> : null}
+          <div style={{ minWidth: 0 }}><b>{k.valor}</b><span className="l">{k.etiqueta}</span></div>
         </div>
       ))}
     </div>

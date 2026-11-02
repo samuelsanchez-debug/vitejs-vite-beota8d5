@@ -392,16 +392,15 @@ const ESTADO_DOT_PIPELINE = {
   "Completado":"bg-emerald-500",
   "Cancelado":"bg-gray-300",
 };
-const PRIO_STRIPE_PIPELINE = {"Alta":"border-l-red-400","Media":"border-l-amber-400","Baja":"border-l-gray-300"};
-const PRIO_TEXT_PIPELINE = {"Alta":"text-red-500","Media":"text-amber-600","Baja":"text-gray-400"};
-
+const PRIO_HEX:Record<string,string> = {"Alta":"#F87171","Media":"#FBBF24","Baja":"#CBD2DC"};
+const ESTADO_HEX:Record<string,string> = {"Solicitud":"#818CF8","Cliente confirmó":"#818CF8","Presupuesto recibido":"#818CF8","Visita propuesta":"#22D3EE","Presupuestando":"#F59E0B","Colaborador disponible":"#22D3EE","Presupuesto enviado":"#A78BFA","Aceptado":"#FB923C","En curso":"#F97316","Completado":"#10B981"};
 const COLUMNAS_MATRIZ = [
-  {key:"gestion",titulo:"En gestión",estados:["Solicitud","Cliente confirmó","Presupuesto recibido","Visita propuesta"],tint:"bg-indigo-50/70",badge:"bg-indigo-100 text-indigo-700",dot:"bg-indigo-400"},
-  {key:"presupuestando",titulo:"Presupuestando",estados:["Presupuestando"],tint:"bg-amber-50/70",badge:"bg-amber-100 text-amber-700",dot:"bg-amber-400"},
-  {key:"colabdisp",titulo:"Colaborador disp.",estados:["Colaborador disponible"],tint:"bg-cyan-50/70",badge:"bg-cyan-100 text-cyan-700",dot:"bg-cyan-500"},
-  {key:"presupenv",titulo:"Presupuesto enviado",estados:["Presupuesto enviado"],tint:"bg-violet-50/70",badge:"bg-violet-100 text-violet-700",dot:"bg-violet-500"},
-  {key:"aceptados",titulo:"Aceptados",estados:["Aceptado","En curso"],tint:"bg-orange-50/70",badge:"bg-orange-100 text-orange-700",dot:"bg-orange-500"},
-  {key:"completados",titulo:"Completados",estados:["Completado"],tint:"bg-emerald-50/70",badge:"bg-emerald-100 text-emerald-700",dot:"bg-emerald-500"},
+  {key:"gestion",titulo:"En gestión",estados:["Solicitud","Cliente confirmó","Presupuesto recibido","Visita propuesta"],c:"#818CF8"},
+  {key:"presupuestando",titulo:"Presupuestando",estados:["Presupuestando"],c:"#F59E0B"},
+  {key:"colabdisp",titulo:"Colaborador disp.",estados:["Colaborador disponible"],c:"#22D3EE"},
+  {key:"presupenv",titulo:"Presupuesto enviado",estados:["Presupuesto enviado"],c:"#A78BFA"},
+  {key:"aceptados",titulo:"Aceptados",estados:["Aceptado","En curso"],c:"#FB923C"},
+  {key:"completados",titulo:"Completados",estados:["Completado"],c:"#34D399"},
 ];
 const diasDesde = f=>{
   if(!f)return"—";
@@ -428,309 +427,224 @@ function IconoTipoPipeline({tipo}){
   }
 }
 
-function TarjetaTrabajo({t,data,setData,toast,onVer,alertColor}){
+function TarjetaTrabajo({t,data,setData,toast,onVer}:{t:any,data:any,setData:any,toast:any,onVer:any}){
   const[abierta,setAbierta]=useState(false);
-  const cl=data.clientes.find(c=>c.id===getClienteId(t));
-  const co=data.colaboradores.find(c=>c.id===getColabId(t));
+  const cl=data.clientes.find((c:any)=>c.id===getClienteId(t));
+  const co=data.colaboradores.find((c:any)=>c.id===getColabId(t));
   const notas=getNotas(t);
   const disponibilidad=notas.includes('disponibilidad:')?notas.split('disponibilidad:')[1]?.split('|')[0]?.trim():null;
-  const partes=notas.split('|').map(n=>n.trim());
-  const fotoCliente=partes.find(p=>p.startsWith('foto:'))?.replace('foto:','');
-  const presupUrl=partes.find(p=>p.startsWith('presup:'))?.replace('presup:','');
-  const pdfDomiaUrl=partes.find(p=>p.startsWith('pdfdomia:'))?.replace('pdfdomia:','');
-  const comentCliente=partes.find(p=>p.startsWith('cliente:'))?.replace('cliente:','');
+  const partes=notas.split('|').map((n:string)=>n.trim());
+  const fotoCliente=partes.find((p:string)=>p.startsWith('foto:'))?.replace('foto:','');
+  const presupUrl=partes.find((p:string)=>p.startsWith('presup:'))?.replace('presup:','');
+  const pdfDomiaUrl=partes.find((p:string)=>p.startsWith('pdfdomia:'))?.replace('pdfdomia:','');
+  const comentCliente=partes.find((p:string)=>p.startsWith('cliente:'))?.replace('cliente:','');
 
-  const avanzar=async(nuevoEstado,txtHistorial)=>{
+  const refrescar=(saved:any)=>setData((d:any)=>({...d,trabajos:d.trabajos.map((x:any)=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));
+  const avanzar=async(nuevoEstado:string,txtHistorial:string)=>{
     const hist=[...getHistorial(t),{ts:now(),txt:txtHistorial,tipo:"sistema"}];
     const saved=await dbSaveTrabajo({...t,estado:nuevoEstado,historial:hist});
-    if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast(`→ ${nuevoEstado}`);}
+    if(saved){refrescar(saved);toast(`→ ${nuevoEstado}`);}
+  };
+  const marcarAtendido=async()=>{
+    await supabase.from('trabajos').update({atendido:true}).eq('id',t.id);
+    setData((d:any)=>({...d,trabajos:d.trabajos.map((x:any)=>x.id===t.id?{...x,atendido:true}:x)}));
+    toast("✓ Marcado como atendido");
+  };
+  const abrirPresupuesto=()=>{(window as any).__abrirPresupuesto=true;onVer(t.id);};
+  const reenviarPresupuesto=()=>{
+    const msg=`Hola ${cl.nombre.split(" ")[0]} 😊\n\nTe paso el presupuesto de *Domia Services*.\n\n💶 Total: *${getPrecioCliente(t)}€* (sin IVA)\n\n📄 Verlo y aceptarlo aquí:\nhttps://domia-crm-two.vercel.app/aceptar/${refTrabajo(t,'cliente')}\n\nCualquier duda me dices. ¡Gracias!\n\n— Samuel · Domia Services · 685 917 059`;
+    window.open(`https://wa.me/${cl.telefono.replace(/\s/g,"")}?text=${encodeURIComponent(msg)}`,"_blank");
+    toast("📱 Reenviado");
+  };
+  const marcarTerminado=async()=>{
+    const hist=[...getHistorial(t),{ts:now(),txt:"🔧 Trabajo marcado como terminado — pendiente verificación del cliente",tipo:"sistema"}];
+    const saved=await dbSaveTrabajo({...t,trabajo_terminado:true,verificacion_rechazo:null,historial:hist});
+    if(saved){refrescar(saved);if(cl?.telefono)window.open(buildWAVerificarTrabajo(cl,t),"_blank");toast("✅ Marcado — pidiendo verificación al cliente");}
   };
 
-  return <div className={`bg-white border rounded-2xl overflow-hidden shadow-sm border-l-4 ${PRIO_STRIPE_PIPELINE[t.prioridad]||"border-l-gray-200"} ${alertColor||"border-gray-100"}`}>
-    <div className="px-4 py-3.5">
-      <div className="flex items-center justify-between mb-2.5">
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide bg-gray-100 text-gray-500"><span className={`w-1.5 h-1.5 rounded-full ${ESTADO_DOT_PIPELINE[t.estado]||"bg-gray-300"}`}/>{t.estado}</span>
-        <div className="flex items-center gap-2.5">
-          <span className={`text-[10px] font-bold ${PRIO_TEXT_PIPELINE[t.prioridad]||"text-gray-400"}`}>{t.prioridad}</span>
-          <button onClick={()=>setAbierta(!abierta)} className={`text-gray-300 text-lg transition-transform ${abierta?"rotate-180":""}`}>▾</button>
-        </div>
-      </div>
-      <div className="flex items-start gap-3 flex-wrap">
-        <div className="flex items-start gap-3 flex-1 min-w-[160px] cursor-pointer" onClick={()=>onVer(t.id)}>
-          <div className="w-9 h-9 rounded-lg bg-[#EAF0F7] text-[#1E3A5F] flex items-center justify-center flex-shrink-0">
-            <IconoTipoPipeline tipo={t.tipo}/>
-          </div>
-          <div className="min-w-0">
-            <div className="text-[10px] text-gray-400 font-semibold mb-0.5 truncate">{t.tipo} · #{t.id}</div>
-            <div className="font-bold text-gray-800 text-[14.5px] leading-tight truncate">{cl?.nombre}</div>
-            <div className="text-[11px] text-gray-400 mt-0.5 flex items-center gap-1">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></svg>
-              {fmt(t.fecha)}
-            </div>
-            {t.ultima_novedad&&!t.atendido&&
-              <div className="inline-flex items-center gap-1.5 bg-red-50 text-red-600 text-[11px] font-semibold px-2 py-1 rounded-lg mt-1.5">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 4a4 4 0 00-4 4v3.4c0 .6-.2 1.2-.6 1.7L6 15h12l-1.4-1.9c-.4-.5-.6-1.1-.6-1.7V8a4 4 0 00-4-4z"/><path d="M10 18a2 2 0 004 0"/></svg>
-                {t.ultima_novedad}
-              </div>}
-          </div>
-        </div>
-        <div className="flex-shrink-0 max-w-[110px] pl-3 border-l border-gray-100">
-          <div className="text-[10px] text-gray-400 font-semibold mb-0.5">Colaborador</div>
-          <div className={`text-[12px] font-semibold flex items-center gap-1 ${co?"text-gray-700":"text-gray-400 italic font-medium"}`}>
-            {co&&<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="flex-shrink-0 opacity-70"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg>}
-            <span className="truncate">{co?co.nombre:"Sin asignar"}</span>
-          </div>
-        </div>
-        <div className="flex-shrink-0 flex items-center gap-2 pl-3 border-l border-gray-100">
-          <button onClick={async(e)=>{e.stopPropagation();await supabase.from('trabajos').update({atendido:true}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,atendido:true}:x)}));toast("✓ Marcado como atendido");}} className="w-7 h-7 flex items-center justify-center bg-gray-100 text-gray-500 rounded-lg hover:bg-emerald-100 hover:text-emerald-600 transition">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-          </button>
-          <button onClick={()=>onVer(t.id)} className="bg-[#1E3A5F] text-white text-[11.5px] font-bold px-3 py-1.5 rounded-lg hover:bg-[#152d4a] transition whitespace-nowrap">Ver ficha</button>
-        </div>
-      </div>
+  type Accion={txt:string,onClick:()=>void,tono?:string};
+  const acciones:Accion[]=[];
+  if(t.estado==="Solicitud")acciones.push({txt:"Asignar colaborador",onClick:()=>onVer(t.id)});
+  if(t.estado==="Presupuestando"&&co)acciones.push({txt:`Reenviar WhatsApp a ${co.nombre.split(" ")[0]}`,tono:"wa",onClick:()=>{window.open(buildWA(co,t,cl),"_blank");toast("📱 WhatsApp...");}});
+  if(t.estado==="Colaborador disponible"&&cl?.telefono)acciones.push({txt:"Proponer fecha al cliente",tono:"wa",onClick:async()=>{window.open(buildWAVisitaCliente(cl,t,co),"_blank");await avanzar("Visita propuesta","Fecha propuesta al cliente por WhatsApp");}});
+  if(t.estado==="Cliente confirmó"&&co)acciones.push({txt:"Avisar al colaborador: visita programada",tono:"wa",onClick:async()=>{window.open(buildWAConfirmacionColab(co,t,cl),"_blank");await avanzar("En curso","Visita programada — colaborador avisado");}});
+  acciones.push({txt:"Generar presupuesto Domia",onClick:abrirPresupuesto});
+  if(t.estado==="Presupuesto enviado"){
+    if(pdfDomiaUrl&&cl?.telefono)acciones.push({txt:"Reenviar presupuesto al cliente",tono:"wa",onClick:reenviarPresupuesto});
+    acciones.push({txt:"Cliente aceptó",tono:"ok",onClick:()=>avanzar("Aceptado","Cliente aceptó el presupuesto")});
+  }
+  if(t.estado==="Aceptado")acciones.push({txt:"Marcar en curso",onClick:()=>avanzar("En curso","Trabajo iniciado")});
+  if(t.estado==="En curso"&&!t.trabajo_terminado)acciones.push({txt:"Marcar trabajo terminado",onClick:marcarTerminado});
+  if(t.estado==="En curso"&&t.trabajo_terminado&&!t.cliente_verificado&&!t.verificacion_rechazo&&cl?.telefono)acciones.push({txt:"Pedir verificación al cliente",tono:"wa",onClick:()=>window.open(buildWAVerificarTrabajo(cl,t),"_blank")});
+  if(t.estado==="En curso"&&t.verificacion_rechazo&&co)acciones.push({txt:"Reenviar al colaborador con motivo",tono:"wa",onClick:()=>window.open(buildWARechazoVerificacion(co,t,cl,t.verificacion_rechazo),"_blank")});
+  if(t.estado==="En curso"&&t.cliente_verificado&&cl?.telefono)acciones.push({txt:"Reclamar cobro",tono:"ok",onClick:()=>window.open(buildWACobroFinal(cl,t),"_blank")});
+
+  // La acción principal que se ve sin desplegar: el siguiente paso natural del trabajo
+  const principal=acciones.find(a=>t.estado==="Presupuesto recibido"?a.txt==="Generar presupuesto Domia":a.txt!=="Generar presupuesto Domia")||null;
+  const novedad=t.ultima_novedad&&!t.atendido?String(t.ultima_novedad).replace(/^[^\p{L}\p{N}¿¡"]+/u,""):`Pendiente de gestionar: ${t.estado}`;
+  const precioC=getPrecioCliente(t),precioK=getPresupColab(t);
+
+  return <div className="ui-ac" data-open={abierta}>
+    <div className="ui-ac-h">
+      <span className="ui-tile" style={{background:"#E8EEF5",color:"#1E3A5F"}}><IconoTipoPipeline tipo={t.tipo}/></span>
+      <div className="x" onClick={()=>onVer(t.id)}><b>{cl?.nombre||"Sin cliente"}</b><small>{t.tipo} · #{t.id} · {co?.nombre||"Sin asignar"}</small></div>
+      <button type="button" className="ui-sbtn ui-ib2" aria-label={abierta?"Ocultar detalle":"Ver detalle"} aria-expanded={abierta} onClick={()=>setAbierta(v=>!v)}><span className="chev" style={{display:"flex"}}><UiIcon n="chevd" s={14}/></span></button>
     </div>
-    {abierta&&<div className="border-t border-gray-100">
-      <div className="px-4 py-3 grid grid-cols-2 gap-3 border-b border-gray-50">
-        <div><div className="text-[10px] text-gray-400 uppercase font-bold mb-0.5">Cliente</div><div className="text-sm font-medium text-gray-800">{cl?.nombre}</div><div className="text-[11px] text-gray-500">{cl?.telefono}</div></div>
-        <div><div className="text-[10px] text-gray-400 uppercase font-bold mb-0.5">Colaborador</div><div className="text-sm font-medium text-gray-800">{co?.nombre||"Sin asignar"}</div><div className="text-[11px] text-gray-500">{co?.telefono||co?.whatsapp}</div></div>
-        <div className="col-span-2"><div className="text-[10px] text-gray-400 uppercase font-bold mb-0.5">Dirección</div><div className="text-sm text-gray-700">{cl?.direccion||"—"}</div></div>
-        <div className="col-span-2"><div className="text-[10px] text-gray-400 uppercase font-bold mb-0.5">Descripción</div><div className="text-sm text-gray-700 leading-relaxed">{t.descripcion}</div></div>
+    <div className="ui-nov"><UiIcon n="bell" s={12}/>{novedad}</div>
+    <div className="ui-ac-a">
+      {principal&&<button type="button" className={`ui-sbtn ${principal.tono==="wa"?"wa":principal.tono==="ok"?"ok":"pri"}`} onClick={principal.onClick}>{principal.txt}</button>}
+      <button type="button" className="ui-sbtn" onClick={()=>onVer(t.id)}>Ver ficha</button>
+      <button type="button" className="ui-sbtn ok ui-ib2" style={{marginLeft:"auto"}} aria-label="Marcar como atendido" title="Marcar como atendido" onClick={marcarAtendido}><UiIcon n="tick" s={13}/></button>
+    </div>
+    {abierta&&<div className="ui-det">
+      <div className="g">
+        <div><div className="k">Cliente</div>{cl?.nombre||"—"}<div style={{color:"#6B7280"}}>{cl?.telefono}</div></div>
+        <div><div className="k">Colaborador</div>{co?.nombre||"Sin asignar"}<div style={{color:"#6B7280"}}>{co?.telefono||co?.whatsapp}</div></div>
+        <div className="w"><div className="k">Dirección</div>{cl?.direccion||"—"}</div>
+        <div className="w"><div className="k">Descripción</div>{t.descripcion||"—"}</div>
       </div>
-
-      {disponibilidad&&<div className="px-4 py-3 bg-teal-50 border-b border-gray-50">
-        <div className="text-[10px] text-teal-700 uppercase font-bold mb-1">📅 Disponibilidad del colaborador</div>
-        <div className="text-sm text-teal-800">{disponibilidad}</div>
+      {disponibilidad&&<div className="ui-box teal"><UiIcon n="calendar" s={14}/><span><b>Disponibilidad del colaborador:</b> {disponibilidad}</span></div>}
+      {(fotoCliente||presupUrl||pdfDomiaUrl||comentCliente)&&<div style={{display:"flex",flexDirection:"column",gap:6}}>
+        <div className="k">Archivos y notas</div>
+        {fotoCliente&&<a href={fotoCliente} target="_blank">Foto del cliente →</a>}
+        {presupUrl&&<a href={presupUrl} target="_blank">Presupuesto del colaborador →</a>}
+        {pdfDomiaUrl&&<div style={{display:"flex",alignItems:"center",gap:8}}><a href={pdfDomiaUrl} target="_blank" style={{flex:1}}>Presupuesto Domia →</a><button type="button" className="ui-sbtn" onClick={abrirPresupuesto}>Editar</button></div>}
+        {comentCliente&&<div className="ui-box"><UiIcon n="note" s={14}/><span><b>Cliente:</b> {comentCliente}</span></div>}
       </div>}
-
-      {(fotoCliente||presupUrl||pdfDomiaUrl||comentCliente)&&<div className="px-4 py-3 border-b border-gray-50 space-y-2">
-        <div className="text-[10px] text-gray-400 uppercase font-bold">📎 Archivos y notas</div>
-        {fotoCliente&&<a href={fotoCliente} target="_blank" className="block text-sm text-blue-700 font-semibold hover:underline">🖼️ Foto del cliente →</a>}
-        {presupUrl&&<a href={presupUrl} target="_blank" className="block text-sm text-purple-700 font-semibold hover:underline">📄 Presupuesto del colaborador →</a>}
-        {pdfDomiaUrl&&<div className="flex items-center gap-2">
-          <a href={pdfDomiaUrl} target="_blank" className="flex-1 text-sm text-emerald-700 font-semibold hover:underline">📄 Presupuesto Domia →</a>
-          <button onClick={()=>{(window as any).__abrirPresupuesto=true;onVer(t.id);}} className="text-xs bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-lg hover:bg-emerald-200 transition">✏️ Editar</button>
-        </div>}
-        {comentCliente&&<div className="text-sm text-gray-600 bg-yellow-50 border border-yellow-100 rounded-lg px-3 py-2">💬 Cliente: {comentCliente}</div>}
-      </div>}
-
-      <div className="px-4 py-4 bg-gray-50 border-b border-gray-100">
-        <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-3">Económico</div>
-        <div className="flex items-center justify-between">
-          <div className="text-center flex-1">
-            <div className="text-xl font-black text-emerald-600">{getPrecioCliente(t)?`${getPrecioCliente(t)}€`:"—"}</div>
-            <div className="text-[10px] text-gray-400 mt-0.5">Cliente</div>
-          </div>
-          <div className="text-gray-300 text-lg font-bold px-1">−</div>
-          <div className="text-center flex-1">
-            <div className="text-xl font-black text-red-500">{getPresupColab(t)?`${getPresupColab(t)}€`:"—"}</div>
-            <div className="text-[10px] text-gray-400 mt-0.5">Colaborador</div>
-          </div>
-          <div className="text-gray-300 text-lg font-bold px-1">=</div>
-          <div className="text-center flex-1">
-            <div className="text-xl font-black text-blue-600">{getPrecioCliente(t)&&getPresupColab(t)?`${getPrecioCliente(t)-getPresupColab(t)}€`:"—"}</div>
-            <div className="text-[10px] text-gray-400 mt-0.5">Margen</div>
-            {getPrecioCliente(t)&&getPresupColab(t)>0&&<div className="text-[10px] font-bold text-blue-500 bg-blue-50 rounded-full px-2 py-0.5 mt-1 inline-block">{Math.round((getPrecioCliente(t)-getPresupColab(t))/getPresupColab(t)*100)}%</div>}
-          </div>
-        </div>
+      <div className="eco">
+        <div><b style={{color:"#059669"}}>{precioC?`${precioC}€`:"—"}</b><span>Cliente</span></div><i>−</i>
+        <div><b style={{color:"#DC2626"}}>{precioK?`${precioK}€`:"—"}</b><span>Colaborador</span></div><i>=</i>
+        <div><b style={{color:"#2563EB"}}>{precioC&&precioK?`${precioC-precioK}€`:"—"}</b><span>Margen{precioC&&precioK>0?` · ${Math.round((precioC-precioK)/precioK*100)}%`:""}</span></div>
       </div>
-
-      <div className="px-4 py-3 space-y-2">
-        <div className="text-[10px] text-gray-400 uppercase font-bold mb-1">Acciones</div>
-        {t.estado==="Solicitud"&&<button onClick={()=>onVer(t.id)} className="w-full bg-[#1E3A5F] text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-[#152d4a]">👷 Asignar colaborador</button>}
-        {t.estado==="Presupuestando"&&co&&<>
-          <button onClick={()=>{window.open(buildWA(co,t,cl),"_blank");toast("📱 WhatsApp...");}} className="w-full bg-green-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-green-600">📱 Reenviar WhatsApp a {co.nombre.split(" ")[0]}</button>
-        </>}
-        {t.estado==="Colaborador disponible"&&cl?.telefono&&<button onClick={async()=>{window.open(buildWAVisitaCliente(cl,t,co),"_blank");await avanzar("Visita propuesta","Fecha propuesta al cliente por WhatsApp");}} className="w-full bg-cyan-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-cyan-600">📱 Proponer fecha al cliente</button>}
-        {t.estado==="Cliente confirmó"&&co&&<button onClick={async()=>{window.open(buildWAConfirmacionColab(co,t,cl),"_blank");await avanzar("En curso","Visita programada — colaborador avisado");}} className="w-full bg-teal-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-teal-600">✅ Avisar colaborador — visita programada</button>}
-        <button onClick={()=>{(window as any).__abrirPresupuesto=true;onVer(t.id);}} className="w-full bg-purple-600 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-purple-700">📄 Generar presupuesto Domia</button>
-        {t.estado==="Presupuesto enviado"&&<>
-          {pdfDomiaUrl&&cl?.telefono&&<button onClick={()=>{const msg=`Hola ${cl.nombre.split(" ")[0]} 😊\n\nTe paso el presupuesto de *Domia Services*.\n\n💶 Total: *${getPrecioCliente(t)}€* (sin IVA)\n\n📄 Verlo y aceptarlo aquí:\nhttps://domia-crm-two.vercel.app/aceptar/${refTrabajo(t,'cliente')}\n\nCualquier duda me dices. ¡Gracias!\n\n— Samuel · Domia Services · 685 917 059`;window.open(`https://wa.me/${cl.telefono.replace(/\s/g,"")}?text=${encodeURIComponent(msg)}`,"_blank");toast("📱 Reenviado");}} className="w-full bg-green-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-green-600">📱 Reenviar presupuesto al cliente</button>}
-          <button onClick={()=>avanzar("Aceptado","Cliente aceptó el presupuesto")} className="w-full bg-violet-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-violet-600">🤝 Cliente aceptó</button>
-        </>}
-        {t.estado==="Aceptado"&&<button onClick={()=>avanzar("En curso","Trabajo iniciado")} className="w-full bg-orange-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-orange-600">🔧 Marcar en curso</button>}
-        {t.estado==="En curso"&&!t.trabajo_terminado&&<button onClick={async()=>{const hist=[...getHistorial(t),{ts:now(),txt:"🔧 Trabajo marcado como terminado — pendiente verificación del cliente",tipo:"sistema"}];const saved=await dbSaveTrabajo({...t,trabajo_terminado:true,verificacion_rechazo:null,historial:hist});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));if(cl?.telefono)window.open(buildWAVerificarTrabajo(cl,t),"_blank");toast("✅ Marcado — pidiendo verificación al cliente");}}} className="w-full bg-orange-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-orange-600">✅ Marcar trabajo terminado</button>}
-        {t.estado==="En curso"&&t.trabajo_terminado&&!t.cliente_verificado&&!t.verificacion_rechazo&&cl?.telefono&&<button onClick={()=>window.open(buildWAVerificarTrabajo(cl,t),"_blank")} className="w-full bg-cyan-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-cyan-600">📱 Pedir verificación al cliente</button>}
-        {t.estado==="En curso"&&t.verificacion_rechazo&&<div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700"><strong>El cliente indica que falta algo:</strong><br/>{t.verificacion_rechazo}</div>}
-        {t.estado==="En curso"&&t.verificacion_rechazo&&co&&<button onClick={()=>window.open(buildWARechazoVerificacion(co,t,cl,t.verificacion_rechazo),"_blank")} className="w-full bg-orange-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-orange-600">🔁 Reenviar al colaborador con motivo</button>}
-        {t.estado==="En curso"&&t.cliente_verificado&&cl?.telefono&&<button onClick={()=>window.open(buildWACobroFinal(cl,t),"_blank")} className="w-full bg-emerald-500 text-white py-2.5 rounded-xl text-sm font-semibold transition hover:bg-emerald-600">💰 Reclamar cobro</button>}
-        <button onClick={()=>onVer(t.id)} className="w-full bg-white border border-gray-200 text-gray-600 py-2.5 rounded-xl text-sm font-semibold transition hover:border-gray-400">✏️ Ver ficha completa / Editar</button>
+      {t.estado==="En curso"&&t.verificacion_rechazo&&<div className="ui-box" style={{background:"#FEF2F2",color:"#B91C1C"}}><UiIcon n="warn" s={14}/><span><b>El cliente indica que falta algo:</b><br/>{t.verificacion_rechazo}</span></div>}
+      <div style={{display:"flex",flexDirection:"column",gap:6}}>
+        <div className="k">Acciones</div>
+        {acciones.map(a=><button key={a.txt} type="button" className={`ui-sbtn ui-full ${a.tono==="wa"?"wa":a.tono==="ok"?"ok":"pri"}`} style={{padding:"9px"}} onClick={a.onClick}>{a.txt}</button>)}
+        <button type="button" className="ui-sbtn ui-full" style={{padding:"9px"}} onClick={()=>onVer(t.id)}>Ver ficha completa / Editar</button>
       </div>
     </div>}
   </div>;
 }
-function EstadoDemandas({data,setData,onBack,toast,onVer}){
+
+function MiniTarjeta({t,data,onVer,conEstado}:{t:any,data:any,onVer:any,conEstado:boolean}){
+  const cl=data.clientes.find((c:any)=>c.id===getClienteId(t));
+  const hay=!!t.ultima_novedad&&!t.atendido;
+  return <div className={`ui-mc${hay?" hay":""}`} style={{["--p" as any]:PRIO_HEX[t.prioridad]||"#CBD2DC"}} tabIndex={0} onClick={()=>onVer(t.id)} onKeyDown={e=>{if(e.key==="Enter")onVer(t.id);}}>
+    {hay&&<span className="dot" title="Aviso sin atender"/>}
+    <div className="t"><span className="tl"><IconoTipoPipeline tipo={t.tipo}/></span>{t.tipo}<span className="id">#{t.id}</span></div>
+    <div className="cl">{cl?.nombre}</div>
+    {cl?.direccion&&<div className="dr">{cl.direccion}</div>}
+    {conEstado&&<div className="es"><i style={{background:ESTADO_HEX[t.estado]||"#CBD2DC"}}/>{t.estado}</div>}
+    <div className="f"><b>{getPrecioCliente(t)?eur(getPrecioCliente(t)):"—"}</b><span>{diasDesde(t.fecha)}</span></div>
+  </div>;
+}
+
+function EstadoDemandas({data,setData,onBack,toast,onVer}:{data:any,setData:any,onBack:any,toast:any,onVer:any}){
   const[busca,setBusca]=useState("");
   const[fColab,setFColab]=useState("Todos");
   const[fTipo,setFTipo]=useState("Todos");
   const[fZona,setFZona]=useState("Todas");
   const[verArchivados,setVerArchivados]=useState(false);
   const[vista,setVista]=useState("colaborador");
-  const[filtrosAbiertos,setFiltrosAbiertos]=useState(false);
-  const activosBase=data.trabajos.filter(t=>!t.archivado);
-  let items=[...data.trabajos].filter(t=>verArchivados?t.archivado:!t.archivado);
-  if(fColab!=="Todos")items=items.filter(t=>String(getColabId(t))===fColab);
-  if(fTipo!=="Todos")items=items.filter(t=>t.tipo===fTipo);
-  if(fZona!=="Todas")items=items.filter(t=>{const co=data.colaboradores.find(c=>c.id===getColabId(t));return co?.zona===fZona;});
-  if(busca.trim()){const q=busca.toLowerCase();items=items.filter(t=>{const cl=data.clientes.find(c=>c.id===getClienteId(t));return t.descripcion?.toLowerCase().includes(q)||cl?.nombre.toLowerCase().includes(q)||t.tipo?.toLowerCase().includes(q);});}
+  const[colapsados,setColapsados]=useState<Record<string,boolean>>({});
+  const activosBase=data.trabajos.filter((t:any)=>!t.archivado);
+  let items=[...data.trabajos].filter((t:any)=>verArchivados?t.archivado:!t.archivado);
+  if(fColab!=="Todos")items=items.filter((t:any)=>String(getColabId(t))===fColab);
+  if(fTipo!=="Todos")items=items.filter((t:any)=>t.tipo===fTipo);
+  if(fZona!=="Todas")items=items.filter((t:any)=>{const co=data.colaboradores.find((c:any)=>c.id===getColabId(t));return co?.zona===fZona;});
+  if(busca.trim()){const q=busca.toLowerCase();items=items.filter((t:any)=>{const cl=data.clientes.find((c:any)=>c.id===getClienteId(t));return t.descripcion?.toLowerCase().includes(q)||cl?.nombre.toLowerCase().includes(q)||t.tipo?.toLowerCase().includes(q);});}
   const hayFiltros=fColab!=="Todos"||fTipo!=="Todos"||fZona!=="Todas"||busca.trim()!=="";
   const limpiarFiltros=()=>{setFColab("Todos");setFTipo("Todos");setFZona("Todas");setBusca("");};
 
-  const atencion=items.filter(t=>["Solicitud","Colaborador disponible","Cliente confirmó","Presupuesto recibido","Aceptado","En curso"].includes(t.estado)&&!t.atendido);
+  const atencion=items.filter((t:any)=>["Solicitud","Colaborador disponible","Cliente confirmó","Presupuesto recibido","Aceptado","En curso"].includes(t.estado)&&!t.atendido);
 
   const porColaborador=(()=>{
-    const map=new Map();
-    items.forEach(t=>{
-      const co=data.colaboradores.find(c=>c.id===getColabId(t));
+    const map=new Map<string,any>();
+    items.forEach((t:any)=>{
+      const co=data.colaboradores.find((c:any)=>c.id===getColabId(t));
       const key=co?String(co.id):"__sin__";
       if(!map.has(key))map.set(key,{id:co?co.id:null,nombre:co?co.nombre:"Sin asignar",items:[]});
       map.get(key).items.push(t);
     });
     const grupos=[...map.values()];
-    grupos.sort((a,b)=>a.nombre==="Sin asignar"?1:b.nombre==="Sin asignar"?-1:b.items.length-a.items.length);
+    grupos.sort((a:any,b:any)=>a.nombre==="Sin asignar"?1:b.nombre==="Sin asignar"?-1:b.items.length-a.items.length);
     return grupos;
   })();
 
-  const zonas=["Todas",...new Set(data.colaboradores.map(c=>c.zona).filter(Boolean))];
-  const statValor=activosBase.reduce((s,t)=>s+(getPrecioCliente(t)||0),0);
-  const stats=[
-    {label:"Oportunidades",value:activosBase.length,tint:"bg-blue-50 text-blue-600",icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1.3" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.3" fill="currentColor" stroke="none"/></svg>},
-    {label:"Valor total",value:eur(statValor),tint:"bg-orange-50 text-orange-600",icon:<span className="font-black text-lg leading-none">€</span>},
-    {label:"En presupuestando",value:activosBase.filter(t=>t.estado==="Presupuestando").length,tint:"bg-amber-50 text-amber-600",icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="15" y2="12"/></svg>},
-    {label:"Aceptados",value:activosBase.filter(t=>t.estado==="Aceptado").length,tint:"bg-emerald-50 text-emerald-600",icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>},
-    {label:"Cerrados",value:activosBase.filter(t=>t.estado==="Completado").length,tint:"bg-violet-50 text-violet-600",icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 4h8v4a4 4 0 01-8 0V4z"/><path d="M8 5H5a3 3 0 003 3M16 5h3a3 3 0 01-3 3"/><line x1="12" y1="12" x2="12" y2="17"/><line x1="9" y1="20" x2="15" y2="20"/></svg>},
-  ];
-  const selCls="border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold bg-white text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#1E3A5F] transition";
+  const zonas=["Todas",...new Set(data.colaboradores.map((c:any)=>c.zona).filter(Boolean))] as string[];
+  const statValor=activosBase.reduce((s:number,t:any)=>s+(getPrecioCliente(t)||0),0);
+  const nArch=data.trabajos.filter((t:any)=>t.archivado).length;
+  const AvatarGrupo=({nombre}:{nombre:string})=>nombre==="Sin asignar"?<div className="ui-av ui-av-sin" aria-hidden="true">—</div>:<Avatar nombre={nombre}/>;
 
-  return<div>
-    <Back title="Pipeline" onBack={onBack}/>
-
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-5">
-      {stats.map(s=><div key={s.label} className="bg-white border border-gray-100 rounded-2xl px-3.5 py-3 shadow-sm flex items-center gap-3">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${s.tint}`}>{s.icon}</div>
-        <div className="min-w-0"><div className="font-black text-gray-800 text-lg leading-none truncate">{s.value}</div><div className="text-[10.5px] text-gray-400 font-semibold mt-1 truncate">{s.label}</div></div>
-      </div>)}
-    </div>
-
-    <div className="flex gap-2 mb-3">
-      <input className={S+" flex-1"} placeholder="🔍 Buscar cliente, tipo..." value={busca} onChange={e=>setBusca(e.target.value)}/>
-      <button onClick={()=>setFiltrosAbiertos(v=>!v)} className={`flex-shrink-0 flex items-center gap-1.5 text-xs font-bold px-3 py-2.5 rounded-xl border transition ${filtrosAbiertos?"bg-[#1E3A5F] text-white border-[#1E3A5F]":"bg-white text-gray-600 border-gray-200"}`}>
-        Filtros
-        {(hayFiltros||verArchivados)&&<span className={`w-1.5 h-1.5 rounded-full ${filtrosAbiertos?"bg-white":"bg-[#1E3A5F]"}`}/>}
-      </button>
-    </div>
-
-    <div className="flex flex-wrap items-center gap-2 mb-3">
-      <div className="inline-flex bg-gray-100 rounded-xl p-1 w-full sm:w-auto">
-        <button onClick={()=>setVista("colaborador")} className={`flex-1 sm:flex-none text-xs font-bold px-3 py-1.5 rounded-lg transition ${vista==="colaborador"?"bg-[#1E3A5F] text-white shadow-sm":"text-gray-500"}`}>Por colaborador</button>
-        <button onClick={()=>setVista("tablero")} className={`flex-1 sm:flex-none text-xs font-bold px-3 py-1.5 rounded-lg transition ${vista==="tablero"?"bg-[#1E3A5F] text-white shadow-sm":"text-gray-500"}`}>Tablero</button>
-      </div>
-    </div>
-
-    {filtrosAbiertos&&<div className="bg-gray-50 border border-gray-100 rounded-2xl p-3 mb-4 flex flex-wrap items-center gap-2">
-      <select className={selCls} value={fColab} onChange={e=>setFColab(e.target.value)}>
+  return<div className="ui-page"><UiStyles/>
+    <PageHeader titulo="Pipeline" subtitulo={`${activosBase.length} ${activosBase.length===1?"oportunidad":"oportunidades"} · ${eur(statValor)} en juego${items.length!==data.trabajos.filter((t:any)=>verArchivados?t.archivado:!t.archivado).length?` · mostrando ${items.length}`:""}`} onBack={onBack}/>
+    <KpiRow items={[
+      {valor:activosBase.length,etiqueta:"Oportunidades"},
+      {valor:eur(statValor),etiqueta:"Valor total"},
+      {valor:activosBase.filter((t:any)=>t.estado==="Presupuestando").length,etiqueta:"En presupuestando"},
+      {valor:activosBase.filter((t:any)=>t.estado==="Aceptado").length,etiqueta:"Aceptados"},
+      {valor:activosBase.filter((t:any)=>t.estado==="Completado").length,etiqueta:"Cerrados"},
+    ]}/>
+    <Controles>
+      <Buscador value={busca} onChange={setBusca} placeholder="Buscar cliente, tipo o descripción"/>
+      <Selector etiqueta="Colaborador" value={fColab} onChange={setFColab}>
         <option value="Todos">Todos los colaboradores</option>
-        {data.colaboradores.map(c=><option key={c.id} value={String(c.id)}>{c.nombre}</option>)}
-      </select>
-      <select className={selCls} value={fTipo} onChange={e=>setFTipo(e.target.value)}>
+        {data.colaboradores.map((c:any)=><option key={c.id} value={String(c.id)}>{c.nombre}</option>)}
+      </Selector>
+      <Selector etiqueta="Tipo de trabajo" value={fTipo} onChange={setFTipo}>
         <option value="Todos">Todos los tipos</option>
         {TIPOS.map(t=><option key={t} value={t}>{t}</option>)}
-      </select>
-      {zonas.length>1&&<select className={selCls} value={fZona} onChange={e=>setFZona(e.target.value)}>
+      </Selector>
+      {zonas.length>1&&<Selector etiqueta="Zona" value={fZona} onChange={setFZona}>
         {zonas.map(z=><option key={z} value={z}>{z==="Todas"?"Todas las zonas":z}</option>)}
-      </select>}
-      <button onClick={()=>setVerArchivados(v=>!v)} className={`text-xs font-bold px-3 py-1.5 rounded-full border transition ${verArchivados?"bg-gray-700 text-white border-gray-700":"bg-white text-gray-500 border-gray-200"}`}>📦 Archivados ({data.trabajos.filter(t=>t.archivado).length})</button>
-      {hayFiltros&&<button onClick={limpiarFiltros} className="text-xs font-bold text-gray-400 hover:text-gray-600 transition px-2">Limpiar filtros</button>}
-    </div>}
-    {atencion.length>0&&<div className="bg-red-50 border-2 border-red-200 rounded-2xl p-3 mb-4">
-      <div className="font-bold text-red-700 text-sm mb-2 flex items-center gap-2">🔔 Requiere tu atención ({atencion.length})</div>
-      <div className="space-y-2">{atencion.map(t=><TarjetaTrabajo key={t.id} t={t} data={data} setData={setData} toast={toast} onVer={onVer} alertColor="border-red-200"/>)}</div>
-    </div>}
+      </Selector>}
+      <button type="button" className="ui-chipb" aria-pressed={verArchivados} onClick={()=>setVerArchivados(v=>!v)}>Archivados ({nArch})</button>
+      {hayFiltros&&<button type="button" className="ui-link" onClick={limpiarFiltros}>Limpiar filtros</button>}
+      <Segmentado etiqueta="Vista" value={vista} onChange={setVista} opciones={[{id:"colaborador",label:"Por colaborador"},{id:"tablero",label:"Tablero"}]}/>
+    </Controles>
 
-    {vista==="tablero"&&items.length>0&&<div className="sm:hidden flex items-center gap-1.5 text-[11px] text-gray-400 mb-3">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 5v14M8 5l-3 3M8 5l3 3M16 19V5M16 19l-3-3M16 19l3-3"/></svg>
-      Desliza para ver cada colaborador
-    </div>}
+    {atencion.length>0&&<>
+      <div className="ui-ahead"><UiIcon n="bell" s={14}/>Requiere tu atención<span className="n">{atencion.length}</span></div>
+      <div className="ui-arow">{atencion.map((t:any)=><TarjetaTrabajo key={t.id} t={t} data={data} setData={setData} toast={toast} onVer={onVer}/>)}</div>
+    </>}
 
-    {vista==="tablero"?
-      <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-3 -mx-4 px-4" style={{WebkitOverflowScrolling:"touch"}}>
-        {porColaborador.map(g=>
-          <div key={g.nombre} className="snap-start flex-shrink-0 w-[82%] max-w-[280px] bg-gray-100 rounded-2xl p-3 flex flex-col">
-            <div className="flex items-center gap-2 mb-3 px-1">
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0 ${g.nombre==="Sin asignar"?"bg-red-400":"bg-[#1E3A5F]"}`}>
-                {g.nombre==="Sin asignar"?"—":g.nombre.split(" ").map(n=>n[0]).slice(0,2).join("").toUpperCase()}
-              </div>
-              <div className="font-bold text-[13.5px] text-gray-800 flex-1 min-w-0 truncate">{g.nombre}</div>
-              <div className="text-[11px] font-bold text-gray-400 bg-white border border-gray-200 px-2 py-0.5 rounded-full flex-shrink-0">{g.items.length}</div>
-            </div>
-            <div className="space-y-2">
-              {g.items.map(t=>{
-                const cl2=data.clientes.find(c=>c.id===getClienteId(t));
-                return <div key={t.id} onClick={()=>onVer(t.id)} className={`bg-white rounded-xl shadow-sm border-l-[3px] ${PRIO_STRIPE_PIPELINE[t.prioridad]||"border-l-gray-200"} px-3 py-2.5 cursor-pointer hover:shadow-md transition`}>
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${ESTADO_DOT_PIPELINE[t.estado]||"bg-gray-300"}`}/>
-                    <span className="text-[9.5px] font-bold text-gray-400 uppercase tracking-wide truncate">{t.estado}</span>
-                  </div>
-                  <div className="text-[10px] text-gray-400 mb-0.5 truncate">{t.tipo} · #{t.id}</div>
-                  <div className="font-bold text-[13px] text-gray-800 leading-tight truncate">{cl2?.nombre}</div>
-                  <div className="text-[10.5px] text-gray-400 mt-1">{fmt(t.fecha)}</div>
-                </div>;
-              })}
-            </div>
+    {items.length===0?<Tarjeta className="mt-4"><div className="ui-empty">Sin demandas{hayFiltros?" con esos filtros":""}.</div></Tarjeta>
+    :vista==="tablero"?
+      <div className="ui-board"><div className="ui-lane">
+        {porColaborador.map((g:any)=>
+          <div key={g.nombre} className="ui-tcol">
+            <div className="ui-col-h"><AvatarGrupo nombre={g.nombre}/>{g.nombre}<span className="c">{g.items.length}</span></div>
+            {g.items.map((t:any)=><MiniTarjeta key={t.id} t={t} data={data} onVer={onVer} conEstado={true}/>)}
           </div>
         )}
-      </div>
+      </div></div>
     :
-      <div>
-        <div>
-          {porColaborador.map(g=>{
-            const colsConItems=COLUMNAS_MATRIZ.filter(col=>g.items.some(t=>col.estados.includes(t.estado)));
-            return <div key={g.nombre} className="flex flex-nowrap gap-3 overflow-x-auto snap-x snap-proximity pb-1 mb-3 -mx-4 px-4" style={{WebkitOverflowScrolling:"touch"}}>
-              <div className="snap-start w-[220px] flex-shrink-0 bg-white border border-gray-100 rounded-2xl p-3.5 shadow-sm flex flex-col">
-                <div className="flex items-center gap-2.5 mb-3">
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ${g.nombre==="Sin asignar"?"bg-red-400":"bg-[#1E3A5F]"}`}>
-                    {g.nombre==="Sin asignar"?"—":g.nombre.split(" ").map(n=>n[0]).slice(0,2).join("").toUpperCase()}
-                  </div>
-                  <div className="min-w-0"><div className="font-bold text-[13.5px] text-gray-800 truncate">{g.nombre}</div></div>
-                </div>
-                <div className="text-[10px] text-gray-400 font-semibold uppercase">En curso</div>
-                <div className="font-black text-gray-800 text-sm mb-3">{g.items.length}</div>
-                {g.id!=null&&<button onClick={()=>setFColab(String(g.id))} className="mt-auto text-xs font-bold text-[#1E3A5F] hover:underline text-left">Ver todas →</button>}
-              </div>
-              {colsConItems.length===0?
-                <div className="flex items-center text-[11px] text-gray-400 px-2">Sin oportunidades activas en el pipeline</div>
+      <div className="ui-board">
+        {porColaborador.map((g:any)=>{
+          const colsConItems=COLUMNAS_MATRIZ.filter(col=>g.items.some((t:any)=>col.estados.includes(t.estado)));
+          const key=g.nombre;
+          const enCurso=g.items.filter((t:any)=>["Presupuestando","Aceptado","En curso"].includes(t.estado)).length;
+          const valor=g.items.reduce((s:number,t:any)=>s+(getPrecioCliente(t)||0),0);
+          return <div key={key} className="ui-lane">
+            <div className="ui-lh">
+              <div className="who"><AvatarGrupo nombre={g.nombre}/><b>{g.nombre}</b></div>
+              <div className="m"><div><strong>{g.items.length}</strong>activas</div><div><strong>{enCurso}</strong>en curso</div><div><strong>{eur(valor)}</strong>valor</div></div>
+              {g.id!=null&&<button type="button" className="lk" onClick={()=>setFColab(String(g.id))}>Ver todas →</button>}
+              <button type="button" className="tg" onClick={()=>setColapsados(p=>({...p,[key]:!p[key]}))}>{colapsados[key]?"Mostrar tarjetas":"Ocultar tarjetas"}</button>
+            </div>
+            {!colapsados[key]&&(colsConItems.length===0
+              ?<div className="ui-vac">Sin oportunidades activas en el pipeline</div>
               :colsConItems.map(col=>{
-                const its=g.items.filter(t=>col.estados.includes(t.estado));
-                return <div key={col.key} className={`snap-start w-[190px] flex-shrink-0 rounded-2xl p-2.5 ${col.tint}`}>
-                  <div className="flex items-center justify-between mb-2 px-0.5">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${col.badge}`}>{col.titulo}</span>
-                    <span className="text-[10px] font-bold text-gray-400">{its.length}</span>
-                  </div>
-                  <div className="space-y-1.5">
-                    {its.map(t=>{
-                      const cl2=data.clientes.find(c=>c.id===getClienteId(t));
-                      return <div key={t.id} onClick={()=>onVer(t.id)} className="bg-white rounded-xl shadow-sm px-2.5 py-2 cursor-pointer hover:shadow-md transition">
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <div className="w-5 h-5 rounded-md bg-[#EAF0F7] text-[#1E3A5F] flex items-center justify-center flex-shrink-0"><IconoTipoPipeline tipo={t.tipo}/></div>
-                          <div className="text-[11px] font-bold text-gray-700 truncate">{t.tipo}</div>
-                        </div>
-                        <div className="text-[11px] text-gray-600 truncate">{cl2?.nombre}</div>
-                        {cl2?.direccion&&<div className="text-[10px] text-gray-400 truncate">📍 {cl2.direccion}</div>}
-                        <div className="flex items-center justify-between mt-1">
-                          <span className="text-[11px] font-bold text-gray-800">{getPrecioCliente(t)?eur(getPrecioCliente(t)):"—"}</span>
-                          <span className="text-[9.5px] text-gray-400">{diasDesde(t.fecha)}</span>
-                        </div>
-                      </div>;
-                    })}
-                  </div>
+                const its=g.items.filter((t:any)=>col.estados.includes(t.estado));
+                return <div key={col.key} className="ui-col">
+                  <div className="ui-col-h"><i style={{background:col.c}}/>{col.titulo}<span className="c">{its.length}</span></div>
+                  {its.map((t:any)=><MiniTarjeta key={t.id} t={t} data={data} onVer={onVer} conEstado={false}/>)}
                 </div>;
-              })}
-            </div>;
-          })}
-        </div>
+              }))}
+          </div>;
+        })}
       </div>
     }
-
-    {items.length===0&&<div className="text-center py-16 text-gray-400 text-sm">Sin demandas</div>}
   </div>;
 }
 
@@ -3257,6 +3171,7 @@ const TITULO={home:"Inicio",nuevas:"Nuevas demandas",demandas:"Pipeline",cliente
     {toastMsg&&<Toast msg={toastMsg} clear={()=>setToastMsg(null)}/>}
   </div>;
 }
+
 
 
 
