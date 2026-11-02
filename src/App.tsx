@@ -1601,30 +1601,49 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
               <a className="ui-sbtn" href={pdfD} target="_blank">Ver</a>
               <button type="button" className="ui-sbtn" onClick={()=>setModo("presupuesto")}>Editar</button>
             </div>
-            <div className="ui-pp-lines">
-              <div><span>Base imponible</span><b>{precio} €</b></div>
-              <div><span>IVA {iva} %</span><b>{totalIva-precio} €</b></div>
-              <div className="tot"><span>Total con IVA</span><b>{totalIva} €</b></div>
-              <div className="mut"><span>Adelanto previsto</span><b>{adelanto} €</b></div>
-            </div>
             {(()=>{
-              const totalCobrado=cobrosTrabajo.reduce((s,c)=>s+(+c.importe||0),0);
-              const tramos=totalIva>5000?[{lbl:"Adelanto (40%)",imp:Math.round(totalIva*0.4)},{lbl:"2º pago (40%)",imp:Math.round(totalIva*0.4)},{lbl:"Final (20%)",imp:Math.round(totalIva*0.2)}]:[{lbl:"Adelanto (50%)",imp:Math.round(totalIva*0.5)},{lbl:"Final (50%)",imp:Math.round(totalIva*0.5)}];
-              let acumulado=0;
-              return<div className="ui-pp-cob">
-                <div className="h"><span>Cobros del cliente</span><b>{totalCobrado} € / {totalIva} €</b></div>
-                {tramos.map((tr,i)=>{
-                  acumulado+=tr.imp;
-                  const pagado=totalCobrado>=acumulado-1;
-                  return<div key={i} className="r"><div><small>{tr.lbl}</small><b>{tr.imp} €</b></div><span className={`ui-st ${pagado?"a":"w"}`}><i/>{pagado?"Cobrado":"Pendiente"}</span></div>;
-                })}
-              </div>;
+              const m=(n:number)=>String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,".")+" €";
+              const totalCobrado=cobrosTrabajo.reduce((s:number,c:any)=>s+(+c.importe||0),0);
+              const pct=totalIva>0?Math.min(100,Math.round(totalCobrado/totalIva*100)):0;
+              const pendiente=Math.max(0,totalIva-totalCobrado);
+              const tramos=totalIva>5000?[{lbl:"Adelanto",p:40,imp:Math.round(totalIva*0.4)},{lbl:"2º pago",p:40,imp:Math.round(totalIva*0.4)},{lbl:"Final",p:20,imp:Math.round(totalIva*0.2)}]:[{lbl:"Adelanto",p:50,imp:Math.round(totalIva*0.5)},{lbl:"Final",p:50,imp:Math.round(totalIva*0.5)}];
+              let acum=0;
+              const tipo=t.adelanto_tipo==='fijo'?'fijo':'porcentaje';
+              const cambiarTipo=async(nuevo:string)=>{if(nuevo===tipo)return;await supabase.from('trabajos').update({adelanto_tipo:nuevo}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,adelanto_tipo:nuevo}:x)}));toast(`Adelanto en ${nuevo==='fijo'?'€ fijo':'%'}`);};
+              return<>
+                <div className="ui-pp-total">
+                  <div><span className="l">Total con IVA</span><b>{m(totalIva)}</b></div>
+                  <div className="parts"><div><span>Base imponible</span><b>{m(precio)}</b></div><div><span>IVA {iva} %</span><b>{m(totalIva-precio)}</b></div></div>
+                </div>
+                <div className="ui-pp-cob2">
+                  <div className="h"><b>Cobros del cliente</b><span>{pct} % cobrado</span></div>
+                  <div className="ui-prog" role="progressbar" aria-label="Cobrado del total" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}><i style={{width:`${pct}%`}}/></div>
+                  <div className="sum"><span><b style={{color:"#059669"}}>{m(totalCobrado)}</b> cobrado</span><span><b>{m(pendiente)}</b> pendiente</span></div>
+                  <div className="ui-steps">{tramos.map((tr,i)=>{
+                    const antes=acum;acum+=tr.imp;
+                    const cubierto=Math.max(0,Math.min(tr.imp,totalCobrado-antes));
+                    const pagado=totalCobrado>=acum-1;
+                    return<div key={i} className={`step${pagado?" ok":cubierto>0?" part":""}`}>
+                      <div className="top"><span className="n">{pagado?"✓":i+1}</span><small>{tr.lbl} · {tr.p} %</small></div>
+                      <b>{m(tr.imp)}</b>
+                      <div className="ui-prog sm" aria-hidden="true"><i style={{width:`${tr.imp>0?Math.round(cubierto/tr.imp*100):0}%`}}/></div>
+                      <span className={`ui-st ${pagado?"a":cubierto>0?"w":"i"}`}><i/>{pagado?"Cobrado":cubierto>0?"Parcial":"Pendiente"}</span>
+                    </div>;
+                  })}</div>
+                </div>
+                <div className="ui-pp-pay">
+                  <div className="t"><b>Adelanto del presupuesto</b><small>Es lo que ve el cliente al aceptar y lo que se le pide para reservar la fecha.</small></div>
+                  <div className="c">
+                    <input type="number" min={0} defaultValue={t.adelanto_valor||30} aria-label="Valor del adelanto" onBlur={async e=>{const v=+e.target.value||0;await supabase.from('trabajos').update({adelanto_valor:v}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,adelanto_valor:v}:x)}));toast("Adelanto actualizado");}}/>
+                    <div className="ui-seg" role="group" aria-label="Tipo de adelanto">
+                      <button type="button" aria-pressed={tipo==='porcentaje'} onClick={()=>cambiarTipo('porcentaje')}>%</button>
+                      <button type="button" aria-pressed={tipo==='fijo'} onClick={()=>cambiarTipo('fijo')}>€ fijo</button>
+                    </div>
+                    <span className="res">= {m(adelanto)}</span>
+                  </div>
+                </div>
+              </>;
             })()}
-            <div className="ui-pp-field">
-              <label>Forma de pago</label>
-              <input type="number" defaultValue={t.adelanto_valor||30} onBlur={async e=>{const v=+e.target.value||0;await supabase.from('trabajos').update({adelanto_valor:v}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,adelanto_valor:v}:x)}));toast("Adelanto actualizado");}} className="w-16 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-right" aria-label="Valor del adelanto"/>
-              <button type="button" className="ui-sbtn" onClick={async()=>{const nuevo=t.adelanto_tipo==='fijo'?'porcentaje':'fijo';await supabase.from('trabajos').update({adelanto_tipo:nuevo}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,adelanto_tipo:nuevo}:x)}));toast(`Adelanto en ${nuevo==='fijo'?'€ fijo':'%'}`);}}>{t.adelanto_tipo==='fijo'?'€ fijo':'% del total'}</button>
-            </div>
             <div className="ui-pp-acts">
               {tel&&<button type="button" className="ui-sbtn wa" onClick={()=>window.open(`https://wa.me/${tel.replace('+','')}?text=${encodeURIComponent(`Hola ${cl?.nombre?.split(" ")[0]||""} 😊\n\nTu presupuesto de *Domia Services* ya está listo.\n\n📄 Verlo y aceptarlo aquí:\n${linkAceptar}\n\nCualquier duda me dices. ¡Gracias!\n\n— Samuel · Domia Services · 685 917 059`)}`,"_blank")}><UiIcon n="phone" s={13}/>Enviar al cliente por WhatsApp</button>}
               <button type="button" className="ui-sbtn" onClick={()=>{navigator.clipboard.writeText(linkAceptar).then(()=>toast("📋 Enlace de aceptación copiado"));}}><UiIcon n="link" s={13}/>Copiar enlace de aceptación</button>
@@ -3249,6 +3268,7 @@ const TITULO={home:"Inicio",nuevas:"Nuevas demandas",demandas:"Pipeline",cliente
     {toastMsg&&<Toast msg={toastMsg} clear={()=>setToastMsg(null)}/>}
   </div>;
 }
+
 
 
 
