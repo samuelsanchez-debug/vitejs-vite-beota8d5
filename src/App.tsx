@@ -1372,6 +1372,20 @@ const notaColab=partes.find(p=>p.startsWith('notacolab:'))?.replace('notacolab:'
   const linkAceptar=`https://domia-crm-two.vercel.app/aceptar/${refTrabajo(t,'cliente')}`;
   const tel=(cl?.telefono||"").replace(/\s/g,'');
 
+const subirPresupuestoColab=async(archivo:File|undefined)=>{
+    if(!archivo)return;
+    if(archivo.size>15*1024*1024){alert("El archivo es demasiado grande (máximo 15 MB).");return;}
+    const nombre=nombreArchivoSeguro(archivo,`presup_${t.id}`);
+    const{data:up,error:errUp}=await supabase.storage.from('fotos-demandas').upload(nombre,archivo,{upsert:false});
+    if(errUp||!up){toast("No se pudo subir el archivo");return;}
+    const{data:pub}=supabase.storage.from('fotos-demandas').getPublicUrl(nombre);
+    const hist=[...getHistorial(t),{ts:now(),txt:pres?"Presupuesto del colaborador reemplazado":"Presupuesto del colaborador subido manualmente",tipo:"presupuesto"}];
+    const resto=getNotas(t).split('|').map((n:string)=>n.trim()).filter((n:string)=>n&&!n.startsWith('presup:')).join(' | ');
+    // Solo pasa a «Presupuesto recibido» si el trabajo aún está en las primeras etapas
+    const nuevoEstado=["Solicitud","Presupuestando","Colaborador disponible","Visita propuesta","Cliente confirmó"].includes(t.estado)?"Presupuesto recibido":t.estado;
+    const saved=await dbSaveTrabajo({...t,estado:nuevoEstado,notas:(resto?resto+' | ':'')+'presup:'+pub.publicUrl,historial:hist});
+    if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("✅ Presupuesto del colaborador subido");}
+  };
 return<div className="space-y-3">
     {selectorColab&&<SelectorColaborador data={data} valorActual={t.colaboradorId} onCerrar={()=>setSelectorColab(false)} onSeleccionar={async(id)=>{const saved=await dbSaveTrabajo({...t,colaboradorId:id||null});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Colaborador actualizado");}setSelectorColab(false);}}/>}  
    <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
@@ -1533,19 +1547,88 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
         </div>
       </div>}
 
-     {tab==="presupuesto"&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-        {pdfD?<div className="space-y-3">
-         <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl p-3">
-           <a href={pdfD} target="_blank" className="flex-1 text-sm text-emerald-700 font-semibold hover:underline">📄 Ver presupuesto Domia →</a>
-            <button onClick={()=>setModo("presupuesto")} className="text-xs bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-lg hover:bg-emerald-200 transition">✏️ Editar</button>
-          </div>
-          {(()=>{const historicos=partes.filter(p=>p.startsWith('pdfhist:')).map(p=>p.replace('pdfhist:',''));return historicos.length>0?<div className="border-t border-gray-100 pt-3 mt-3">
-            <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">Versiones anteriores</div>
-            <div className="space-y-1.5">{historicos.slice().reverse().map((url,i)=><a key={i} href={url} target="_blank" className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition">📄 Versión {historicos.length-i} →</a>)}</div>
-          </div>:null;})()}
+     {tab==="presupuesto"&&<div className="ui-page" style={{gap:12}}><UiStyles/>
+        <div className="ui-card ui-pp-calc" aria-live="polite">
+          <div><b style={{color:"#059669"}}>{precio>0?`${precio} €`:"—"}</b><span className="l">Cliente</span></div><i>−</i>
+          <div><b style={{color:"#DC2626"}}>{colab>0?`${colab} €`:"—"}</b><span className="l">Colaborador</span></div><i>=</i>
+          <div><b style={{color:"#2563EB"}}>{precio>0&&colab>0?`${margen} €`:"—"}</b><span className="l">Margen</span>{precio>0&&colab>0&&<span className="ui-pp-pct">{Math.round(margen/colab*100)} %</span>}</div>
         </div>
-           :<div className="text-center py-6 text-sm text-gray-400">Sin presupuesto generado aún<br/><button onClick={()=>setModo("presupuesto")} className="mt-2 text-purple-600 font-bold text-sm">📄 Generar presupuesto</button></div>}
+
+        <section className="ui-card ui-pp-sec" aria-label="Presupuesto del colaborador">
+          <div className="ui-pp-sh">
+            <span className="ui-pp-ic" style={{background:"#8B7FC7"}}><UiIcon n="user" s={17}/></span>
+            <div className="t"><b>Presupuesto del colaborador</b><small>{co?`Lo que nos cobra ${co.nombre}`:"Todavía no hay colaborador asignado"}</small></div>
+            <span className={`ui-st ${pres?"a":"w"}`}><i/>{pres?"Recibido":colab>0?"Falta el archivo":"Pendiente"}</span>
+          </div>
+          <div className="ui-pp-field">
+            <label htmlFor={`imp-colab-${t.id}`}>Su importe</label>
+            <div className="ui-pp-inp"><input id={`imp-colab-${t.id}`} key={colab} type="number" inputMode="decimal" min={0} defaultValue={colab>0?colab:""} placeholder="0" onBlur={async e=>{const v=+e.target.value||null;if(v===(colab||null))return;const saved=await dbSaveTrabajo({...t,presupuestoColaborador:v});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Precio colaborador actualizado");}}}/><span>€</span></div>
+            <span className="ui-pp-hint">se guarda al salir del campo</span>
+          </div>
+          {pres?<div className="ui-pp-row">
+            <span className="ui-pp-fico">{/\.pdf($|\?)/i.test(pres)?"PDF":"IMG"}</span>
+            <div className="x"><b>Presupuesto del colaborador</b><small>Archivo adjunto</small></div>
+            <a className="ui-sbtn" href={pres} target="_blank">Ver</a>
+            <label className="ui-sbtn" style={{cursor:"pointer"}}>Reemplazar<input type="file" accept="image/*,application/pdf" className="hidden" onChange={e=>{subirPresupuestoColab(e.target.files?.[0]);e.target.value="";}}/></label>
+          </div>:<>
+            <label className="ui-pp-drop"><UiIcon n="upload" s={22}/>Subir presupuesto del colaborador<small>Foto o PDF</small><input type="file" accept="image/*,application/pdf" className="hidden" onChange={e=>{subirPresupuestoColab(e.target.files?.[0]);e.target.value="";}}/></label>
+            {co&&cl&&<div><button type="button" className="ui-sbtn wa" onClick={()=>{window.open(buildWA(co,t,cl),"_blank");toast("📱 WhatsApp...");}}><UiIcon n="phone" s={13}/>Pedírselo por WhatsApp</button></div>}
+          </>}
+          {notaColab&&<blockquote className="ui-pp-quote"><b>Nota del colaborador</b>{notaColab}</blockquote>}
+        </section>
+
+        <section className="ui-card ui-pp-sec" aria-label="Presupuesto Domia">
+          <div className="ui-pp-sh">
+            <span className="ui-pp-ic" style={{background:"#1E3A5F"}}><UiIcon n="doc" s={17}/></span>
+            <div className="t"><b>Presupuesto Domia</b><small>Lo que cobramos a {cl?.nombre||"el cliente"}</small></div>
+            <span className={`ui-st ${pdfD?"a":"i"}`}><i/>{pdfD?"Generado":"Sin generar"}</span>
+          </div>
+          {pdfD?<>
+            <div className="ui-pp-row">
+              <span className="ui-pp-fico">PDF</span>
+              <div className="x"><b>Presupuesto Domia</b><small>{partes.filter(p=>p.startsWith('pdfhist:')).length>0?`Versión ${partes.filter(p=>p.startsWith('pdfhist:')).length+1}`:"Primera versión"}</small></div>
+              <a className="ui-sbtn" href={pdfD} target="_blank">Ver</a>
+              <button type="button" className="ui-sbtn" onClick={()=>setModo("presupuesto")}>Editar</button>
+            </div>
+            <div className="ui-pp-lines">
+              <div><span>Base imponible</span><b>{precio} €</b></div>
+              <div><span>IVA {iva} %</span><b>{totalIva-precio} €</b></div>
+              <div className="tot"><span>Total con IVA</span><b>{totalIva} €</b></div>
+              <div className="mut"><span>Adelanto previsto</span><b>{adelanto} €</b></div>
+            </div>
+            {(()=>{
+              const totalCobrado=cobrosTrabajo.reduce((s,c)=>s+(+c.importe||0),0);
+              const tramos=totalIva>5000?[{lbl:"Adelanto (40%)",imp:Math.round(totalIva*0.4)},{lbl:"2º pago (40%)",imp:Math.round(totalIva*0.4)},{lbl:"Final (20%)",imp:Math.round(totalIva*0.2)}]:[{lbl:"Adelanto (50%)",imp:Math.round(totalIva*0.5)},{lbl:"Final (50%)",imp:Math.round(totalIva*0.5)}];
+              let acumulado=0;
+              return<div className="ui-pp-cob">
+                <div className="h"><span>Cobros del cliente</span><b>{totalCobrado} € / {totalIva} €</b></div>
+                {tramos.map((tr,i)=>{
+                  acumulado+=tr.imp;
+                  const pagado=totalCobrado>=acumulado-1;
+                  return<div key={i} className="r"><div><small>{tr.lbl}</small><b>{tr.imp} €</b></div><span className={`ui-st ${pagado?"a":"w"}`}><i/>{pagado?"Cobrado":"Pendiente"}</span></div>;
+                })}
+              </div>;
+            })()}
+            <div className="ui-pp-field">
+              <label>Forma de pago</label>
+              <input type="number" defaultValue={t.adelanto_valor||30} onBlur={async e=>{const v=+e.target.value||0;await supabase.from('trabajos').update({adelanto_valor:v}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,adelanto_valor:v}:x)}));toast("Adelanto actualizado");}} className="w-16 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-right" aria-label="Valor del adelanto"/>
+              <button type="button" className="ui-sbtn" onClick={async()=>{const nuevo=t.adelanto_tipo==='fijo'?'porcentaje':'fijo';await supabase.from('trabajos').update({adelanto_tipo:nuevo}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,adelanto_tipo:nuevo}:x)}));toast(`Adelanto en ${nuevo==='fijo'?'€ fijo':'%'}`);}}>{t.adelanto_tipo==='fijo'?'€ fijo':'% del total'}</button>
+            </div>
+            <div className="ui-pp-acts">
+              {tel&&<button type="button" className="ui-sbtn wa" onClick={()=>window.open(`https://wa.me/${tel.replace('+','')}?text=${encodeURIComponent(`Hola ${cl?.nombre?.split(" ")[0]||""} 😊\n\nTu presupuesto de *Domia Services* ya está listo.\n\n📄 Verlo y aceptarlo aquí:\n${linkAceptar}\n\nCualquier duda me dices. ¡Gracias!\n\n— Samuel · Domia Services · 685 917 059`)}`,"_blank")}><UiIcon n="phone" s={13}/>Enviar al cliente por WhatsApp</button>}
+              <button type="button" className="ui-sbtn" onClick={()=>{navigator.clipboard.writeText(linkAceptar).then(()=>toast("📋 Enlace de aceptación copiado"));}}><UiIcon n="link" s={13}/>Copiar enlace de aceptación</button>
+            </div>
+            {(()=>{const historicos=partes.filter(p=>p.startsWith('pdfhist:')).map(p=>p.replace('pdfhist:',''));return historicos.length>0?<details className="ui-pp-v">
+              <summary>Versiones anteriores ({historicos.length})</summary>
+              {historicos.slice().reverse().map((url,i)=><a key={i} href={url} target="_blank">Versión {historicos.length-i} →</a>)}
+            </details>:null;})()}
+          </>:<div className="ui-pp-row" style={{flexDirection:"column",alignItems:"flex-start",gap:8}}>
+            <div className="x"><b>Todavía no hay presupuesto para el cliente</b><small>{colab>0?`Con el importe del colaborador y un ${colab>=15000?20:colab>=5000?25:30} % de margen saldrían ${Math.round(colab*(1+(colab>=15000?20:colab>=5000?25:30)/100))} € sin IVA.`:"Escribe antes el importe del colaborador para tener una referencia."}</small></div>
+            <button type="button" className="ui-sbtn pri" onClick={()=>setModo("presupuesto")}>Generar presupuesto Domia</button>
+          </div>}
+        </section>
       </div>}
+
       {tab==="archivos"&&<div className="space-y-3">
         {foto&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm"><div className="text-[10px] text-gray-400 uppercase font-bold mb-2">📷 Foto del cliente</div><img src={foto} className="w-full rounded-xl max-h-56 object-cover cursor-pointer" onClick={()=>window.open(foto,"_blank")}/></div>}
         {pres&&<a href={pres} target="_blank" className="block bg-white border border-gray-100 rounded-2xl p-4 shadow-sm text-sm text-purple-700 font-semibold hover:underline">📄 Presupuesto del colaborador →</a>}
@@ -1587,81 +1670,6 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
       </div>}
     </div>
 
-   <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
-  <div className="bg-gray-50 border-b border-gray-100 px-4 py-2 flex items-center gap-2">
-    <span className="text-xs">💶</span>
-    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Económico</span>
-  </div>
- <div className="p-4 space-y-3">
- {!pdfD&&<div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="text-center flex-1">
-          <div className="text-xl font-black text-emerald-600">{precio>0?`${precio}€`:"—"}</div>
-          <div className="text-[10px] text-gray-400 mt-0.5">Cliente</div>
-        </div>
-        <div className="text-gray-300 text-lg font-bold px-1">−</div>
-              <div className="text-center flex-1">
-          <input type="number" defaultValue={colab>0?colab:""} placeholder="—" onBlur={async e=>{const v=+e.target.value||null;if(v===colab)return;const saved=await dbSaveTrabajo({...t,presupuestoColaborador:v});if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Precio colaborador actualizado");}}} className="w-full text-xl font-black text-red-500 text-center bg-transparent border-b border-dashed border-red-200 focus:outline-none focus:border-red-500"/>
-          <div className="text-[10px] text-gray-400 mt-0.5">Colaborador ✏️</div>
-        </div>
-        <div className="text-gray-300 text-lg font-bold px-1">=</div>
-        <div className="text-center flex-1">
-          <div className="text-xl font-black text-blue-600">{precio>0&&colab>0?`${margen}€`:"—"}</div>
-          <div className="text-[10px] text-gray-400 mt-0.5">Margen</div>
-        </div>
-      </div>
-      <div className="text-center py-1">
-        <button onClick={()=>setModo("presupuesto")} className="text-purple-600 font-bold text-sm">📄 Generar presupuesto Domia</button>
-      </div>
-    </div>}
-    {pdfD&&<>
-      <div className="grid grid-cols-3 gap-2">
-        <div className="bg-gray-50 rounded-xl p-2 text-center">
-          <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Colaborador</div>
-          <div className="text-sm font-black text-red-500">{colab>0?`${colab}€`:"—"}</div>
-        </div>
-        <div className="bg-gray-50 rounded-xl p-2 text-center">
-          <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Cliente</div>
-          <div className="text-sm font-black text-emerald-600">{precio>0?`${precio}€`:"—"}</div>
-        </div>
-        <div className="bg-gray-50 rounded-xl p-2 text-center">
-          <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Margen</div>
-          <div className="text-sm font-black text-blue-600">{precio>0&&colab>0?`${margen}€`:"—"}</div>
-        </div>
-      </div>
-     {(()=>{
-        const totalCobrado=cobrosTrabajo.reduce((s,c)=>s+(+c.importe||0),0);
-        const tramos=totalIva>5000?[{lbl:"Adelanto (40%)",imp:Math.round(totalIva*0.4)},{lbl:"2º pago (40%)",imp:Math.round(totalIva*0.4)},{lbl:"Final (20%)",imp:Math.round(totalIva*0.2)}]:[{lbl:"Adelanto (50%)",imp:Math.round(totalIva*0.5)},{lbl:"Final (50%)",imp:Math.round(totalIva*0.5)}];
-        let acumulado=0;
-        return<div className="pt-2 border-t border-gray-100 space-y-2">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] text-gray-400 uppercase font-bold">Cobros del cliente</span>
-            <span className="text-[10px] text-gray-500 font-bold">{totalCobrado}€ / {totalIva}€</span>
-          </div>
-          {tramos.map((tr,i)=>{
-            acumulado+=tr.imp;
-            const pagado=totalCobrado>=acumulado-1;
-            return<div key={i} className="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2">
-              <div>
-                <div className="text-xs text-gray-500">{tr.lbl}</div>
-                <div className="text-sm font-black text-gray-800">{tr.imp}€</div>
-              </div>
-              <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 ${pagado?"bg-emerald-100 text-emerald-700":"bg-amber-100 text-amber-700"}`}>{pagado?"✅ Cobrado":"⏳ Pendiente"}</span>
-            </div>;
-          })}
-        </div>;
-      })()}
-      <div className="flex items-center justify-between pt-1">
-        <span className="text-[10px] text-gray-400 uppercase font-bold">Forma de pago</span>
-        <div className="flex items-center gap-1">
-          <input type="number" defaultValue={t.adelanto_valor||30} onBlur={async e=>{const v=+e.target.value||0;await supabase.from('trabajos').update({adelanto_valor:v}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,adelanto_valor:v}:x)}));toast("Adelanto actualizado");}} className="w-14 border border-gray-200 rounded-lg px-2 py-1 text-sm text-right"/>
-          <button onClick={async()=>{const nuevo=t.adelanto_tipo==='fijo'?'porcentaje':'fijo';await supabase.from('trabajos').update({adelanto_tipo:nuevo}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,adelanto_tipo:nuevo}:x)}));toast(`Adelanto en ${nuevo==='fijo'?'€ fijo':'%'}`);}} className="text-xs bg-gray-100 px-2 py-1 rounded-lg font-bold">{t.adelanto_tipo==='fijo'?'€':'%'}</button>
-        </div>
-      </div>
-      <button onClick={()=>setModo("presupuesto")} className="w-full border border-purple-200 bg-purple-50 text-purple-700 py-2 rounded-xl font-bold text-sm hover:bg-purple-100 transition mt-1">✏️ Editar presupuesto</button>
-    </>}
-  </div>
-</div>
   </div>;
 }
 function TrabajoModal({tid,data,setData,onClose,toast,setSec,setFocoFinanzas}){
@@ -3212,6 +3220,7 @@ const TITULO={home:"Inicio",nuevas:"Nuevas demandas",demandas:"Pipeline",cliente
     {toastMsg&&<Toast msg={toastMsg} clear={()=>setToastMsg(null)}/>}
   </div>;
 }
+
 
 
 

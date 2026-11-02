@@ -25,6 +25,8 @@ const ICONOS: Record<string, ReactNode> = {
   edit: <><path d="M4 20h4L19 9l-4-4L4 16z" /><line x1="13.5" y1="6.5" x2="17.5" y2="10.5" /></>,
   chevd: <polyline points="6 9 12 15 18 9" />,
   note: <path d="M4 5h16v11H9l-5 4z" />,
+  doc: <><path d="M6 3h9l4 4v14H6z" /><polyline points="14 3 14 8 19 8" /></>,
+  upload: <><path d="M12 16V4M7 9l5-5 5 5" /><path d="M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3" /></>,
   pin: <><path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z" /><circle cx="12" cy="10" r="2.5" /></>,
   phone: <path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" />,
   trash: <><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6M14 11v6" /><path d="M9 6V4h6v2" /></>,
@@ -261,6 +263,52 @@ const UI_CSS = `
 .ui-panel-h .k{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#9CA3AF}
 .ui-undo{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#111827;color:#fff;border-radius:12px;padding:10px 16px;font-size:13px;z-index:70;display:flex;gap:14px;align-items:center;box-shadow:0 10px 30px rgba(0,0,0,.35);max-width:calc(100vw - 24px)}
 .ui-undo button{border:0;background:none;color:#FBB023;font:inherit;font-weight:700;cursor:pointer}
+a.ui-sbtn{text-decoration:none}
+.ui-pp-calc{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:14px 10px;text-align:center;box-shadow:0 1px 2px rgba(16,24,40,.06)}
+.ui-pp-calc>div{flex:1;min-width:0}
+.ui-pp-calc b{display:block;font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+.ui-pp-calc span.l{display:block;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#9CA3AF;margin-top:2px}
+.ui-pp-calc i{font-style:normal;color:#CBD2DC;font-weight:700;font-size:18px;flex:none}
+.ui-pp-pct{display:inline-block;background:#E7F0FD;color:#2563EB;font-size:11px;font-weight:700;border-radius:999px;padding:1px 8px;margin-top:4px}
+.ui-pp-sec{padding:14px 16px;display:flex;flex-direction:column;gap:12px;box-shadow:0 1px 2px rgba(16,24,40,.06)}
+.ui-pp-sh{display:flex;align-items:center;gap:10px}
+.ui-pp-sh .t{flex:1;min-width:0}
+.ui-pp-sh b{display:block;font-size:14.5px;color:#111827;line-height:1.2}
+.ui-pp-sh small{display:block;font-size:12px;color:#6B7280;overflow-wrap:anywhere}
+.ui-pp-ic{flex:none;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff}
+.ui-pp-row{display:flex;align-items:center;gap:10px;background:var(--soft);border-radius:12px;padding:10px 12px;flex-wrap:wrap}
+.ui-pp-row .x{flex:1;min-width:120px}
+.ui-pp-row b{display:block;font-size:13px;color:#111827;overflow-wrap:anywhere}
+.ui-pp-row small{display:block;font-size:11.5px;color:#6B7280}
+.ui-pp-fico{flex:none;width:34px;height:34px;border-radius:9px;background:#EEF1F7;color:#40536E;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;letter-spacing:.04em}
+.ui-pp-drop{display:flex;flex-direction:column;align-items:center;gap:4px;border:2px dashed #CBD2DC;border-radius:12px;padding:16px;cursor:pointer;color:#6B7280;font-size:13px;font-weight:600;transition:border-color .15s,background .15s;text-align:center}
+.ui-pp-drop:hover{border-color:var(--navy);background:#F3F7FC;color:var(--navy)}
+.ui-pp-drop small{font-weight:400;font-size:11.5px;color:#9CA3AF}
+.ui-pp-field{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ui-pp-field label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#9CA3AF;width:92px;flex:none}
+.ui-pp-inp{display:flex;align-items:center;gap:6px;border:1px solid #E1E6EE;background:#fff;border-radius:11px;padding:0 12px;height:40px;width:150px}
+.ui-pp-inp:focus-within{border-color:var(--navy)}
+.ui-pp-inp input{border:0;outline:0!important;width:100%;font:inherit;font-size:16px;font-weight:700;color:#DC2626;background:none;font-variant-numeric:tabular-nums}
+.ui-pp-inp span{color:#9CA3AF;font-weight:700}
+.ui-pp-hint{font-size:11.5px;color:#9CA3AF}
+.ui-pp-quote{margin:0;padding:2px 0 2px 12px;border-left:2px solid #E5E7EB;font-size:13px;color:#4B5563}
+.ui-pp-quote b{display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9CA3AF}
+.ui-pp-lines{display:flex;flex-direction:column;gap:6px;font-size:13px;color:#374151}
+.ui-pp-lines>div{display:flex;justify-content:space-between;gap:10px}
+.ui-pp-lines b{font-variant-numeric:tabular-nums}
+.ui-pp-lines .tot{border-top:1px solid #E5E7EB;padding-top:7px;font-size:14px;font-weight:700;color:#111827}
+.ui-pp-lines .mut{color:#6B7280}
+.ui-pp-cob{display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--hair);padding-top:10px}
+.ui-pp-cob .h{display:flex;justify-content:space-between;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#9CA3AF}
+.ui-pp-cob .h b{color:#6B7280}
+.ui-pp-cob .r{display:flex;align-items:center;justify-content:space-between;background:var(--soft);border-radius:11px;padding:8px 12px}
+.ui-pp-cob .r small{display:block;font-size:11.5px;color:#6B7280}
+.ui-pp-cob .r b{font-size:14px;color:#111827;font-variant-numeric:tabular-nums}
+.ui-pp-acts{display:flex;gap:8px;flex-wrap:wrap}
+.ui-pp-v{border-top:1px solid var(--hair);padding-top:8px}
+.ui-pp-v summary{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#9CA3AF;cursor:pointer}
+.ui-pp-v a{display:block;font-size:12.5px;color:#6B7280;padding:5px 2px;text-decoration:none}
+.ui-pp-v a:hover{color:#111827}
 .ui-attn{margin-top:16px;border-left:4px solid var(--or);overflow:hidden}
 .ui-attn-h{display:flex;align-items:center;gap:8px;padding:12px 14px 6px;font-size:13px;font-weight:700;color:#92400E}
 .ui-attn-h .n{background:var(--or);color:#2B1A00;border-radius:999px;font-size:11px;padding:1px 8px}
