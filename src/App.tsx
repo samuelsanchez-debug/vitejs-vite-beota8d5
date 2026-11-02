@@ -395,7 +395,7 @@ const ESTADO_DOT_PIPELINE = {
 const PRIO_HEX:Record<string,string> = {"Alta":"#F87171","Media":"#FBBF24","Baja":"#CBD2DC"};
 const ESTADO_HEX:Record<string,string> = {"Solicitud":"#818CF8","Cliente confirmó":"#818CF8","Presupuesto recibido":"#818CF8","Visita propuesta":"#22D3EE","Presupuestando":"#F59E0B","Colaborador disponible":"#22D3EE","Presupuesto enviado":"#A78BFA","Aceptado":"#FB923C","En curso":"#F97316","Completado":"#10B981"};
 const COLUMNAS_MATRIZ = [
-  {key:"gestion",titulo:"En gestión",estados:["Solicitud","Cliente confirmó","Presupuesto recibido","Visita propuesta"],c:"#818CF8",to:"Solicitud"},
+  {key:"gestion",titulo:"Requiere tu atención",estados:["Solicitud","Cliente confirmó","Presupuesto recibido","Visita propuesta"],c:"#F59E0B",to:"Solicitud"},
   {key:"presupuestando",titulo:"Presupuestando",estados:["Presupuestando"],c:"#F59E0B",to:"Presupuestando"},
   {key:"colabdisp",titulo:"Colaborador disp.",estados:["Colaborador disponible"],c:"#22D3EE",to:"Colaborador disponible"},
   {key:"presupenv",titulo:"Presupuesto enviado",estados:["Presupuesto enviado"],c:"#A78BFA",to:"Presupuesto enviado"},
@@ -484,19 +484,42 @@ function accionesDeTrabajo(t:any,{data,setData,toast,onVer}:{data:any,setData:an
   return {cl,co,acciones,principal,marcarAtendido,abrirPresupuesto,disponibilidad,fotoCliente,presupUrl,pdfDomiaUrl,comentCliente};
 }
 
-function MiniTarjeta({t,data,onAbrir,onAtender,arrastrable,onArrastrar,onSoltar,arrastrando}:{t:any,data:any,onAbrir:any,onAtender:any,arrastrable:boolean,onArrastrar:any,onSoltar:any,arrastrando:boolean}){
+const quitarEmoji=(s:string)=>String(s).replace(/^[^\p{L}\p{N}¿¡"]+/u,"");
+const conAvisoPendiente=(t:any)=>!!t.ultima_novedad&&!t.atendido;
+// Los trabajos con un aviso sin atender saltan a la primera columna, sea cual sea su estado
+const columnaDe=(t:any,saltar:boolean)=>{
+  const primera=COLUMNAS_MATRIZ[0];
+  if(saltar&&conAvisoPendiente(t))return primera;
+  return COLUMNAS_MATRIZ.find(c=>c.estados.includes(t.estado))||primera;
+};
+const motivoAtencion=(t:any)=>{
+  if(conAvisoPendiente(t))return quitarEmoji(t.ultima_novedad);
+  if(t.estado==="Solicitud")return getColabId(t)?"Solicitud nueva, pendiente de gestionar":"Solicitud nueva, sin colaborador";
+  if(t.estado==="Cliente confirmó")return "El cliente ha confirmado";
+  if(t.estado==="Presupuesto recibido")return "Presupuesto del colaborador recibido";
+  if(t.estado==="Visita propuesta")return "Visita propuesta, pendiente de confirmar";
+  return t.estado;
+};
+
+function MiniTarjeta({t,data,onAbrir,onAtender,enAtencion,arrastrable,onArrastrar,onSoltar,arrastrando}:{t:any,data:any,onAbrir:any,onAtender:any,enAtencion:boolean,arrastrable:boolean,onArrastrar:any,onSoltar:any,arrastrando:boolean}){
   const cl=data.clientes.find((c:any)=>c.id===getClienteId(t));
   const co=data.colaboradores.find((c:any)=>c.id===getColabId(t));
   const hay=!!t.ultima_novedad&&!t.atendido;
   return <div className={`ui-mc${hay?" hay":""}${arrastrando?" arr":""}`} style={{["--p" as any]:PRIO_HEX[t.prioridad]||"#CBD2DC"}} tabIndex={0} draggable={arrastrable}
     onDragStart={e=>{e.dataTransfer.effectAllowed="move";try{e.dataTransfer.setData("text/plain",String(t.id));}catch(err){}onArrastrar(t.id);}} onDragEnd={onSoltar}
     onClick={()=>onAbrir(t.id)} onKeyDown={e=>{if(e.key==="Enter")onAbrir(t.id);}}>
-    {hay&&<button type="button" className="dot" title="Aviso sin atender: pulsa para marcarlo como atendido" aria-label="Marcar aviso como atendido" draggable={false} onClick={e=>{e.stopPropagation();onAtender(t);}}><UiIcon n="tick" s={12}/></button>}
     <div className="t"><span className="tl"><IconoTipoPipeline tipo={t.tipo}/></span>{t.tipo}<span className="id">#{t.id}</span></div>
     <div className="cl">{cl?.nombre}</div>
     {cl?.direccion&&<div className="dr">{cl.direccion}</div>}
     <div className={`co${co?"":" sin"}`}><UiIcon n="user" s={11}/>{co?co.nombre:"Sin asignar"}</div>
     <div className="f"><b>{getPrecioCliente(t)?eur(getPrecioCliente(t)):"—"}</b><span>{diasDesde(t.fecha)}</span></div>
+    {enAtencion&&<>
+      <div className="nv"><UiIcon n={hay?"bell":"clock"} s={12}/><span>{motivoAtencion(t)}</span></div>
+      <div className="ba">
+        <span className="ui-st i"><i style={{background:ESTADO_HEX[t.estado]||"#CBD2DC"}}/>{t.estado}</span>
+        {hay&&<button type="button" className="ui-sbtn ok" draggable={false} onClick={e=>{e.stopPropagation();onAtender(t);}}><UiIcon n="tick" s={12}/>Atendido</button>}
+      </div>
+    </>}
   </div>;
 }
 
@@ -506,13 +529,14 @@ function FilaLista({t,data,setData,toast,onVer,onAbrir}:{t:any,data:any,setData:
   return <div className="ui-lc" onClick={()=>onAbrir(t.id)}>
     <div className="a">
       <span className="ui-tile" style={{background:"#E8EEF5",color:"#1E3A5F"}}><IconoTipoPipeline tipo={t.tipo}/></span>
-      <div className="x"><b className="n">{cl?.nombre||"Sin cliente"}{hay&&<span className="dotn" title="Aviso sin atender"/>}</b><small>{t.tipo} · #{t.id} · {co?.nombre||"Sin asignar"}</small></div>
+      <div className="x"><b className="n">{cl?.nombre||"Sin cliente"}</b><small>{t.tipo} · #{t.id} · {co?.nombre||"Sin asignar"}</small></div>
       <b style={{fontSize:13,color:"#111827"}}>{getPrecioCliente(t)?eur(getPrecioCliente(t)):"—"}</b>
     </div>
+    {hay&&<div className="ui-nov"><UiIcon n="bell" s={12}/>{quitarEmoji(t.ultima_novedad)}</div>}
     <div className="m">
       <span className="ui-st i"><i style={{background:ESTADO_HEX[t.estado]||"#CBD2DC"}}/>{t.estado}</span>
       <span className="d">{diasDesde(t.fecha)}</span>
-      {hay&&<button type="button" className="ui-sbtn" style={{marginLeft:"auto"}} onClick={e=>{e.stopPropagation();marcarAtendido();}}><UiIcon n="tick" s={13}/>Atendido</button>}
+      {hay&&<button type="button" className="ui-sbtn ok" style={{marginLeft:"auto"}} onClick={e=>{e.stopPropagation();marcarAtendido();}}><UiIcon n="tick" s={13}/>Atendido</button>}
       <button type="button" className={`ui-sbtn ${principal?.tono==="wa"?"wa":principal?.tono==="ok"?"ok":"pri"}`} style={hay?undefined:{marginLeft:"auto"}} onClick={e=>{e.stopPropagation();if(principal)principal.onClick();else onAbrir(t.id);}}>{principal?principal.txt:"Ver detalle"}</button>
     </div>
   </div>;
@@ -554,33 +578,36 @@ function EstadoDemandas({data,setData,onBack,toast,onVer}:{data:any,setData:any,
 
   // Arrastrar un trabajo a otra columna cambia su estado (igual que el desplegable de la ficha) y se puede deshacer
   const refrescar=(saved:any)=>setData((d:any)=>({...d,trabajos:d.trabajos.map((x:any)=>x.id===saved.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));
-  const cambiarEstado=async(t:any,nuevo:string,texto:string)=>{
+  const cambiarEstado=async(t:any,nuevo:string,texto:string,extra:any={})=>{
     const hist=[...getHistorial(t),{ts:now(),txt:texto,tipo:"sistema"}];
-    const saved=await dbSaveTrabajo({...t,estado:nuevo,historial:hist});
+    const saved=await dbSaveTrabajo({...t,...extra,estado:nuevo,historial:hist});
     if(saved)refrescar(saved);
     return saved;
   };
   const soltarEn=async(col:any)=>{
     const t=data.trabajos.find((x:any)=>x.id===arrastrando);
     setArrastrando(null);setSobre(null);
-    if(!t||col.estados.includes(t.estado))return;
+    if(!t)return;
+    if(col.key===COLUMNAS_MATRIZ[0].key){toast("Esta columna se llena sola. Para sacar un aviso de aquí, pulsa «Atendido»");return;}
+    if(columnaDe(t,false).key===col.key&&!conAvisoPendiente(t))return;
     const prev=t.estado;
-    const saved=await cambiarEstado(t,col.to,`Estado cambiado de «${prev}» a «${col.to}» desde el Pipeline`);
-    if(saved){toast(`→ ${col.to}`);setDeshacer({id:t.id,prev,nuevo:col.to});window.setTimeout(()=>setDeshacer((d:any)=>d&&d.id===t.id&&d.nuevo===col.to?null:d),7000);}
+    const avisoAtendido=conAvisoPendiente(t);
+    const saved=await cambiarEstado(t,col.to,`Estado cambiado de «${prev}» a «${col.to}» desde el Pipeline`,avisoAtendido?{atendido:true}:{});
+    if(saved){toast(`→ ${col.to}`);setDeshacer({id:t.id,prev,nuevo:col.to,avisoAtendido});window.setTimeout(()=>setDeshacer((d:any)=>d&&d.id===t.id&&d.nuevo===col.to?null:d),7000);}
   };
   const deshacerCambio=async()=>{
     const u=deshacer;if(!u)return;
     setDeshacer(null);
     const t=data.trabajos.find((x:any)=>x.id===u.id);
     if(!t)return;
-    const saved=await cambiarEstado(t,u.prev,`Cambio de estado deshecho: vuelve a «${u.prev}»`);
+    const saved=await cambiarEstado(t,u.prev,`Cambio de estado deshecho: vuelve a «${u.prev}»`,u.avisoAtendido?{atendido:false}:{});
     if(saved)toast(`↩ Vuelve a ${u.prev}`);
   };
 
   // Lista para móvil: agrupada
   const grupos=(()=>{
     const m=new Map<string,any[]>();
-    const clave=(t:any)=>agrupar==="estado"?(COLUMNAS_MATRIZ.find(c=>c.estados.includes(t.estado))?.titulo||t.estado):agrupar==="colab"?(data.colaboradores.find((c:any)=>c.id===getColabId(t))?.nombre||"Sin asignar"):agrupar==="prio"?(t.prioridad||"Media"):"Todos";
+    const clave=(t:any)=>agrupar==="estado"?columnaDe(t,!verArchivados).titulo:agrupar==="colab"?(data.colaboradores.find((c:any)=>c.id===getColabId(t))?.nombre||"Sin asignar"):agrupar==="prio"?(t.prioridad||"Media"):"Todos";
     items.forEach((t:any)=>{const k=clave(t);m.set(k,[...(m.get(k)||[]),t]);});
     let arr=[...m.entries()].map(([k,v])=>({k,items:v}));
     if(agrupar==="estado")arr.sort((a,b)=>COLUMNAS_MATRIZ.findIndex(c=>c.titulo===a.k)-COLUMNAS_MATRIZ.findIndex(c=>c.titulo===b.k));
@@ -628,14 +655,15 @@ function EstadoDemandas({data,setData,onBack,toast,onVer}:{data:any,setData:any,
     :
       <div className="ui-kb">
         {COLUMNAS_MATRIZ.map(col=>{
-          const its=items.filter((t:any)=>col.estados.includes(t.estado));
+          const its=items.filter((t:any)=>columnaDe(t,!verArchivados).key===col.key);
           const valor=its.reduce((s:number,t:any)=>s+(getPrecioCliente(t)||0),0);
-          return <div key={col.key} className={`ui-kcol${sobre===col.key?" over":""}`}
+          const esAtn=col.key===COLUMNAS_MATRIZ[0].key;
+          return <div key={col.key} className={`ui-kcol${esAtn?" atn":""}${sobre===col.key?" over":""}`}
             onDragOver={e=>{if(arrastrando!=null){e.preventDefault();if(sobre!==col.key)setSobre(col.key);}}}
             onDragLeave={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node))setSobre(s=>s===col.key?null:s);}}
             onDrop={e=>{e.preventDefault();soltarEn(col);}}>
             <div className="ui-col-h"><i style={{background:col.c}}/>{col.titulo}<span className="v">{eur(valor)}</span><span className="c">{its.length}</span></div>
-            {its.length?its.map((t:any)=><MiniTarjeta key={t.id} t={t} data={data} onAbrir={onVer} onAtender={atender} arrastrable={!verArchivados} onArrastrar={setArrastrando} onSoltar={()=>{setArrastrando(null);setSobre(null);}} arrastrando={arrastrando===t.id}/>):<div className="ui-vac">Suelta aquí un trabajo</div>}
+            {its.length?its.map((t:any)=><MiniTarjeta key={t.id} t={t} data={data} onAbrir={onVer} onAtender={atender} enAtencion={esAtn} arrastrable={!verArchivados} onArrastrar={setArrastrando} onSoltar={()=>{setArrastrando(null);setSobre(null);}} arrastrando={arrastrando===t.id}/>):<div className="ui-vac">{esAtn?"Todo al día":"Suelta aquí un trabajo"}</div>}
           </div>;
         })}
       </div>

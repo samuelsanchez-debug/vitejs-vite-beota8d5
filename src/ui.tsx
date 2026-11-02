@@ -215,7 +215,13 @@ const UI_CSS = `
 .ui-mc .tl{width:20px;height:20px;border-radius:6px;background:#E8EEF5;color:var(--navy);display:flex;align-items:center;justify-content:center;flex:none}
 .ui-mc .tl svg{width:13px;height:13px}
 .ui-mc .id{margin-left:auto;color:#9CA3AF;font-weight:600}
-.ui-mc.hay .id{margin-right:16px}
+.ui-mc.hay{box-shadow:0 0 0 2px #F59E0B,0 6px 14px rgba(8,20,40,.22)}
+.ui-mc .nv{display:flex;align-items:flex-start;gap:6px;background:#FFF1D6;color:#92400E;border-radius:8px;padding:6px 8px;margin-top:7px;font-size:11px;font-weight:600;line-height:1.35;overflow-wrap:anywhere}
+.ui-mc .nv svg{flex:none;margin-top:1px}
+.ui-mc .ba{display:flex;align-items:center;gap:6px;margin-top:7px;flex-wrap:wrap}
+.ui-mc .ba .ui-sbtn{margin-left:auto}
+.ui-kcol.atn{flex:1.25 0 250px;max-width:340px;background:rgba(245,158,11,.14);border:1.5px solid var(--or)}
+.ui-kcol.atn .ui-col-h{color:#FFE2A8}
 .ui-mc .cl{font-size:12.5px;font-weight:700;color:#111827;margin-top:5px;line-height:1.25;overflow-wrap:anywhere}
 .ui-mc .dr{font-size:10.5px;color:#9CA3AF;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ui-mc .f{display:flex;align-items:center;gap:6px;margin-top:6px}
@@ -224,10 +230,6 @@ const UI_CSS = `
 .ui-mc .es{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#6B7280;margin-top:5px}
 .ui-mc .es i{width:6px;height:6px;border-radius:50%}
 .ui-mc .dot{position:absolute;right:8px;top:8px;width:9px;height:9px;border-radius:50%;background:var(--or);box-shadow:0 0 0 3px rgba(245,158,11,.25)}
-.ui-mc button.dot{border:0;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;transition:all .12s}
-.ui-mc button.dot svg{display:none}
-.ui-mc button.dot:hover,.ui-mc button.dot:focus-visible{width:20px;height:20px;right:3px;top:3px;outline:none;background:#059669;box-shadow:0 0 0 3px rgba(5,150,105,.25)}
-.ui-mc button.dot:hover svg,.ui-mc button.dot:focus-visible svg{display:block}
 .ui-vac{color:#B9CBE3;font-size:12px;padding:8px 4px}
 .ui-chipb.avs{display:inline-flex;align-items:center;gap:6px}
 .ui-chipb.avs i{width:8px;height:8px;border-radius:50%;background:var(--or)}
