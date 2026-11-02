@@ -84,6 +84,9 @@ const UI_CSS = `
 .ui-st i{width:6px;height:6px;border-radius:50%;background:currentColor}
 .ui-st.a{background:#DDF6EC;color:#047857}
 .ui-st.i{background:#F1F3F7;color:#6B7280}
+.ui-st.w{background:#FEF3C7;color:#B45309}
+.ui-t th.sort{cursor:pointer;user-select:none}
+.ui-t th.sort:hover{color:#374151}
 .ui-num{font-variant-numeric:tabular-nums;font-weight:600;color:#111827}
 .ui-mut{color:#B6BCC8}
 .ui-go{color:#C4C9D2;width:20px}

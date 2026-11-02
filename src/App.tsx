@@ -812,48 +812,36 @@ function Clientes({data,setData,onBack,toast}){
     const ordenar=campo=>setOrden(o=>({campo,dir:o.campo===campo?-o.dir:1}));
     filas.sort((a,b)=>orden.campo==="facturado"?(a._facturado-b._facturado)*orden.dir:a.nombre.localeCompare(b.nombre)*orden.dir);
     const Flecha=({campo})=>orden.campo===campo?<span className="ml-1 text-gray-400">{orden.dir===1?"▾":"▴"}</span>:null;
-    return<div>
-      <Back title="Clientes" onBack={onBack}/>
-      <div className="flex flex-wrap items-center gap-2 mb-4">
-        <input className={S+" flex-1 min-w-[180px]"} placeholder="🔍 Buscar por nombre o teléfono..." value={busca} onChange={e=>setBusca(e.target.value)}/>
-        <div className="flex gap-1.5 flex-wrap">{["Todos","Con activos","Sin trabajos"].map(o=><Pill key={o} label={o} active={fAct===o} onClick={()=>setFAct(o)}/>)}</div>
-        <button onClick={()=>setShowNew(true)} className="ml-auto bg-[#1E3A5F] hover:bg-[#152d4a] text-white text-xs font-bold px-3.5 py-2.5 rounded-xl transition whitespace-nowrap">+ Nuevo cliente</button>
-      </div>
-      <div className="text-xs text-gray-400 font-semibold mb-3">{filas.length} cliente{filas.length!==1?"s":""}</div>
-      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse min-w-[680px]">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-100">
-                <th onClick={()=>ordenar("nombre")} className="text-left text-[10.5px] uppercase tracking-wide text-gray-400 font-bold px-4 py-2.5 cursor-pointer select-none whitespace-nowrap">Cliente<Flecha campo="nombre"/></th>
-                <th className="text-left text-[10.5px] uppercase tracking-wide text-gray-400 font-bold px-4 py-2.5 whitespace-nowrap">Teléfono</th>
-                <th className="text-left text-[10.5px] uppercase tracking-wide text-gray-400 font-bold px-4 py-2.5 whitespace-nowrap">Dirección</th>
-                <th className="text-right text-[10.5px] uppercase tracking-wide text-gray-400 font-bold px-4 py-2.5 whitespace-nowrap">Trabajos</th>
-                <th className="text-left text-[10.5px] uppercase tracking-wide text-gray-400 font-bold px-4 py-2.5 whitespace-nowrap">Estado</th>
-                <th onClick={()=>ordenar("facturado")} className="text-right text-[10.5px] uppercase tracking-wide text-gray-400 font-bold px-4 py-2.5 cursor-pointer select-none whitespace-nowrap">Facturado<Flecha campo="facturado"/></th>
-                <th className="px-2"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {filas.map(c=><tr key={c.id} onClick={()=>setCid(c.id)} className="border-b border-gray-50 last:border-0 hover:bg-gray-50 cursor-pointer transition">
-                <td className="px-4 py-3">
-                  <div className="font-semibold text-gray-800">{c.nombre}</div>
-                  {c.email&&<div className="text-[11px] text-gray-400 mt-0.5">{c.email}</div>}
-                </td>
-                <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{c.telefono||"—"}</td>
-                <td className="px-4 py-3 text-gray-500 max-w-[220px] truncate">{c.direccion||"—"}</td>
-                <td className="px-4 py-3 text-right text-gray-600">{c._trabajos}</td>
-                <td className="px-4 py-3">
-                  {c._activos>0?<span className="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700"><span className="w-1.5 h-1.5 rounded-full bg-amber-500"/>{c._activos} activo{c._activos>1?"s":""}</span>:<span className="inline-flex items-center text-[10px] font-bold px-2.5 py-1 rounded-full bg-gray-100 text-gray-400">Sin activos</span>}
-                </td>
-                <td className="px-4 py-3 text-right font-semibold text-gray-800 whitespace-nowrap">{c._facturado>0?`${c._facturado}€`:<span className="text-gray-300">—</span>}</td>
-                <td className="px-2 text-right text-gray-300">›</td>
-              </tr>)}
-            </tbody>
-          </table>
-        </div>
-        {filas.length===0&&<div className="text-center py-10 text-sm text-gray-400">Sin resultados</div>}
-      </div>
+    const conActivos=data.clientes.filter((c:any)=>data.trabajos.some((t:any)=>getClienteId(t)===c.id&&!["Completado","Cancelado"].includes(t.estado))).length;
+    const factTotal=data.trabajos.filter((t:any)=>t.estado==="Completado").reduce((s:number,t:any)=>s+(getPrecioCliente(t)||0),0);
+    return<div className="ui-page"><UiStyles/>
+      <PageHeader titulo="Clientes" subtitulo={`${data.clientes.length} clientes · ${conActivos} con trabajos activos${filas.length!==data.clientes.length?` · mostrando ${filas.length}`:""}`} onBack={onBack}>
+        <Boton variante="pri" icono="plus" onClick={()=>setShowNew(true)}>Nuevo cliente</Boton>
+      </PageHeader>
+      <KpiRow items={[{icono:"user",valor:data.clientes.length,etiqueta:"clientes en total"},{icono:"tool",valor:conActivos,etiqueta:"con trabajos activos"},{icono:"eur",valor:`${factTotal} €`,etiqueta:"facturado en total (sin IVA)"}]}/>
+      <Controles>
+        <Buscador value={busca} onChange={setBusca} placeholder="Buscar por nombre o teléfono"/>
+        <Segmentado etiqueta="Filtrar clientes" value={fAct} onChange={setFAct} opciones={[{id:"Todos",label:"Todos"},{id:"Con activos",label:"Con activos"},{id:"Sin trabajos",label:"Sin trabajos"}]}/>
+      </Controles>
+      <Tarjeta className="ui-tbl"><div className="ui-scroll"><table className="ui-t">
+        <thead><tr>
+          <th className="sort" onClick={()=>ordenar("nombre")}>Cliente<Flecha campo="nombre"/></th>
+          <th>Teléfono</th><th>Dirección</th><th className="r">Trabajos</th><th>Estado</th>
+          <th className="r sort" onClick={()=>ordenar("facturado")}>Facturado<Flecha campo="facturado"/></th><th></th>
+        </tr></thead>
+        <tbody>
+          {filas.map(c=><tr key={c.id} tabIndex={0} onClick={()=>setCid(c.id)} onKeyDown={e=>{if(e.key==="Enter")setCid(c.id);}}>
+            <td><div className="ui-who"><Avatar nombre={c.nombre}/><div><b>{c.nombre}</b>{c.email&&<div className="text-[11px] text-gray-400 mt-0.5">{c.email}</div>}</div></div></td>
+            <td className="whitespace-nowrap">{c.telefono||"—"}</td>
+            <td className="max-w-[240px] truncate">{c.direccion||"—"}</td>
+            <td className="r ui-num">{c._trabajos}</td>
+            <td>{c._activos>0?<span className="ui-st w"><i/>{c._activos} activo{c._activos>1?"s":""}</span>:<span className="ui-st i">Sin activos</span>}</td>
+            <td className="r">{c._facturado>0?<span className="ui-num">{c._facturado} €</span>:<span className="ui-mut">—</span>}</td>
+            <td className="ui-go"><UiIcon n="chev" s={14}/></td>
+          </tr>)}
+        </tbody>
+      </table></div>
+      {filas.length===0&&<div className="ui-empty">Ningún cliente coincide con la búsqueda.</div>}</Tarjeta>
       {showNew&&<Modal title="Nuevo cliente" onClose={()=>setShowNew(false)}>
         {(()=>{const[f,setF]=useState({nombre:"",telefono:"",email:"",direccion:"",notas:""});return<><Fld label="Nombre *"><input className={S} value={f.nombre} onChange={e=>setF(x=>({...x,nombre:e.target.value}))}/></Fld><Fld label="Teléfono"><input className={S} value={f.telefono} onChange={e=>setF(x=>({...x,telefono:e.target.value}))}/></Fld><Fld label="Email"><input className={S} value={f.email} onChange={e=>setF(x=>({...x,email:e.target.value}))}/></Fld><Fld label="Dirección"><input className={S} value={f.direccion} onChange={e=>setF(x=>({...x,direccion:e.target.value}))}/></Fld><Fld label="Notas"><textarea className={S} rows={2} value={f.notas} onChange={e=>setF(x=>({...x,notas:e.target.value}))}/></Fld><button onClick={async()=>{if(!f.nombre.trim())return;const saved=await dbSaveCliente({...f,creado:hoy()});if(saved){setData(d=>({...d,clientes:[...d.clientes,saved]}));setShowNew(false);toast("✅ Cliente creado");}}} className="w-full bg-[#1E3A5F] hover:bg-[#152d4a] text-white py-2.5 rounded-xl font-bold text-sm transition">Guardar</button></>;})()}
       </Modal>}
@@ -863,8 +851,9 @@ function Clientes({data,setData,onBack,toast}){
   const hist=data.trabajos.filter(t=>getClienteId(t)===cid).sort((a,b)=>b.id-a.id);
   const ing=hist.filter(t=>t.estado==="Completado").reduce((s,t)=>s+(getPrecioCliente(t)||0),0);
   const act=hist.filter(t=>!["Completado","Cancelado"].includes(t.estado)).length;
-  if(editando)return<div>
-    <Back title={`Editar — ${cl?.nombre}`} onBack={()=>setEditando(false)}/>
+  if(editando)return<div className="ui-page"><UiStyles/>
+    <PageHeader titulo={`Editar — ${cl?.nombre}`} onBack={()=>setEditando(false)}/>
+    <Tarjeta className="ui-pad mt-4">
     <Fld label="Nombre *"><input className={S} value={form.nombre||""} onChange={e=>setForm(f=>({...f,nombre:e.target.value}))}/></Fld>
     <Fld label="Teléfono"><input className={S} value={form.telefono||""} onChange={e=>setForm(f=>({...f,telefono:e.target.value}))}/></Fld>
     <Fld label="Email"><input className={S} value={form.email||""} onChange={e=>setForm(f=>({...f,email:e.target.value}))}/></Fld>
@@ -874,10 +863,13 @@ function Clientes({data,setData,onBack,toast}){
       <button onClick={async()=>{const saved=await dbSaveCliente(form);if(saved){setData(d=>({...d,clientes:d.clientes.map(c=>c.id===cid?saved:c)}));setEditando(false);toast("✅ Guardado");}}} className="flex-1 bg-[#1E3A5F] hover:bg-[#152d4a] text-white py-2.5 rounded-xl font-bold text-sm transition">Guardar</button>
       <button onClick={async()=>{if(!confirm(`¿Eliminar a ${cl?.nombre}?`))return;await supabase.from('clientes').delete().eq('id',cid);setData(d=>({...d,clientes:d.clientes.filter(c=>c.id!==cid)}));setCid(null);}} className="bg-red-50 text-red-500 px-4 py-2.5 rounded-xl text-sm">Eliminar</button>
     </div>
+    </Tarjeta>
   </div>;
-  return<div>
-    <Back title={cl?.nombre} onBack={()=>setCid(null)} right={<button onClick={()=>{setForm({...cl});setEditando(true);}} className="border border-gray-200 text-gray-500 text-xs font-semibold px-3 py-1.5 rounded-xl hover:border-[#1E3A5F] hover:text-[#1E3A5F] transition">Editar</button>}/>
-    <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm mb-4">
+  return<div className="ui-page"><UiStyles/>
+    <PageHeader titulo={cl?.nombre} subtitulo={`${act} ${act===1?"trabajo activo":"trabajos activos"} · ${hist.length} en total`} onBack={()=>setCid(null)}>
+      <Boton onClick={()=>{setForm({...cl});setEditando(true);}}>Editar</Boton>
+    </PageHeader>
+    <div className="ui-card p-4 mt-4 mb-2">
       <div className="grid grid-cols-2 gap-3 text-sm mb-3"><div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Teléfono</div><div className="font-semibold">{cl?.telefono||"—"}</div></div><div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Email</div><div className="font-semibold text-xs break-all">{cl?.email||"—"}</div></div></div>
       {cl?.direccion&&<div className="text-xs text-gray-500 mb-2">📍 {cl.direccion}</div>}
       {cl?.notas&&<div className="text-xs text-gray-400 bg-gray-50 rounded-lg p-2 mb-3">📝 {cl.notas}</div>}
@@ -887,8 +879,8 @@ function Clientes({data,setData,onBack,toast}){
         <div className="bg-blue-50 rounded-xl p-2 text-center"><div className="font-black text-blue-700">{hist.length}</div><div className="text-[10px] text-blue-600">Total</div></div>
       </div>
     </div>
-    <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Historial de trabajos</div>
-    {hist.length===0&&<p className="text-sm text-gray-400 text-center py-8">Sin trabajos registrados</p>}
+    <SeccionEtiqueta>Historial de trabajos</SeccionEtiqueta>
+    {hist.length===0&&<p className="text-sm text-blue-200 text-center py-8">Sin trabajos registrados</p>}
     <div className="space-y-2">{hist.map(t=><div key={t.id} className="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm"><div className="flex items-start justify-between gap-2 mb-1"><div><div className="font-semibold text-sm text-gray-800">{t.tipo}</div><div className="text-xs text-gray-500 truncate">{t.descripcion}</div></div><Badge text={t.estado}/></div><div className="flex items-center gap-2"><OrigenTag id={t.origen}/><span className="text-[10px] text-gray-400">📅 {fmt(t.fecha)}</span>{getPrecioCliente(t)&&<span className="text-xs font-bold text-emerald-700 ml-auto">{getPrecioCliente(t)}€</span>}</div></div>)}</div>
   </div>;
 }
@@ -3284,4 +3276,5 @@ const TITULO={home:"Inicio",nuevas:"Nuevas demandas",demandas:"Pipeline",cliente
     {toastMsg&&<Toast msg={toastMsg} clear={()=>setToastMsg(null)}/>}
   </div>;
 }
+
 
