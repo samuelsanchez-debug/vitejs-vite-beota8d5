@@ -70,6 +70,8 @@ const sugerirColab = (tipo,colabs,trabajos)=>{
 };
 
 const BASE_URL = 'https://domia-crm-two.vercel.app';
+// Fondo de la zona de contenido del CRM (la barra superior y el menú lateral son blancos).
+const FONDO_CRM = '#DCE7F5';
 
 // Enlaces públicos: usan un código aleatorio por trabajo (token) y, si aún no existe, el id numérico antiguo.
 type RolPortal='cliente'|'colaborador';
@@ -3280,7 +3282,7 @@ const[c,col,t,inc]=await Promise.all([supabase.from('clientes').select('*').orde
 const TITULO={home:"Inicio",nuevas:"Nuevas demandas",demandas:"Pipeline",clientes:"Clientes",colaboradores:"Colaboradores",incidencias:"Incidencias"};
   const incidenciasAbiertas=(data.incidencias||[]).filter(i=>i.estado==="Abierta").length;
   const pipelineActivos=data.trabajos.filter(t=>["Presupuestando","Presupuesto enviado","Aceptado","En curso"].includes(t.estado)).length;
-  return<div className="min-h-screen flex" style={{background:"#F0F2F5",fontFamily:"'Inter',system-ui,sans-serif"}}>
+  return<div className="min-h-screen flex" style={{background:FONDO_CRM,fontFamily:"'Inter',system-ui,sans-serif"}}>
     <Sidebar sec={sec} setSec={setSec} nuevasCount={sinAsignar} pipelineCount={pipelineActivos} incidenciasCount={incidenciasAbiertas} puede={permiso}/>
     <div className="flex-1 min-w-0 flex flex-col">
       <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 flex items-center gap-3 sticky top-0 z-30">
