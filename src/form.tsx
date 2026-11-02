@@ -23,6 +23,12 @@ export default function FormularioDomia() {
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
+  // «Cerrar»: cierra la pestaña si el navegador lo permite; si no (enlace directo), lleva a la web de Domia
+  const cerrarAviso = () => {
+    try { window.close(); } catch (e) {}
+    window.setTimeout(() => { window.location.href = "https://domiaservices.es"; }, 300);
+  };
+
   // El aviso de «Solicitud enviada» se cierra solo a los 4 segundos: avisa a la web que lo incrusta
   // (por si es una ventana emergente) y deja el formulario limpio para una nueva solicitud.
   useEffect(() => {
@@ -228,6 +234,7 @@ let telLimpio = limpiarTelefono(form.telefono);
             <div><span className="font-semibold">Teléfono:</span> {form.telefono}</div>
           </div>
         </div>
+        <button type="button" onClick={cerrarAviso} className="bg-[#1E3A5F] text-white font-bold px-8 py-3 rounded-xl hover:bg-[#152d4a] transition mb-5">Cerrar</button>
         <div className="text-sm text-[#1E3A5F] font-semibold">📞 685 917 059</div>
         <div className="text-xs text-gray-400 mt-1">domiaservices.es · Elche</div>
         <div className="text-xs text-gray-300 mt-4">Este aviso se cerrará solo en unos segundos</div>
