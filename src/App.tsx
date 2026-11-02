@@ -2104,139 +2104,94 @@ const trabajosCliente=data.trabajos.filter(t=>["Aceptado","En curso","Completado
   const totalCobradoGlobal=cobros.reduce((s,c)=>s+(+c.importe||0),0);
   const pendienteClienteGlobal=totalClienteGlobal-totalCobradoGlobal;
 
-  return<div>
-<Back title="Finanzas" onBack={onBack}/>
-<div className="flex gap-2 mb-4">
-  <button onClick={()=>setTabFin("cobros")} className={`flex-1 py-2 rounded-xl text-sm font-bold transition ${tabFin==="cobros"?"bg-[#1E3A5F] text-white":"bg-white text-gray-500 border border-gray-200"}`}>💰 Cobros clientes</button>
-  <button onClick={()=>setTabFin("pagos")} className={`flex-1 py-2 rounded-xl text-sm font-bold transition ${tabFin==="pagos"?"bg-[#1E3A5F] text-white":"bg-white text-gray-500 border border-gray-200"}`}>👷 Pagos colaboradores</button>
-</div>
-   <div className="grid grid-cols-3 gap-2 mb-4">
-      <div className="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm text-center">
-        <div className="text-[10px] text-gray-400 font-bold uppercase">Total</div>
-        <div className="text-lg font-black text-gray-800">{tabFin==="cobros"?totalClienteGlobal:totalDeuda}€</div>
-      </div>
-      <div className="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm text-center">
-        <div className="text-[10px] text-gray-400 font-bold uppercase">{tabFin==="cobros"?"Cobrado":"Pagado"}</div>
-        <div className="text-lg font-black text-emerald-600">{tabFin==="cobros"?totalCobradoGlobal:totalPagadoGlobal}€</div>
-      </div>
-      <div className="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm text-center">
-        <div className="text-[10px] text-gray-400 font-bold uppercase">Pendiente</div>
-        <div className="text-lg font-black text-red-500">{tabFin==="cobros"?pendienteClienteGlobal:pendienteGlobal}€</div>
-      </div>
-    </div>
-
-{cargando&&<div className="text-center py-8 text-gray-400 text-sm">Cargando...</div>}
-{tabFin==="cobros"&&<div>
-  <div className="flex gap-1.5 mb-4 flex-wrap">
-    {[["todos","Todos"],["pendientes","Pendientes"],["pagados","Pagados"]].map(([k,label])=>(
-      <button key={k} onClick={()=>setFiltro(k)} className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${filtro===k?"bg-[#1E3A5F] text-white":"bg-white text-gray-500 border border-gray-200"}`}>{label}</button>
-    ))}
-  </div>
-  <div className="space-y-2">
-  {trabajosCliente.filter(t=>{
+  const[busca,setBusca]=useState("");
+  const totalIvaDe=(t:any)=>Math.round((getPrecioCliente(t)||0)*(1+(t.iva||21)/100));
+  const cobradoDe=(tid:any)=>cobros.filter((c:any)=>c.trabajo_id===tid).reduce((s:number,c:any)=>s+(+c.importe||0),0);
+  const cobrosPend=trabajosCliente.filter((t:any)=>totalIvaDe(t)-cobradoDe(t.id)>0).length;
+  const pagosPend=trabajosConColab.filter((t:any)=>(getPresupColab(t)||0)-totalPagado(t.id)>0).length;
+  const q=busca.trim().toLowerCase();
+  const coincide=(t:any,extra:string)=>!q||`${t.tipo} ${extra}`.toLowerCase().includes(q);
+  const cambiarTab=(id:string)=>{setTabFin(id);setFiltro("todos");};
+  const esCobros=tabFin==="cobros";
+  const listaCobros=trabajosCliente.filter((t:any)=>{
+    const cl=data.clientes.find((c:any)=>c.id===getClienteId(t));
+    if(!coincide(t,cl?.nombre||""))return false;
     if(filtro==="pendientes")return !t.adelanto_pagado;
     if(filtro==="pagados")return t.adelanto_pagado;
     return true;
-  }).length===0&&<div className="text-center py-10 text-sm text-gray-400">Sin cobros</div>}
-  {trabajosCliente.filter(t=>{
-    if(filtro==="pendientes")return !t.adelanto_pagado;
-    if(filtro==="pagados")return t.adelanto_pagado;
-    return true;
-  }).map(t=>{
-    const cl=data.clientes.find(c=>c.id===getClienteId(t));
-    const precio=getPrecioCliente(t)||0;
-    const iva=t.iva||21;
-    const totalIva=Math.round(precio*(1+iva/100));
-    const adelanto=t.adelanto_tipo==='fijo'?(t.adelanto_valor||0):Math.round(totalIva*(t.adelanto_valor||30)/100);
-    const resto=totalIva-adelanto;
-    return<div key={t.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-      <div className="flex justify-between items-start mb-2">
-        <div>
-          <div className="font-bold text-gray-800 text-sm">{t.tipo} — {cl?.nombre}</div>
-          <div className="text-[11px] text-gray-400">{fmt(t.fecha)}</div>
-        </div>
-        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${t.estado==="Completado"?"bg-emerald-100 text-emerald-700":"bg-amber-100 text-amber-700"}`}>{t.estado}</span>
-      </div>
-      {(()=>{const misCobros=cobros.filter(c=>c.trabajo_id===t.id);const cobrado=misCobros.reduce((s,c)=>s+(+c.importe||0),0);const pendiente=totalIva-cobrado;
-      return<>
-      <div className="grid grid-cols-3 gap-2 text-center bg-gray-50 rounded-xl p-2 mb-2">
-        <div><div className="text-sm font-bold text-gray-700">{totalIva}€</div><div className="text-[9px] text-gray-400 uppercase">Total</div></div>
-        <div><div className="text-sm font-bold text-emerald-600">{cobrado}€</div><div className="text-[9px] text-gray-400 uppercase">Cobrado</div></div>
-        <div><div className="text-sm font-bold text-red-500">{pendiente}€</div><div className="text-[9px] text-gray-400 uppercase">Pendiente</div></div>
-      </div>
-      {misCobros.length>0&&<div className="space-y-1 mb-2">
-        {misCobros.map(c=><div key={c.id} className="flex justify-between items-center text-xs bg-emerald-50 rounded-lg px-2 py-1.5">
-          <span className="text-emerald-700 font-medium">{c.importe}€ · {c.forma_pago} · {c.concepto}</span>
-          <div className="flex items-center gap-2">
-            <span className="text-gray-400">{fmt(c.fecha)}{c.notas?` · ${c.notas}`:""}</span>
-            <button onClick={()=>setModalCobro({trabajo:t,cliente:cl,concepto:c.concepto,importe:c.importe,editId:c.id})} className="text-blue-500 font-bold hover:text-blue-700">✏️</button>
-            <button onClick={async()=>{if(!confirm("¿Eliminar este cobro?"))return;await supabase.from('cobros_cliente').delete().eq('id',c.id);setCobros(prev=>prev.filter(x=>x.id!==c.id));toast("Cobro eliminado");}} className="text-red-400 font-bold hover:text-red-600">×</button>
-          </div>
-        </div>)}
-      </div>}
-      {pendiente>0&&<button onClick={()=>setModalCobro({trabajo:t,cliente:cl,concepto:cobrado===0?"Adelanto":"Pago final",importe:cobrado===0?adelanto:pendiente})} className="w-full bg-[#1E3A5F] text-white py-2 rounded-xl text-xs font-bold transition hover:bg-[#152d4a]">+ Registrar cobro</button>}
-      {pendiente<=0&&<div className="text-center text-xs text-emerald-600 font-bold py-1">Cobrado completamente</div>}
-      </>;})()}
-    </div>;
-  })}
-  </div>
-</div>}
-{tabFin==="pagos"&&<div>
-   <div className="flex gap-1.5 mb-4 flex-wrap">
-      {[["todos","Todos"],["pendientes","Pendientes"],["proximos","Próximos"],["pagados","Pagados"]].map(([k,label])=>(
-        <button key={k} onClick={()=>setFiltro(k)} className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${filtro===k?"bg-[#1E3A5F] text-white":"bg-white text-gray-500 border border-gray-200"}`}>{label}</button>
-      ))}
-    </div>
-
-    <div className="space-y-2">
-      {trabajosConColab.filter(t=>{
-        const total=getPresupColab(t)||0;
-        const pagado=totalPagado(t.id);
-        const pend=total-pagado;
-if(filtro==="pendientes")return pend>0||total===0;
+  });
+  const listaPagos=trabajosConColab.filter((t:any)=>{
+    const co=data.colaboradores.find((c:any)=>c.id===getColabId(t));
+    const cl=data.clientes.find((c:any)=>c.id===getClienteId(t));
+    if(!coincide(t,`${co?.nombre||""} ${cl?.nombre||""}`))return false;
+    const total=getPresupColab(t)||0;
+    const pend=total-totalPagado(t.id);
+    if(filtro==="pendientes")return pend>0||total===0;
     if(filtro==="pagados")return pend<=0&&total>0;
-        if(filtro==="proximos")return pend>0&&t.vencimiento_pago;
-        return true;
-      }).sort((a,b)=>{
-        if(filtro==="proximos")return (a.vencimiento_pago||"").localeCompare(b.vencimiento_pago||"");
-        return 0;
-      }).map(t=>{
-        const co=data.colaboradores.find(c=>c.id===getColabId(t));
-        const cl=data.clientes.find(c=>c.id===getClienteId(t));
-        const total=getPresupColab(t)||0;
-        const pagado=totalPagado(t.id);
-        const pendiente=total-pagado;
-        const misPagos=pagosDeTrabajo(t.id);
-        return<div key={t.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-          <div className="flex justify-between items-start mb-2">
-            <div>
-              <div className="font-bold text-gray-800 text-sm">{t.tipo} — {co?.nombre||"?"}</div>
-              <div className="text-[11px] text-gray-400">{cl?.nombre} · {fmt(t.fecha)}</div>
-            </div>
-<span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${pendiente<=0&&total>0?"bg-emerald-100 text-emerald-700":pagado>0?"bg-amber-100 text-amber-700":"bg-red-100 text-red-600"}`}>{pendiente<=0&&total>0?"Pagado":pagado>0?"Parcial":"Pendiente"}</span>
-          </div>
-          {pendiente>0&&t.vencimiento_pago&&(()=>{
-            const dias=Math.ceil((new Date(t.vencimiento_pago).getTime()-Date.now())/(1000*60*60*24));
-            const col=dias<0?"bg-red-100 text-red-700":dias<=3?"bg-orange-100 text-orange-700":"bg-blue-50 text-blue-600";
-            return<div className={`text-[11px] font-bold px-2 py-1 rounded-lg mb-2 inline-block ${col}`}>📅 {dias<0?`Vencido hace ${-dias}d`:dias===0?"Vence hoy":`Vence en ${dias}d`} · {fmt(t.vencimiento_pago)}</div>;
-          })()}
-          <div className="grid grid-cols-3 gap-2 text-center bg-gray-50 rounded-xl p-2 mb-2">
-            <div><div className="text-sm font-bold text-gray-700">{total}€</div><div className="text-[9px] text-gray-400 uppercase">Total</div></div>
-            <div><div className="text-sm font-bold text-emerald-600">{pagado}€</div><div className="text-[9px] text-gray-400 uppercase">Pagado</div></div>
-            <div><div className="text-sm font-bold text-red-500">{pendiente}€</div><div className="text-[9px] text-gray-400 uppercase">Pendiente</div></div>
-          </div>
-          {misPagos.length>0&&<div className="space-y-1 mb-2">
-            {misPagos.map(p=><div key={p.id} className="flex justify-between items-center text-xs bg-emerald-50 rounded-lg px-2 py-1.5">
-              <span className="text-emerald-700 font-medium">{p.importe}€ · {p.forma_pago}</span>
-              <span className="text-gray-400">{fmt(p.fecha)}{p.notas?` · ${p.notas}`:""}</span>
-            </div>)}
-          </div>}
-          {pendiente>0&&<button onClick={()=>setModal({trabajo:t,colab:co,pendiente})} className="w-full bg-[#1E3A5F] text-white py-2 rounded-xl text-xs font-bold transition hover:bg-[#152d4a]">+ Registrar pago</button>}
-        </div>;
-      })}
-      {!cargando&&trabajosConColab.length===0&&<div className="text-center py-10 text-sm text-gray-400">Sin trabajos con colaborador asignado</div>}
-    </div>
-</div>}
+    if(filtro==="proximos")return pend>0&&t.vencimiento_pago;
+    return true;
+  }).sort((a:any,b:any)=>filtro==="proximos"?(a.vencimiento_pago||"").localeCompare(b.vencimiento_pago||""):0);
+  return<div className="ui-page"><UiStyles/>
+    <PageHeader titulo="Finanzas" subtitulo={focoTrabajo?`Mostrando solo el trabajo #${focoTrabajo}`:esCobros?`${cobrosPend} ${cobrosPend===1?"trabajo con cobro pendiente":"trabajos con cobros pendientes"}`:`${pagosPend} ${pagosPend===1?"pago pendiente a colaboradores":"pagos pendientes a colaboradores"}`} onBack={onBack}/>
+    <Tabs tabs={[{id:"cobros",label:"Cobros de clientes",count:cobrosPend},{id:"pagos",label:"Pagos a colaboradores",count:pagosPend}]} value={tabFin} onChange={cambiarTab}/>
+    <KpiRow items={esCobros?[{icono:"eur",valor:`${totalClienteGlobal} €`,etiqueta:"total a cobrar (con IVA)"},{icono:"check",valor:`${totalCobradoGlobal} €`,etiqueta:"cobrado"},{icono:"clock",valor:`${pendienteClienteGlobal} €`,etiqueta:"pendiente de cobro"}]:[{icono:"eur",valor:`${totalDeuda} €`,etiqueta:"total a pagar"},{icono:"check",valor:`${totalPagadoGlobal} €`,etiqueta:"pagado"},{icono:"clock",valor:`${pendienteGlobal} €`,etiqueta:"pendiente de pago"}]}/>
+    <Controles>
+      <Buscador value={busca} onChange={setBusca} placeholder={esCobros?"Buscar por cliente o servicio":"Buscar por colaborador, cliente o servicio"}/>
+      <Segmentado etiqueta="Filtrar" value={filtro} onChange={setFiltro} opciones={esCobros?[{id:"todos",label:"Todos"},{id:"pendientes",label:"Pendientes"},{id:"pagados",label:"Pagados"}]:[{id:"todos",label:"Todos"},{id:"pendientes",label:"Pendientes"},{id:"proximos",label:"Próximos"},{id:"pagados",label:"Pagados"}]}/>
+    </Controles>
+    {cargando&&<Tarjeta className="mt-4"><div className="ui-empty">Cargando...</div></Tarjeta>}
+    {!cargando&&esCobros&&listaCobros.length===0&&<Tarjeta className="mt-4"><div className="ui-empty">Sin cobros que mostrar</div></Tarjeta>}
+    {!cargando&&!esCobros&&listaPagos.length===0&&<Tarjeta className="mt-4"><div className="ui-empty">{trabajosConColab.length===0?"Sin trabajos con colaborador asignado":"Sin pagos que mostrar"}</div></Tarjeta>}
+    {esCobros&&<div className="ui-cards">{listaCobros.map((t:any)=>{
+      const cl=data.clientes.find((c:any)=>c.id===getClienteId(t));
+      const totalIva=totalIvaDe(t);
+      const adelanto=t.adelanto_tipo==='fijo'?(t.adelanto_valor||0):Math.round(totalIva*(t.adelanto_valor||30)/100);
+      const misCobros=cobros.filter((c:any)=>c.trabajo_id===t.id);
+      const cobrado=misCobros.reduce((s:number,c:any)=>s+(+c.importe||0),0);
+      const pendiente=totalIva-cobrado;
+      return<Tarjeta key={t.id} className="ui-inc">
+        <div className="ui-inc-h">
+          <span className="ui-tile" style={{background:"#E8EEF5",color:"#1E3A5F"}}><IconoTipoPipeline tipo={t.tipo}/></span>
+          <div className="x"><b>{t.tipo}</b><small>{cl?.nombre||"—"} · {fmt(t.fecha)}</small></div>
+          <span className={`ui-st ${t.estado==="Completado"?"a":"w"}`}><i/>{t.estado}</span>
+        </div>
+        <div className="ui-stats"><div><b>{totalIva} €</b><span>Total</span></div><div><b className="g">{cobrado} €</b><span>Cobrado</span></div><div><b className="r">{pendiente} €</b><span>Pendiente</span></div></div>
+        <div className="ui-prog" aria-hidden="true"><i style={{width:`${totalIva>0?Math.min(100,(cobrado/totalIva)*100):0}%`}}/></div>
+        {misCobros.length>0&&<div className="ui-movs">{misCobros.map((c:any)=><div key={c.id} className="ui-mov">
+          <div className="x"><b>{c.importe} €</b><span>{c.forma_pago} · {c.concepto}</span><small>{fmt(c.fecha)}{c.notas?` · ${c.notas}`:""}</small></div>
+          <button type="button" className="ui-ib" aria-label="Editar cobro" title="Editar" onClick={()=>setModalCobro({trabajo:t,cliente:cl,concepto:c.concepto,importe:c.importe,editId:c.id})}><UiIcon n="edit" s={14}/></button>
+          <button type="button" className="ui-ib del" aria-label="Eliminar cobro" title="Eliminar" onClick={async()=>{if(!confirm("¿Eliminar este cobro?"))return;await supabase.from('cobros_cliente').delete().eq('id',c.id);setCobros((prev:any)=>prev.filter((x:any)=>x.id!==c.id));toast("Cobro eliminado");}}><UiIcon n="trash" s={14}/></button>
+        </div>)}</div>}
+        {pendiente>0?<button type="button" className="ui-sbtn pri" style={{width:"100%",padding:"9px"}} onClick={()=>setModalCobro({trabajo:t,cliente:cl,concepto:cobrado===0?"Adelanto":"Pago final",importe:cobrado===0?adelanto:pendiente})}><UiIcon n="plus" s={13}/>Registrar cobro</button>:<div className="ui-box ok"><UiIcon n="check" s={14}/><span>Cobrado completamente</span></div>}
+      </Tarjeta>;
+    })}</div>}
+    {!esCobros&&<div className="ui-cards">{listaPagos.map((t:any)=>{
+      const co=data.colaboradores.find((c:any)=>c.id===getColabId(t));
+      const cl=data.clientes.find((c:any)=>c.id===getClienteId(t));
+      const total=getPresupColab(t)||0;
+      const pagado=totalPagado(t.id);
+      const pendiente=total-pagado;
+      const misPagos=pagosDeTrabajo(t.id);
+      const pagadoTodo=pendiente<=0&&total>0;
+      return<Tarjeta key={t.id} className="ui-inc">
+        <div className="ui-inc-h">
+          <span className="ui-tile" style={{background:"#E8EEF5",color:"#1E3A5F"}}><IconoTipoPipeline tipo={t.tipo}/></span>
+          <div className="x"><b>{t.tipo} — {co?.nombre||"?"}</b><small>{cl?.nombre||"—"} · {fmt(t.fecha)}</small></div>
+          <span className={`ui-st ${pagadoTodo?"a":pagado>0?"w":"r"}`}><i/>{pagadoTodo?"Pagado":pagado>0?"Parcial":"Pendiente"}</span>
+        </div>
+        {pendiente>0&&t.vencimiento_pago&&(()=>{
+          const dias=Math.ceil((new Date(t.vencimiento_pago).getTime()-Date.now())/(1000*60*60*24));
+          const col=dias<0?"r":dias<=3?"o":"b";
+          return<div className={`ui-ven ${col}`}><UiIcon n="calendar" s={13}/>{dias<0?`Vencido hace ${-dias}d`:dias===0?"Vence hoy":`Vence en ${dias}d`} · {fmt(t.vencimiento_pago)}</div>;
+        })()}
+        <div className="ui-stats"><div><b>{total} €</b><span>Total</span></div><div><b className="g">{pagado} €</b><span>Pagado</span></div><div><b className="r">{pendiente} €</b><span>Pendiente</span></div></div>
+        <div className="ui-prog" aria-hidden="true"><i style={{width:`${total>0?Math.min(100,(pagado/total)*100):0}%`}}/></div>
+        {misPagos.length>0&&<div className="ui-movs">{misPagos.map((p:any)=><div key={p.id} className="ui-mov">
+          <div className="x"><b>{p.importe} €</b><span>{p.forma_pago}</span><small>{fmt(p.fecha)}{p.notas?` · ${p.notas}`:""}</small></div>
+        </div>)}</div>}
+        {pendiente>0?<button type="button" className="ui-sbtn pri" style={{width:"100%",padding:"9px"}} onClick={()=>setModal({trabajo:t,colab:co,pendiente})}><UiIcon n="plus" s={13}/>Registrar pago</button>:null}
+      </Tarjeta>;
+    })}</div>}
     {modalCobro&&<RegistrarCobro modal={modalCobro} onClose={()=>setModalCobro(null)} onGuardado={(nuevo,esEdicion)=>{if(esEdicion){setCobros(c=>c.map(x=>x.id===nuevo.id?nuevo:x));}else{setCobros(c=>[nuevo,...c]);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===modalCobro.trabajo.id?{...x,adelanto_pagado:true}:x)}));}setModalCobro(null);toast(esEdicion?"Cobro actualizado":"Cobro registrado");}}/>}
 {modal&&<RegistrarPago modal={modal} onClose={()=>setModal(null)} onGuardado={(nuevo,venc)=>{setPagos(p=>[nuevo,...p]);if(venc)setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===modal.trabajo.id?{...x,vencimiento_pago:venc}:x)}));setModal(null);toast("Pago registrado");}}/>}
 </div>;
@@ -3302,6 +3257,7 @@ const TITULO={home:"Inicio",nuevas:"Nuevas demandas",demandas:"Pipeline",cliente
     {toastMsg&&<Toast msg={toastMsg} clear={()=>setToastMsg(null)}/>}
   </div>;
 }
+
 
 
 

@@ -21,6 +21,7 @@ const ICONOS: Record<string, ReactNode> = {
   shield: <path d="M12 3 5 6v6c0 4.5 3 7.6 7 9 4-1.4 7-4.5 7-9V6z" />,
   repeat: <><polyline points="17 2 21 6 17 10" /><path d="M3 11V9a3 3 0 0 1 3-3h15" /><polyline points="7 22 3 18 7 14" /><path d="M21 13v2a3 3 0 0 1-3 3H3" /></>,
   dot: <circle cx="12" cy="12" r="4" />,
+  edit: <><path d="M4 20h4L19 9l-4-4L4 16z" /><line x1="13.5" y1="6.5" x2="17.5" y2="10.5" /></>,
   pin: <><path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z" /><circle cx="12" cy="10" r="2.5" /></>,
   phone: <path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" />,
   trash: <><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6M14 11v6" /><path d="M9 6V4h6v2" /></>,
@@ -131,6 +132,23 @@ const UI_CSS = `
 .ui-sug .a{display:flex;gap:6px;flex-wrap:wrap}
 .ui-dash{margin-top:auto;border:1.5px dashed #CBD2DC;background:#fff;color:#6B7280;padding:10px}
 .ui-dash:hover{border-color:var(--navy);color:var(--navy);background:#fff}
+.ui-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;background:var(--soft);border-radius:12px;padding:10px 6px;text-align:center}
+.ui-stats b{display:block;font-size:15px;font-weight:700;color:#111827;font-variant-numeric:tabular-nums}
+.ui-stats b.g{color:#059669}.ui-stats b.r{color:#DC2626}
+.ui-stats span{display:block;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#9CA3AF;margin-top:1px}
+.ui-prog{height:6px;border-radius:99px;background:#E8ECF2;overflow:hidden}
+.ui-prog i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#34D399,#10B981);transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.ui-movs{display:flex;flex-direction:column;gap:6px}
+.ui-mov{display:flex;align-items:center;gap:8px;background:#F3FAF6;border-radius:10px;padding:8px 10px}
+.ui-mov .x{flex:1;min-width:0}
+.ui-mov .x b{font-size:13px;color:#065F46;font-variant-numeric:tabular-nums}
+.ui-mov .x span{font-size:12px;color:#047857;margin-left:6px}
+.ui-mov .x small{display:block;font-size:11.5px;color:#6B7280;overflow-wrap:anywhere}
+.ui-ib{flex:none;width:28px;height:28px;border-radius:8px;border:0;background:transparent;color:#6B7280;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s}
+.ui-ib:hover{background:#E1EEE7;color:#065F46}
+.ui-ib.del:hover{background:#FDE2E2;color:#DC2626}
+.ui-ven{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;font-size:11.5px;font-weight:700;border-radius:8px;padding:4px 9px}
+.ui-ven.r{background:#FEE2E2;color:#B91C1C}.ui-ven.o{background:#FFEDD5;color:#C2410C}.ui-ven.b{background:#E7F0FD;color:#2563EB}
 .ui-attn{margin-top:16px;border-left:4px solid var(--or);overflow:hidden}
 .ui-attn-h{display:flex;align-items:center;gap:8px;padding:12px 14px 6px;font-size:13px;font-weight:700;color:#92400E}
 .ui-attn-h .n{background:var(--or);color:#2B1A00;border-radius:999px;font-size:11px;padding:1px 8px}
