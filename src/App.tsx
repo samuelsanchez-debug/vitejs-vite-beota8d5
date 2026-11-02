@@ -1354,15 +1354,14 @@ const[modalRechazo,setModalRechazo]=useState(false);
 const[motivoRechazo,setMotivoRechazo]=useState("");const[cobrosTrabajo,setCobrosTrabajo]=useState([]);
 useEffect(()=>{supabase.from('cobros_cliente').select('*').eq('trabajo_id',t.id).then(({data})=>setCobrosTrabajo(data||[]));},[t.id]);
   const[guardando,setGuardando]=useState(false);
+  const[notaOk,setNotaOk]=useState("");
   const notas=getNotas(t);
   const partes=notas.split('|').map(n=>n.trim());
-  const foto=partes.find(p=>p.startsWith('foto:'))?.replace('foto:','');
   const pres=partes.find(p=>p.startsWith('presup:'))?.replace('presup:','');
   const pdfD=partes.find(p=>p.startsWith('pdfdomia:'))?.replace('pdfdomia:','');
   const disp=partes.find(p=>p.startsWith('disponibilidad:'))?.replace('disponibilidad:','').trim();
 const comentCli=partes.find(p=>p.startsWith('cliente:'))?.replace('cliente:','').trim();
 const notaColab=partes.find(p=>p.startsWith('notacolab:'))?.replace('notacolab:','').trim();
-  const justificante=partes.find(p=>p.startsWith('justificante:'))?.replace('justificante:','').trim();
   const precio=getPrecioCliente(t)||0;
   const colab=getPresupColab(t)||0;
   const margen=precio-colab;
@@ -1372,7 +1371,19 @@ const notaColab=partes.find(p=>p.startsWith('notacolab:'))?.replace('notacolab:'
   const linkAceptar=`https://domia-crm-two.vercel.app/aceptar/${refTrabajo(t,'cliente')}`;
   const tel=(cl?.telefono||"").replace(/\s/g,'');
 
-const subirPresupuestoColab=async(archivo:File|undefined)=>{
+const subirFoto=async(archivo:File|undefined)=>{
+    if(!archivo)return;
+    if(!archivo.type.startsWith('image/')){alert("Solo se admiten imágenes.");return;}
+    if(archivo.size>15*1024*1024){alert("La foto es demasiado grande (máximo 15 MB).");return;}
+    const nombre=nombreArchivoSeguro(archivo,`foto_${t.id}`);
+    const{data:up,error:errUp}=await supabase.storage.from('fotos-demandas').upload(nombre,archivo,{upsert:false});
+    if(errUp||!up){toast("No se pudo subir la foto");return;}
+    const{data:pub}=supabase.storage.from('fotos-demandas').getPublicUrl(nombre);
+    const actuales=getNotas(t).split('|').map((n:string)=>n.trim()).filter(Boolean).join(' | ');
+    const saved=await dbSaveTrabajo({...t,notas:(actuales?actuales+' | ':'')+`foto:${pub.publicUrl}`});
+    if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Foto añadida");}
+  };
+  const subirPresupuestoColab=async(archivo:File|undefined)=>{
     if(!archivo)return;
     if(archivo.size>15*1024*1024){alert("El archivo es demasiado grande (máximo 15 MB).");return;}
     const nombre=nombreArchivoSeguro(archivo,`presup_${t.id}`);
@@ -1629,44 +1640,62 @@ const waColab=(co2&&cl)?buildWA(co2,t,cl):null;
         </section>
       </div>}
 
-      {tab==="archivos"&&<div className="space-y-3">
-        {foto&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm"><div className="text-[10px] text-gray-400 uppercase font-bold mb-2">📷 Foto del cliente</div><img src={foto} className="w-full rounded-xl max-h-56 object-cover cursor-pointer" onClick={()=>window.open(foto,"_blank")}/></div>}
-        {pres&&<a href={pres} target="_blank" className="block bg-white border border-gray-100 rounded-2xl p-4 shadow-sm text-sm text-purple-700 font-semibold hover:underline">📄 Presupuesto del colaborador →</a>}
-        {justificante&&<a href={justificante} target="_blank" className="block bg-emerald-50 border border-emerald-200 rounded-2xl p-4 shadow-sm text-sm text-emerald-700 font-semibold hover:underline">🧾 Justificante de pago del cliente →</a>}
-        {!foto&&!pres&&!pdfD&&<div className="text-center py-6 text-sm text-gray-400">Sin archivos</div>}
-        <label className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-gray-200 rounded-2xl py-4 cursor-pointer hover:border-[#1E3A5F] hover:bg-blue-50 transition">
-          <span className="text-2xl">📷</span>
-          <span className="text-sm text-gray-500 font-semibold">Añadir foto</span>
-          <input type="file" accept="image/*" className="hidden" onChange={async e=>{
-            const archivo=e.target.files?.[0];
-            if(!archivo)return;
-            const ext=archivo.name.split('.').pop();
-            const nombre=`foto_${t.id}_${Date.now()}.${ext}`;
-            const{data:up}=await supabase.storage.from('fotos-demandas').upload(nombre,archivo,{upsert:true});
-            if(up){
-              const{data:pub}=supabase.storage.from('fotos-demandas').getPublicUrl(nombre);
-              const notasActuales=getNotas(t).split('|').filter(n=>!n.trim().startsWith('foto:')).map(n=>n.trim()).join(' | ');
-              const saved=await dbSaveTrabajo({...t,notas:(notasActuales?notasActuales+' | ':'')+`foto:${pub.publicUrl}`});
-              if(saved){setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));toast("Foto añadida");}
-            }
-          }}/>
-        </label>
+      {tab==="archivos"&&<div className="ui-page" style={{gap:12}}><UiStyles/>
+        {(()=>{
+          const fotos:string[]=partes.filter((p:any)=>p.startsWith('foto:')).map((p:any)=>p.replace('foto:','').trim()).filter(Boolean);
+          const justificantes:string[]=partes.filter((p:any)=>p.startsWith('justificante:')).map((p:any)=>p.replace('justificante:','').trim()).filter(Boolean);
+          const historicos:string[]=partes.filter((p:any)=>p.startsWith('pdfhist:')).map((p:any)=>p.replace('pdfhist:','').trim()).filter(Boolean);
+          const tipoArchivo=(u:string)=>/\.pdf($|\?)/i.test(u)?"PDF":"IMG";
+          const hayDocs=!!pres||!!pdfD||justificantes.length>0;
+          return<>
+            <section className="ui-card ui-pp-sec" aria-label="Fotos del trabajo">
+              <div className="ui-pp-sh">
+                <span className="ui-pp-ic" style={{background:"#4F7FB8"}}><UiIcon n="image" s={17}/></span>
+                <div className="t"><b>Fotos del trabajo</b><small>{fotos.length>0?`${fotos.length} ${fotos.length===1?"foto":"fotos"}`:"Todavía no hay fotos"}</small></div>
+              </div>
+              {fotos.length>0&&<div className="ui-fotos">{fotos.map((u,i)=><a key={u+i} href={u} target="_blank" aria-label={`Abrir foto ${i+1}`}><img src={u} alt={`Foto ${i+1} del trabajo`} loading="lazy"/></a>)}</div>}
+              <label className="ui-pp-drop"><UiIcon n="upload" s={22}/>Añadir foto<small>{fotos.length>0?"Se suma a las que ya hay":"Foto del problema o del trabajo"}</small><input type="file" accept="image/*" className="hidden" onChange={e=>{subirFoto(e.target.files?.[0]);e.target.value="";}}/></label>
+            </section>
+
+            <section className="ui-card ui-pp-sec" aria-label="Documentos">
+              <div className="ui-pp-sh">
+                <span className="ui-pp-ic" style={{background:"#1E3A5F"}}><UiIcon n="doc" s={17}/></span>
+                <div className="t"><b>Documentos</b><small>Presupuestos y justificantes de pago</small></div>
+              </div>
+              {!hayDocs&&<div className="ui-empty" style={{padding:"18px 8px"}}>Todavía no hay documentos.</div>}
+              {pres&&<div className="ui-pp-row"><span className="ui-pp-fico">{tipoArchivo(pres)}</span><div className="x"><b>Presupuesto del colaborador</b><small>{co?co.nombre:"Colaborador"}</small></div><a className="ui-sbtn" href={pres} target="_blank">Ver</a><button type="button" className="ui-sbtn" onClick={()=>setTab("presupuesto")}>Gestionar</button></div>}
+              {pdfD&&<div className="ui-pp-row"><span className="ui-pp-fico">PDF</span><div className="x"><b>Presupuesto Domia</b><small>{historicos.length>0?`Versión ${historicos.length+1}`:"Primera versión"}</small></div><a className="ui-sbtn" href={pdfD} target="_blank">Ver</a><button type="button" className="ui-sbtn" onClick={()=>setModo("presupuesto")}>Editar</button></div>}
+              {justificantes.map((u,i)=><div key={u+i} className="ui-pp-row"><span className="ui-pp-fico" style={{background:"#DDF6EC",color:"#047857"}}>{tipoArchivo(u)}</span><div className="x"><b>Justificante de pago{justificantes.length>1?` ${i+1}`:""}</b><small>Enviado por el cliente</small></div><a className="ui-sbtn" href={u} target="_blank">Ver</a></div>)}
+            </section>
+          </>;
+        })()}
       </div>}
-{tab==="notas"&&<div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 shadow-sm">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-sm">🔒</span>
-          <span className="text-[10px] text-amber-700 uppercase font-bold tracking-widest">Notas internas · solo visible para ti</span>
-        </div>
-        <textarea defaultValue={t.notas_internas||""} onBlur={async e=>{const v=e.target.value;await supabase.from('trabajos').update({notas_internas:v}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,notas_internas:v}:x)}));toast("Nota guardada");}} rows={6} className="w-full border border-amber-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none" placeholder="Escribe aquí notas privadas sobre este trabajo. Solo las veis tú y tu equipo, nunca el cliente ni el colaborador."/>
+
+      {tab==="notas"&&<div className="ui-page" style={{gap:12}}><UiStyles/>
+        <section className="ui-card ui-pp-sec" aria-label="Notas internas">
+          <div className="ui-pp-sh">
+            <span className="ui-pp-ic" style={{background:"#F59E0B"}}><UiIcon n="lock" s={17}/></span>
+            <div className="t"><b>Notas internas</b><small>Solo las ves tú y tu equipo. Nunca el cliente ni el colaborador.</small></div>
+            {notaOk&&<span className="ui-st a"><i/>{notaOk}</span>}
+          </div>
+          <textarea className="ui-nota" defaultValue={t.notas_internas||""} rows={8} aria-label="Notas internas" placeholder="Escribe aquí lo que quieras recordar de este trabajo: accesos, llaves, particularidades del cliente, acuerdos de palabra…" onFocus={()=>setNotaOk("")} onBlur={async e=>{const v=e.target.value;if(v===(t.notas_internas||""))return;await supabase.from('trabajos').update({notas_internas:v}).eq('id',t.id);setData(d=>({...d,trabajos:d.trabajos.map(x=>x.id===t.id?{...x,notas_internas:v}:x)}));toast("Nota guardada");setNotaOk(`Guardada a las ${new Date().toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})}`);}}/>
+          <span className="ui-pp-hint">Se guarda sola al salir del cuadro.</span>
+        </section>
       </div>}
-      {tab==="historial"&&<div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-        <div className="space-y-2 max-h-80 overflow-y-auto">
-{(Array.isArray(getHistorial(t))?getHistorial(t):[]).slice().reverse().map((h,i)=><div key={i} className="flex gap-2 text-xs">
-          <span className="text-gray-300">•</span>
-            <div><div className="text-gray-700">{h.txt}</div><div className="text-gray-400">{h.ts}</div></div>
-          </div>)}
-          {getHistorial(t).length===0&&<div className="text-center py-4 text-sm text-gray-400">Sin historial</div>}
-        </div>
+
+      {tab==="historial"&&<div className="ui-page" style={{gap:12}}><UiStyles/>
+        {(()=>{
+          const hist:any[]=Array.isArray(getHistorial(t))?getHistorial(t):[];
+          const tono:Record<string,string>={entrada:"#818CF8",wa:"#22C55E",presupuesto:"#8B7FC7",cliente:"#3B82F6",ok:"#10B981",sistema:"#9CA3AF"};
+          return<section className="ui-card ui-pp-sec" aria-label="Historial del trabajo">
+            <div className="ui-pp-sh">
+              <span className="ui-pp-ic" style={{background:"#7A8CA5"}}><UiIcon n="clock" s={17}/></span>
+              <div className="t"><b>Historial</b><small>{hist.length>0?`${hist.length} ${hist.length===1?"movimiento":"movimientos"}, del más reciente al más antiguo`:"Todavía no hay movimientos"}</small></div>
+            </div>
+            {hist.length===0?<div className="ui-empty" style={{padding:"18px 8px"}}>Sin historial</div>
+            :<ol className="ui-tl">{hist.slice().reverse().map((h:any,i:number)=><li key={i}><i style={{background:tono[h.tipo]||tono.sistema}}/><div><b>{h.txt}</b><small>{h.ts}</small></div></li>)}</ol>}
+          </section>;
+        })()}
       </div>}
     </div>
 
@@ -3220,6 +3249,7 @@ const TITULO={home:"Inicio",nuevas:"Nuevas demandas",demandas:"Pipeline",cliente
     {toastMsg&&<Toast msg={toastMsg} clear={()=>setToastMsg(null)}/>}
   </div>;
 }
+
 
 
 

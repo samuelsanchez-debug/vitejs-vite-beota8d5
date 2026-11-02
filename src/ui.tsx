@@ -26,6 +26,8 @@ const ICONOS: Record<string, ReactNode> = {
   chevd: <polyline points="6 9 12 15 18 9" />,
   note: <path d="M4 5h16v11H9l-5 4z" />,
   doc: <><path d="M6 3h9l4 4v14H6z" /><polyline points="14 3 14 8 19 8" /></>,
+  image: <><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="9" cy="10" r="1.8" /><path d="M21 16l-5-5-8 8" /></>,
+  lock: <><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 018 0v3" /></>,
   upload: <><path d="M12 16V4M7 9l5-5 5 5" /><path d="M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3" /></>,
   pin: <><path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z" /><circle cx="12" cy="10" r="2.5" /></>,
   phone: <path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" />,
@@ -309,6 +311,19 @@ a.ui-sbtn{text-decoration:none}
 .ui-pp-v summary{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#9CA3AF;cursor:pointer}
 .ui-pp-v a{display:block;font-size:12.5px;color:#6B7280;padding:5px 2px;text-decoration:none}
 .ui-pp-v a:hover{color:#111827}
+.ui-fotos{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+.ui-fotos a{display:block;border-radius:12px;overflow:hidden;background:#EEF1F7;aspect-ratio:1/1;transition:transform .15s,box-shadow .15s}
+.ui-fotos a:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(8,20,40,.18)}
+.ui-fotos img{width:100%;height:100%;object-fit:cover;display:block}
+.ui-nota{width:100%;border:1px solid #E5E9F0;background:var(--soft);border-radius:12px;padding:12px 14px;font:inherit;font-size:14px;line-height:1.55;color:#374151;resize:vertical;min-height:140px}
+.ui-nota:focus{outline:none;border-color:var(--navy);background:#fff}
+.ui-nota::placeholder{color:#9CA3AF}
+.ui-tl{list-style:none;margin:0;padding:0;position:relative;display:flex;flex-direction:column;max-height:420px;overflow:auto}
+.ui-tl::before{content:"";position:absolute;left:5px;top:8px;bottom:8px;width:2px;background:#E8ECF2}
+.ui-tl li{position:relative;display:flex;gap:12px;padding:6px 0 10px}
+.ui-tl li i{flex:none;width:12px;height:12px;border-radius:50%;margin-top:4px;box-shadow:0 0 0 3px #fff;position:relative;z-index:1}
+.ui-tl li b{display:block;font-size:13px;font-weight:600;color:#1F2937;line-height:1.4;overflow-wrap:anywhere}
+.ui-tl li small{display:block;font-size:11.5px;color:#9CA3AF;margin-top:1px}
 .ui-attn{margin-top:16px;border-left:4px solid var(--or);overflow:hidden}
 .ui-attn-h{display:flex;align-items:center;gap:8px;padding:12px 14px 6px;font-size:13px;font-weight:700;color:#92400E}
 .ui-attn-h .n{background:var(--or);color:#2B1A00;border-radius:999px;font-size:11px;padding:1px 8px}
