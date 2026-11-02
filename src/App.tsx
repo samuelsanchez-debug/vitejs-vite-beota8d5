@@ -71,7 +71,7 @@ const sugerirColab = (tipo,colabs,trabajos)=>{
 
 const BASE_URL = 'https://domia-crm-two.vercel.app';
 // Fondo de la zona de contenido del CRM (la barra superior y el menú lateral son blancos).
-const FONDO_CRM = '#DCE7F5';
+const FONDO_CRM = '#1E3A5F';
 
 // Enlaces públicos: usan un código aleatorio por trabajo (token) y, si aún no existe, el id numérico antiguo.
 type RolPortal='cliente'|'colaborador';
@@ -232,7 +232,7 @@ function Fld({label,children}){return<div className="mb-3"><label className="blo
 function Badge({text}){const c=ESTADO_CFG[text]||{bg:"bg-gray-100",text:"text-gray-500",dot:"bg-gray-300"};return<span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${c.bg} ${c.text}`}><span className={`w-1.5 h-1.5 rounded-full ${c.dot}`}/>{text}</span>;}
 function OrigenTag({id}){const o=orCfg(id);return<span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${o.color}`}>{o.icon} {o.label}</span>;}
 function Modal({title,onClose,wide,xwide,children}){return<div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"><div className={`bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full ${xwide?"max-w-5xl":wide?"max-w-2xl":"max-w-lg"} max-h-[93vh] overflow-y-auto`}><div className="flex items-center justify-between px-4 sm:px-5 py-4 border-b border-gray-100 sticky top-0 bg-white z-10"><h2 className="font-bold text-gray-800 text-base">{title}</h2><button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 text-xl">&times;</button></div><div className="px-4 sm:px-5 py-5">{children}</div></div></div>;}
-function Back({title,onBack,right}){return<div className="flex items-center gap-3 mb-5"><button onClick={onBack} className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-gray-200 text-gray-500 hover:border-[#1E3A5F] hover:text-[#1E3A5F] transition text-xl shadow-sm">‹</button><h2 className="font-black text-gray-800 text-lg flex-1 leading-tight">{title}</h2>{right}</div>;}
+function Back({title,onBack,right}){return<div className="flex items-center gap-3 mb-5"><button onClick={onBack} className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-gray-200 text-gray-500 hover:border-[#1E3A5F] hover:text-[#1E3A5F] transition text-xl shadow-sm">‹</button><h2 className="font-black text-white text-lg flex-1 leading-tight">{title}</h2>{right}</div>;}
 function Toast({msg,clear}){useEffect(()=>{const t=setTimeout(clear,2800);return()=>clearTimeout(t);},[]);return<div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] bg-gray-900 text-white text-sm px-5 py-3 rounded-2xl shadow-2xl whitespace-nowrap">{msg}</div>;}
 function Pill({label,active,onClick}){return<button onClick={onClick} className={`whitespace-nowrap text-xs px-3 py-1.5 rounded-full border font-semibold transition ${active?"bg-[#1E3A5F] text-white border-[#1E3A5F]":"bg-white text-gray-500 border-gray-200 hover:border-[#1E3A5F]"}`}>{label}</button>;}
 
@@ -328,7 +328,7 @@ function NuevasDemandas({data,setData,onBack,toast,onVer}){
   const nuevas=data.trabajos.filter(t=>t.estado==="Solicitud");
   return<div>
     <Back title={`Nuevas demandas (${nuevas.length})`} onBack={onBack}/>
-    {nuevas.length===0&&<div className="text-center py-16"><div className="text-5xl mb-3">✅</div><div className="font-bold text-gray-700">Todo gestionado</div></div>}
+    {nuevas.length===0&&<div className="text-center py-16"><div className="text-5xl mb-3">✅</div><div className="font-bold text-white">Todo gestionado</div></div>}
     <div className="space-y-3">{nuevas.map(t=>{
       const cl=data.clientes.find(c=>c.id===getClienteId(t));
       const sg=sugerirColab(t.tipo,data.colaboradores,data.trabajos);

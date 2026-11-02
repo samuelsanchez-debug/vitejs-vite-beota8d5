@@ -136,6 +136,8 @@ const DASH_CSS = `
 .dsh *{box-sizing:border-box}
 .dsh-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .dsh-hoy{font-size:13px;color:#6B7280}
+.dsh-bar .dsh-hoy{color:#DCE7F5}
+.dsh-bar .dsh-seg{border-color:transparent}
 .dsh-seg{display:inline-flex;background:#fff;border:1px solid #E5E7EB;border-radius:999px;padding:3px}
 .dsh-seg button{font:inherit;font-size:12.5px;font-weight:600;padding:5px 12px;border-radius:999px;border:0;background:none;color:#6B7280;cursor:pointer}
 .dsh-seg button[aria-pressed="true"]{background:var(--navy);color:#fff}
