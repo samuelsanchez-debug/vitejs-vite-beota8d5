@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { jsPDF } from 'jspdf';
 import AltaColaborador from "./alta-colaborador";
 import PanelInicio from "./panel-inicio";
+import {UiStyles,PageHeader,Boton,Tabs,KpiRow,Tarjeta,Controles,SeccionEtiqueta,Buscador,Selector,Segmentado,Avatar,EstadoActivo,UiIcon} from "./ui";
 const supabase = createClient('https://opijkazhbktiikdzbanb.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9waWprYXpoYmt0aWlrZHpiYW5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNDcyNjIsImV4cCI6MjA5NzcyMzI2Mn0.HmTXEO848sPMhi2NxNxvshLxntk1EDI6D4NCMAdUINI');
 
 const TIPOS = ["Fontanería","Electricidad","Albañilería","Carpintería","Pintura","Cerrajería","Climatización","Mantenimiento","Jardinería","Limpieza","Otros"];
@@ -232,7 +233,7 @@ function Fld({label,children}){return<div className="mb-3"><label className="blo
 function Badge({text}){const c=ESTADO_CFG[text]||{bg:"bg-gray-100",text:"text-gray-500",dot:"bg-gray-300"};return<span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${c.bg} ${c.text}`}><span className={`w-1.5 h-1.5 rounded-full ${c.dot}`}/>{text}</span>;}
 function OrigenTag({id}){const o=orCfg(id);return<span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${o.color}`}>{o.icon} {o.label}</span>;}
 function Modal({title,onClose,wide,xwide,children}){return<div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"><div className={`bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full ${xwide?"max-w-5xl":wide?"max-w-2xl":"max-w-lg"} max-h-[93vh] overflow-y-auto`}><div className="flex items-center justify-between px-4 sm:px-5 py-4 border-b border-gray-100 sticky top-0 bg-white z-10"><h2 className="font-bold text-gray-800 text-base">{title}</h2><button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 text-xl">&times;</button></div><div className="px-4 sm:px-5 py-5">{children}</div></div></div>;}
-function Back({title,onBack,right}){return<div className="flex items-center gap-3 mb-5"><button onClick={onBack} className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-gray-200 text-gray-500 hover:border-[#1E3A5F] hover:text-[#1E3A5F] transition text-xl shadow-sm">‹</button><h2 className="font-black text-white text-lg flex-1 leading-tight">{title}</h2>{right}</div>;}
+function Back({title,onBack,right}){return<div className="flex items-center gap-3 mb-5"><button onClick={onBack} className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-gray-200 text-gray-500 hover:border-[#1E3A5F] hover:text-[#1E3A5F] transition text-xl shadow-sm">‹</button><h2 className="font-black text-white text-lg flex-1 leading-tight">{title}</h2>{right?<div className="bg-white rounded-xl p-1 shadow-sm flex items-center gap-1">{right}</div>:null}</div>;}
 function Toast({msg,clear}){useEffect(()=>{const t=setTimeout(clear,2800);return()=>clearTimeout(t);},[]);return<div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] bg-gray-900 text-white text-sm px-5 py-3 rounded-2xl shadow-2xl whitespace-nowrap">{msg}</div>;}
 function Pill({label,active,onClick}){return<button onClick={onClick} className={`whitespace-nowrap text-xs px-3 py-1.5 rounded-full border font-semibold transition ${active?"bg-[#1E3A5F] text-white border-[#1E3A5F]":"bg-white text-gray-500 border-gray-200 hover:border-[#1E3A5F]"}`}>{label}</button>;}
 
@@ -936,17 +937,19 @@ function Colaboradores({data,setData,onBack,toast}){
       const pag=data.trabajos.filter(t=>getColabId(t)===c.id&&t.estado==="Completado").reduce((s,t)=>s+(getPresupColab(t)||0),0);
       return{...c,_act:act,_pag:pag};
     });
-    return<div>
-      <Back title="Colaboradores" onBack={onBack}/>
-      <div className="flex gap-2 mb-4">
-        <button onClick={()=>setTab("activos")} className={`flex-1 py-2 rounded-xl text-sm font-bold transition ${tab==="activos"?"bg-[#1E3A5F] text-white":"bg-white text-gray-500 border border-gray-200"}`}>Colaboradores</button>
-        <button onClick={()=>setTab("solicitudes")} className={`flex-1 py-2 rounded-xl text-sm font-bold transition relative ${tab==="solicitudes"?"bg-[#1E3A5F] text-white":"bg-white text-gray-500 border border-gray-200"}`}>Solicitudes{pendientes>0&&<span className="absolute -top-1.5 -right-1.5 bg-amber-500 text-white text-[10px] font-black min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center">{pendientes}</span>}</button>
-      </div>
+    const totalAct=data.colaboradores.filter((c:any)=>c.activo).length;
+    const totalCurso=data.trabajos.filter((t:any)=>getColabId(t)&&["Presupuestando","Aceptado","En curso"].includes(t.estado)).length;
+    const totalPag=data.trabajos.filter((t:any)=>getColabId(t)&&t.estado==="Completado").reduce((s:number,t:any)=>s+(getPresupColab(t)||0),0);
+    return<div className="ui-page"><UiStyles/>
+      <PageHeader titulo="Colaboradores" subtitulo={`${data.colaboradores.length} colaboradores · ${totalAct} activos${filas.length!==data.colaboradores.length?` · mostrando ${filas.length}`:""}`} onBack={onBack}>
+        <Boton icono="link" onClick={()=>{navigator.clipboard.writeText("https://domia-crm-two.vercel.app/alta-colaborador").then(()=>toast("📋 Enlace de alta copiado"));}}>Copiar enlace de alta</Boton>
+        <Boton variante="pri" icono="plus" onClick={()=>setShowNew(true)}>Nuevo colaborador</Boton>
+      </PageHeader>
+      <Tabs tabs={[{id:"activos",label:"Colaboradores",count:data.colaboradores.length},{id:"solicitudes",label:"Solicitudes",count:pendientes}]} value={tab} onChange={setTab}/>
+      <KpiRow items={[{icono:"user",valor:totalAct,etiqueta:"colaboradores activos"},{icono:"tool",valor:totalCurso,etiqueta:"trabajos en curso"},{icono:"eur",valor:`${totalPag} €`,etiqueta:"pagado en total"}]}/>
       {tab==="solicitudes"&&<div className="space-y-2">
-        <div className="flex gap-1.5 mb-3 flex-wrap">
-          {["Pendiente","Validado","Rechazado","Todas"].map(f=><Pill key={f} label={f==="Pendiente"?"Pendientes":f==="Validado"?"Validadas":f==="Rechazado"?"Rechazadas":"Todas"} active={filtroSol===f} onClick={()=>setFiltroSol(f)}/>)}
-        </div>
-        {solicitudes.filter(s=>filtroSol==="Todas"||s.estado===filtroSol).length===0&&<div className="text-center py-10 text-sm text-gray-400">Sin solicitudes</div>}
+        <Controles><Segmentado etiqueta="Estado de la solicitud" value={filtroSol} onChange={setFiltroSol} opciones={[{id:"Pendiente",label:"Pendientes"},{id:"Validado",label:"Validadas"},{id:"Rechazado",label:"Rechazadas"},{id:"Todas",label:"Todas"}]}/></Controles>
+        {solicitudes.filter(s=>filtroSol==="Todas"||s.estado===filtroSol).length===0&&<Tarjeta><div className="ui-empty">Sin solicitudes</div></Tarjeta>}
         {solicitudes.filter(s=>filtroSol==="Todas"||s.estado===filtroSol).map(s=><div key={s.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
           <div className="flex items-start justify-between mb-2">
             <div><div className="font-bold text-gray-800">{s.nombre}</div><div className="text-xs text-gray-500">{s.telefono} · {s.email}</div></div>
@@ -987,56 +990,28 @@ const existe=data.colaboradores.find(c=>c.email&&s.email&&c.email.toLowerCase().
         </div>)}
       </div>}
       {tab==="activos"&&<>
-      <div className="flex flex-wrap items-center gap-2 mb-3">
-        <input className={S+" flex-1 min-w-[180px]"} placeholder="🔍 Nombre, zona o teléfono..." value={busca} onChange={e=>setBusca(e.target.value)}/>
-        <select className="border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-semibold bg-white text-gray-600" value={fEsp} onChange={e=>setFEsp(e.target.value)}>
-          <option value="Todas">Todas las especialidades</option>
-          {TIPOS.map(t=><option key={t} value={t}>{t}</option>)}
-        </select>
-        {zonas.length>1&&<select className="border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-semibold bg-white text-gray-600" value={fZona} onChange={e=>setFZona(e.target.value)}>
-          {zonas.map(z=><option key={String(z)} value={z}>{z==="Todas"?"Todas las zonas":z}</option>)}
-        </select>}
-        <button onClick={()=>{navigator.clipboard.writeText("https://domia-crm-two.vercel.app/alta-colaborador").then(()=>toast("📋 Enlace de alta copiado"));}} className="bg-green-50 text-green-700 border border-green-200 text-xs font-bold px-3.5 py-2.5 rounded-xl hover:bg-green-100 transition whitespace-nowrap">🔗 Copiar enlace alta</button>
-        <button onClick={()=>setShowNew(true)} className="bg-[#1E3A5F] text-white text-xs font-bold px-3.5 py-2.5 rounded-xl hover:bg-[#152d4a] transition whitespace-nowrap">+ Nuevo colaborador</button>
-      </div>
-      <div className="flex gap-1.5 mb-3">{["Todos","Activo","Inactivo"].map(o=><Pill key={o} label={o} active={fEst===o} onClick={()=>setFEst(o)}/>)}</div>
-      <div className="text-xs text-gray-400 font-semibold mb-3">{filas.length} colaborador{filas.length!==1?"es":""}</div>
-      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse min-w-[860px]">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-100">
-                <th className="text-left text-[10.5px] uppercase tracking-wide text-gray-400 font-bold px-4 py-2.5 whitespace-nowrap">Colaborador</th>
-                <th className="text-left text-[10.5px] uppercase tracking-wide text-gray-400 font-bold px-4 py-2.5 whitespace-nowrap">Teléfono</th>
-                <th className="text-left text-[10.5px] uppercase tracking-wide text-gray-400 font-bold px-4 py-2.5 whitespace-nowrap">Zona</th>
-                <th className="text-left text-[10.5px] uppercase tracking-wide text-gray-400 font-bold px-4 py-2.5 whitespace-nowrap">Disponibilidad</th>
-                <th className="text-right text-[10.5px] uppercase tracking-wide text-gray-400 font-bold px-4 py-2.5 whitespace-nowrap">En curso</th>
-                <th className="text-right text-[10.5px] uppercase tracking-wide text-gray-400 font-bold px-4 py-2.5 whitespace-nowrap">Pagado</th>
-                <th className="text-left text-[10.5px] uppercase tracking-wide text-gray-400 font-bold px-4 py-2.5 whitespace-nowrap">Estado</th>
-                <th className="px-2"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {filas.map(c=><tr key={c.id} onClick={()=>setCoid(c.id)} className={`border-b border-gray-50 last:border-0 hover:bg-gray-50 cursor-pointer transition ${!c.activo?"opacity-50":""}`}>
-                <td className="px-4 py-3">
-                  <div className="font-semibold text-gray-800">{c.nombre}</div>
-                  {c.especialidades?.length>0&&<div className="flex flex-wrap gap-1 mt-1">{c.especialidades.map(e=><span key={e} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#E7EDF5] text-[#1E3A5F] whitespace-nowrap">{e}</span>)}</div>}
-                </td>
-                <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{c.telefono||c.whatsapp||"—"}</td>
-                <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{c.zona||"—"}</td>
-                <td className="px-4 py-3">
-                  <div className="flex gap-0.5">{DIAS.map((d,i)=><span key={i} className={`text-[9px] w-5 h-5 flex items-center justify-center rounded font-bold ${c.disponibilidad?.includes(i)?"bg-emerald-100 text-emerald-600":"bg-gray-100 text-gray-300"}`}>{d}</span>)}</div>
-                </td>
-                <td className="px-4 py-3 text-right text-gray-600">{c._act}</td>
-                <td className="px-4 py-3 text-right font-semibold text-gray-800 whitespace-nowrap">{c._pag>0?`${c._pag}€`:<span className="text-gray-300">—</span>}</td>
-                <td className="px-4 py-3">{c.activo?<span className="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"/>Activo</span>:<span className="inline-flex items-center text-[10px] font-bold px-2.5 py-1 rounded-full bg-gray-100 text-gray-400">Inactivo</span>}</td>
-                <td className="px-2 text-right text-gray-300">›</td>
-              </tr>)}
-            </tbody>
-          </table>
-        </div>
-        {filas.length===0&&<div className="text-center py-10 text-sm text-gray-400">Sin resultados.</div>}
-      </div>
+      <Controles>
+        <Buscador value={busca} onChange={setBusca} placeholder="Nombre, zona o teléfono"/>
+        <Selector etiqueta="Especialidad" value={fEsp} onChange={setFEsp}><option value="Todas">Todas las especialidades</option>{TIPOS.map(t=><option key={t} value={t}>{t}</option>)}</Selector>
+        {zonas.length>1&&<Selector etiqueta="Zona" value={fZona} onChange={setFZona}>{zonas.map(z=><option key={String(z)} value={String(z)}>{z==="Todas"?"Todas las zonas":String(z)}</option>)}</Selector>}
+        <Segmentado etiqueta="Estado" value={fEst} onChange={setFEst} opciones={[{id:"Todos",label:"Todos"},{id:"Activo",label:"Activos"},{id:"Inactivo",label:"Inactivos"}]}/>
+      </Controles>
+      <Tarjeta className="ui-tbl"><div className="ui-scroll"><table className="ui-t">
+        <thead><tr><th>Colaborador</th><th>Teléfono</th><th>Zona</th><th>Disponibilidad</th><th className="r">En curso</th><th className="r">Pagado</th><th>Estado</th><th></th></tr></thead>
+        <tbody>
+          {filas.map(c=><tr key={c.id} tabIndex={0} onClick={()=>setCoid(c.id)} onKeyDown={e=>{if(e.key==="Enter")setCoid(c.id);}} className={c.activo?"":"off"}>
+            <td><div className="ui-who"><Avatar nombre={c.nombre}/><div><b>{c.nombre}</b>{c.especialidades?.length>0&&<div className="ui-chips">{c.especialidades.map(e=><span key={e} className="ui-chip">{e}</span>)}</div>}</div></div></td>
+            <td>{c.telefono||c.whatsapp||"—"}</td>
+            <td>{c.zona||"—"}</td>
+            <td><span className="ui-days">{DIAS.map((d,i)=><span key={i} className={`ui-d${c.disponibilidad?.includes(i)?" on":""}`}>{d}</span>)}</span></td>
+            <td className="r ui-num">{c._act}</td>
+            <td className="r">{c._pag>0?<span className="ui-num">{c._pag} €</span>:<span className="ui-mut">—</span>}</td>
+            <td><EstadoActivo activo={!!c.activo}/></td>
+            <td className="ui-go"><UiIcon n="chev" s={14}/></td>
+          </tr>)}
+        </tbody>
+      </table></div>
+      {filas.length===0&&<div className="ui-empty">Ningún colaborador coincide con la búsqueda.</div>}</Tarjeta>
 {showNew&&<Modal title="Nuevo colaborador" onClose={()=>setShowNew(false)}><FormColab onSave={async f=>{if(!f.nombre.trim())return;if(!f.email||!f.email.trim()){alert("El email es obligatorio");return;}const dup=data.colaboradores.find(c=>c.email&&c.email.toLowerCase().trim()===f.email.toLowerCase().trim());if(dup){alert(`Ya existe un colaborador con ese email: ${dup.nombre}`);return;}const saved=await dbSaveColab(f);if(saved){setData(d=>({...d,colaboradores:[...d.colaboradores,saved]}));setShowNew(false);toast("✅ Colaborador creado");}}} onCancel={()=>setShowNew(false)}/></Modal>}      </>}
     </div>;
   }
@@ -1045,14 +1020,18 @@ const existe=data.colaboradores.find(c=>c.email&&s.email&&c.email.toLowerCase().
   const act=ts.filter(t=>["Presupuestando","Aceptado","En curso"].includes(t.estado)).length;
   const done=ts.filter(t=>t.estado==="Completado").length;
   const pag=ts.filter(t=>t.estado==="Completado").reduce((s,t)=>s+(getPresupColab(t)||0),0);
-  if(editando)return<div>
-    <Back title={`Editar — ${co?.nombre}`} onBack={()=>setEditando(false)}/>
+  if(editando)return<div className="ui-page"><UiStyles/>
+    <PageHeader titulo={`Editar — ${co?.nombre}`} onBack={()=>setEditando(false)}/>
+    <Tarjeta className="ui-pad mt-4">
     <FormColab ini={form} onSave={async f=>{const saved=await dbSaveColab({...f,id:coid});if(saved){setData(d=>({...d,colaboradores:d.colaboradores.map(x=>x.id===coid?saved:x)}));setEditando(false);toast("✅ Guardado");}}} onCancel={()=>setEditando(false)}/>
 <button onClick={async()=>{const trabajosAsignados=data.trabajos.filter(t=>getColabId(t)===coid);const activos=trabajosAsignados.filter(t=>!["Completado","Cancelado"].includes(t.estado));if(activos.length>0){if(!confirm(`⚠️ ATENCIÓN: ${co?.nombre} tiene ${activos.length} trabajo(s) activo(s) asignado(s). Si lo eliminas, esos trabajos quedarán SIN colaborador.\n\n¿Seguro que quieres eliminarlo?`))return;}else if(trabajosAsignados.length>0){if(!confirm(`${co?.nombre} tiene ${trabajosAsignados.length} trabajo(s) en su historial (ya completados). ¿Eliminar de todas formas?`))return;}else{if(!confirm(`¿Eliminar a ${co?.nombre}?`))return;}await supabase.from('colaboradores').delete().eq('id',coid);setData(d=>({...d,colaboradores:d.colaboradores.filter(x=>x.id!==coid)}));setCoid(null);toast("Colaborador eliminado");}} className="w-full mt-2 bg-red-50 text-red-500 py-2.5 rounded-xl text-sm hover:bg-red-100 transition">Eliminar colaborador</button>
+    </Tarjeta>
   </div>;
-  return<div>
-    <Back title={co?.nombre} onBack={()=>setCoid(null)} right={<button onClick={()=>{setForm({...co});setEditando(true);}} className="border border-gray-200 text-gray-500 text-xs font-semibold px-3 py-1.5 rounded-xl hover:border-[#1E3A5F] hover:text-[#1E3A5F] transition">Editar</button>}/>
-    <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm mb-4">
+  return<div className="ui-page"><UiStyles/>
+    <PageHeader titulo={co?.nombre} subtitulo={`${co?.activo?"Activo":"Inactivo"}${co?.zona?` · ${co.zona}`:""}`} onBack={()=>setCoid(null)}>
+      <Boton onClick={()=>{setForm({...co});setEditando(true);}}>Editar</Boton>
+    </PageHeader>
+    <div className="ui-card p-4 mt-4 mb-2">
       <div className="flex flex-wrap items-center gap-2 mb-3"><span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${co?.activo?"bg-emerald-100 text-emerald-700":"bg-gray-100 text-gray-400"}`}>{co?.activo?"Activo":"Inactivo"}</span>{co?.especialidades?.map(e=><span key={e} className="text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full font-semibold border border-blue-100">{e}</span>)}</div>
       <div className="grid grid-cols-2 gap-3 text-sm mb-3"><div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Teléfono</div><div className="font-semibold">{co?.telefono||co?.whatsapp||"—"}</div></div><div><div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Zona</div><div className="font-semibold">{co?.zona||"—"}</div></div></div>
       <div className="text-[10px] text-gray-400 font-bold uppercase mb-1.5">Disponibilidad</div>
@@ -1065,8 +1044,8 @@ const existe=data.colaboradores.find(c=>c.email&&s.email&&c.email.toLowerCase().
 {co?.whatsapp&&<button onClick={()=>window.open(`https://wa.me/${co.whatsapp.replace(/\s/g,'')}`,"_blank")} className="w-full mt-3 bg-green-500 hover:bg-green-600 text-white text-sm font-bold py-2.5 rounded-xl transition">📱 Abrir WhatsApp</button>}
       {co?.email&&<button onClick={async()=>{if(!confirm(`¿Enviar acceso al portal a ${co.email}?`))return;try{const r=await fetch("https://opijkazhbktiikdzbanb.supabase.co/functions/v1/invitar-colaborador",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:co.email,nombre:co.nombre})});if(r.ok)toast("📧 Acceso enviado por email");else toast("Error al enviar el acceso");}catch(err){toast("Error al enviar el acceso");}}} className="w-full mt-2 bg-[#1E3A5F] hover:bg-[#152d4a] text-white text-sm font-bold py-2.5 rounded-xl transition">📧 Enviar acceso al portal</button>}
     </div>
-    <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Trabajos asignados</div>
-    {ts.length===0&&<p className="text-sm text-gray-400 text-center py-6">Sin trabajos asignados</p>}
+    <SeccionEtiqueta>Trabajos asignados</SeccionEtiqueta>
+    {ts.length===0&&<p className="text-sm text-blue-200 text-center py-6">Sin trabajos asignados</p>}
     <div className="space-y-2">{ts.map(t=>{const cl=data.clientes.find(c=>c.id===getClienteId(t));return<div key={t.id} className="bg-white border border-gray-100 rounded-xl p-3 shadow-sm flex items-center gap-2"><div className="flex-1 min-w-0"><div className="font-semibold text-sm text-gray-800">{t.tipo}</div><div className="text-xs text-gray-500 truncate">{cl?.nombre} · {fmt(t.fecha)}</div></div><div className="flex items-center gap-2">{getPresupColab(t)&&<span className="text-xs font-bold text-red-500">{getPresupColab(t)}€</span>}<Badge text={t.estado}/></div></div>;})}</div>
   </div>;
 }
@@ -3305,3 +3284,4 @@ const TITULO={home:"Inicio",nuevas:"Nuevas demandas",demandas:"Pipeline",cliente
     {toastMsg&&<Toast msg={toastMsg} clear={()=>setToastMsg(null)}/>}
   </div>;
 }
+
