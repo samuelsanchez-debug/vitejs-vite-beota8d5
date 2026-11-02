@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { jsPDF } from 'jspdf';
 import AltaColaborador from "./alta-colaborador";
 import PanelInicio from "./panel-inicio";
-import {UiStyles,PageHeader,Boton,Tabs,KpiRow,Tarjeta,Controles,SeccionEtiqueta,Buscador,Selector,Segmentado,Avatar,EstadoActivo,UiIcon,Cajon,useEstrecho} from "./ui";
+import {UiStyles,PageHeader,Boton,Tabs,KpiRow,Tarjeta,Controles,SeccionEtiqueta,Buscador,Selector,Segmentado,Avatar,EstadoActivo,UiIcon,useEstrecho} from "./ui";
 const supabase = createClient('https://opijkazhbktiikdzbanb.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9waWprYXpoYmt0aWlrZHpiYW5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNDcyNjIsImV4cCI6MjA5NzcyMzI2Mn0.HmTXEO848sPMhi2NxNxvshLxntk1EDI6D4NCMAdUINI');
 
 const TIPOS = ["Fontanería","Electricidad","Albañilería","Carpintería","Pintura","Cerrajería","Climatización","Mantenimiento","Jardinería","Limpieza","Otros"];
@@ -484,58 +484,14 @@ function accionesDeTrabajo(t:any,{data,setData,toast,onVer}:{data:any,setData:an
   return {cl,co,acciones,principal,marcarAtendido,abrirPresupuesto,disponibilidad,fotoCliente,presupUrl,pdfDomiaUrl,comentCliente};
 }
 
-const quitarEmoji=(s:string)=>String(s).replace(/^[^\p{L}\p{N}¿¡"]+/u,"");
-
-function PanelTrabajo({t,data,setData,toast,onVer}:{t:any,data:any,setData:any,toast:any,onVer:any}){
-  const {cl,co,acciones,marcarAtendido,abrirPresupuesto,disponibilidad,fotoCliente,presupUrl,pdfDomiaUrl,comentCliente}=accionesDeTrabajo(t,{data,setData,toast,onVer});
-  const hay=!!t.ultima_novedad&&!t.atendido;
-  const precioC=getPrecioCliente(t),precioK=getPresupColab(t);
-  return <div className="ui-panel">
-    <div className="ui-panel-h">
-      <span className="ui-tile" style={{background:"#E8EEF5",color:"#1E3A5F"}}><IconoTipoPipeline tipo={t.tipo}/></span>
-      <div style={{minWidth:0}}><div className="k">{t.tipo} · #{t.id}</div><h3>{cl?.nombre||"Sin cliente"}</h3></div>
-    </div>
-    <span className="ui-st i" style={{alignSelf:"flex-start"}}><i style={{background:ESTADO_HEX[t.estado]||"#CBD2DC"}}/>{t.estado}</span>
-    {hay&&<div className="ui-nov"><UiIcon n="bell" s={12}/>{quitarEmoji(t.ultima_novedad)}</div>}
-    <div className="ui-det on">
-      <div className="g">
-        <div><div className="k">Cliente</div>{cl?.nombre||"—"}<div style={{color:"#6B7280"}}>{cl?.telefono}</div></div>
-        <div><div className="k">Colaborador</div>{co?.nombre||"Sin asignar"}<div style={{color:"#6B7280"}}>{co?.telefono||co?.whatsapp}</div></div>
-        <div className="w"><div className="k">Dirección</div>{cl?.direccion||"—"}</div>
-        <div className="w"><div className="k">Descripción</div>{t.descripcion||"—"}</div>
-      </div>
-      {disponibilidad&&<div className="ui-box teal"><UiIcon n="calendar" s={14}/><span><b>Disponibilidad del colaborador:</b> {disponibilidad}</span></div>}
-      {(fotoCliente||presupUrl||pdfDomiaUrl||comentCliente)&&<div style={{display:"flex",flexDirection:"column",gap:6}}>
-        <div className="k">Archivos y notas</div>
-        {fotoCliente&&<a href={fotoCliente} target="_blank">Foto del cliente →</a>}
-        {presupUrl&&<a href={presupUrl} target="_blank">Presupuesto del colaborador →</a>}
-        {pdfDomiaUrl&&<div style={{display:"flex",alignItems:"center",gap:8}}><a href={pdfDomiaUrl} target="_blank" style={{flex:1}}>Presupuesto Domia →</a><button type="button" className="ui-sbtn" onClick={abrirPresupuesto}>Editar</button></div>}
-        {comentCliente&&<div className="ui-box"><UiIcon n="note" s={14}/><span><b>Cliente:</b> {comentCliente}</span></div>}
-      </div>}
-      <div className="eco">
-        <div><b style={{color:"#059669"}}>{precioC?`${precioC}€`:"—"}</b><span>Cliente</span></div><i>−</i>
-        <div><b style={{color:"#DC2626"}}>{precioK?`${precioK}€`:"—"}</b><span>Colaborador</span></div><i>=</i>
-        <div><b style={{color:"#2563EB"}}>{precioC&&precioK?`${precioC-precioK}€`:"—"}</b><span>Margen{precioC&&precioK>0?` · ${Math.round((precioC-precioK)/precioK*100)}%`:""}</span></div>
-      </div>
-      {t.estado==="En curso"&&t.verificacion_rechazo&&<div className="ui-box" style={{background:"#FEF2F2",color:"#B91C1C"}}><UiIcon n="warn" s={14}/><span><b>El cliente indica que falta algo:</b><br/>{t.verificacion_rechazo}</span></div>}
-      <div style={{display:"flex",flexDirection:"column",gap:6}}>
-        <div className="k">Acciones</div>
-        {acciones.map(a=><button key={a.txt} type="button" className={`ui-sbtn ui-full ${a.tono==="wa"?"wa":a.tono==="ok"?"ok":"pri"}`} style={{padding:"10px"}} onClick={a.onClick}>{a.txt}</button>)}
-        {hay&&<button type="button" className="ui-sbtn ui-full" style={{padding:"10px"}} onClick={marcarAtendido}><UiIcon n="tick" s={13}/>Marcar aviso como atendido</button>}
-        <button type="button" className="ui-sbtn ui-full" style={{padding:"10px"}} onClick={()=>onVer(t.id)}>Abrir ficha completa / Editar</button>
-      </div>
-    </div>
-  </div>;
-}
-
-function MiniTarjeta({t,data,onAbrir,arrastrable,onArrastrar,onSoltar,arrastrando}:{t:any,data:any,onAbrir:any,arrastrable:boolean,onArrastrar:any,onSoltar:any,arrastrando:boolean}){
+function MiniTarjeta({t,data,onAbrir,onAtender,arrastrable,onArrastrar,onSoltar,arrastrando}:{t:any,data:any,onAbrir:any,onAtender:any,arrastrable:boolean,onArrastrar:any,onSoltar:any,arrastrando:boolean}){
   const cl=data.clientes.find((c:any)=>c.id===getClienteId(t));
   const co=data.colaboradores.find((c:any)=>c.id===getColabId(t));
   const hay=!!t.ultima_novedad&&!t.atendido;
   return <div className={`ui-mc${hay?" hay":""}${arrastrando?" arr":""}`} style={{["--p" as any]:PRIO_HEX[t.prioridad]||"#CBD2DC"}} tabIndex={0} draggable={arrastrable}
     onDragStart={e=>{e.dataTransfer.effectAllowed="move";try{e.dataTransfer.setData("text/plain",String(t.id));}catch(err){}onArrastrar(t.id);}} onDragEnd={onSoltar}
     onClick={()=>onAbrir(t.id)} onKeyDown={e=>{if(e.key==="Enter")onAbrir(t.id);}}>
-    {hay&&<span className="dot" title="Aviso sin atender"/>}
+    {hay&&<button type="button" className="dot" title="Aviso sin atender: pulsa para marcarlo como atendido" aria-label="Marcar aviso como atendido" draggable={false} onClick={e=>{e.stopPropagation();onAtender(t);}}><UiIcon n="tick" s={12}/></button>}
     <div className="t"><span className="tl"><IconoTipoPipeline tipo={t.tipo}/></span>{t.tipo}<span className="id">#{t.id}</span></div>
     <div className="cl">{cl?.nombre}</div>
     {cl?.direccion&&<div className="dr">{cl.direccion}</div>}
@@ -545,7 +501,7 @@ function MiniTarjeta({t,data,onAbrir,arrastrable,onArrastrar,onSoltar,arrastrand
 }
 
 function FilaLista({t,data,setData,toast,onVer,onAbrir}:{t:any,data:any,setData:any,toast:any,onVer:any,onAbrir:any}){
-  const {cl,co,principal}=accionesDeTrabajo(t,{data,setData,toast,onVer});
+  const {cl,co,principal,marcarAtendido}=accionesDeTrabajo(t,{data,setData,toast,onVer});
   const hay=!!t.ultima_novedad&&!t.atendido;
   return <div className="ui-lc" onClick={()=>onAbrir(t.id)}>
     <div className="a">
@@ -556,7 +512,8 @@ function FilaLista({t,data,setData,toast,onVer,onAbrir}:{t:any,data:any,setData:
     <div className="m">
       <span className="ui-st i"><i style={{background:ESTADO_HEX[t.estado]||"#CBD2DC"}}/>{t.estado}</span>
       <span className="d">{diasDesde(t.fecha)}</span>
-      <button type="button" className={`ui-sbtn ${principal?.tono==="wa"?"wa":principal?.tono==="ok"?"ok":"pri"}`} style={{marginLeft:"auto"}} onClick={e=>{e.stopPropagation();if(principal)principal.onClick();else onAbrir(t.id);}}>{principal?principal.txt:"Ver detalle"}</button>
+      {hay&&<button type="button" className="ui-sbtn" style={{marginLeft:"auto"}} onClick={e=>{e.stopPropagation();marcarAtendido();}}><UiIcon n="tick" s={13}/>Atendido</button>}
+      <button type="button" className={`ui-sbtn ${principal?.tono==="wa"?"wa":principal?.tono==="ok"?"ok":"pri"}`} style={hay?undefined:{marginLeft:"auto"}} onClick={e=>{e.stopPropagation();if(principal)principal.onClick();else onAbrir(t.id);}}>{principal?principal.txt:"Ver detalle"}</button>
     </div>
   </div>;
 }
@@ -571,7 +528,6 @@ function EstadoDemandas({data,setData,onBack,toast,onVer}:{data:any,setData:any,
   const[verArchivados,setVerArchivados]=useState(false);
   const[agrupar,setAgrupar]=useState("estado");
   const[cerrados,setCerrados]=useState<Record<string,boolean>>({});
-  const[abiertoId,setAbiertoId]=useState<any>(null);
   const[arrastrando,setArrastrando]=useState<any>(null);
   const[sobre,setSobre]=useState<string|null>(null);
   const[deshacer,setDeshacer]=useState<any>(null);
@@ -590,8 +546,11 @@ function EstadoDemandas({data,setData,onBack,toast,onVer}:{data:any,setData:any,
   const zonas=["Todas",...new Set(data.colaboradores.map((c:any)=>c.zona).filter(Boolean))] as string[];
   const statValor=activosBase.reduce((s:number,t:any)=>s+(getPrecioCliente(t)||0),0);
   const nArch=data.trabajos.filter((t:any)=>t.archivado).length;
-  const sel=abiertoId!=null?data.trabajos.find((t:any)=>t.id===abiertoId):null;
-  const abrirFicha=(id:any)=>{setAbiertoId(null);onVer(id);};
+  const atender=async(t:any)=>{
+    await supabase.from('trabajos').update({atendido:true}).eq('id',t.id);
+    setData((d:any)=>({...d,trabajos:d.trabajos.map((x:any)=>x.id===t.id?{...x,atendido:true}:x)}));
+    toast("✓ Marcado como atendido");
+  };
 
   // Arrastrar un trabajo a otra columna cambia su estado (igual que el desplegable de la ficha) y se puede deshacer
   const refrescar=(saved:any)=>setData((d:any)=>({...d,trabajos:d.trabajos.map((x:any)=>x.id===saved.id?{...saved,clienteId:saved.cliente_id,colaboradorId:saved.colaborador_id}:x)}));
@@ -663,7 +622,7 @@ function EstadoDemandas({data,setData,onBack,toast,onVer}:{data:any,setData:any,
         <div className="ui-gtools">Agrupar por <Segmentado etiqueta="Agrupar por" value={agrupar} onChange={setAgrupar} opciones={[{id:"estado",label:"Estado"},{id:"colab",label:"Colaborador"},{id:"prio",label:"Prioridad"},{id:"nada",label:"Sin agrupar"}]}/></div>
         {grupos.map(g=><div key={g.k}>
           {agrupar!=="nada"&&<div className="ui-gh" onClick={()=>setCerrados(p=>({...p,[g.k]:!p[g.k]}))}>{cerrados[g.k]?"▸":"▾"} {g.k}<span>({g.items.length})</span></div>}
-          {!cerrados[g.k]&&g.items.map((t:any)=><FilaLista key={t.id} t={t} data={data} setData={setData} toast={toast} onVer={onVer} onAbrir={setAbiertoId}/>)}
+          {!cerrados[g.k]&&g.items.map((t:any)=><FilaLista key={t.id} t={t} data={data} setData={setData} toast={toast} onVer={onVer} onAbrir={onVer}/>)}
         </div>)}
       </Tarjeta>
     :
@@ -676,15 +635,12 @@ function EstadoDemandas({data,setData,onBack,toast,onVer}:{data:any,setData:any,
             onDragLeave={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node))setSobre(s=>s===col.key?null:s);}}
             onDrop={e=>{e.preventDefault();soltarEn(col);}}>
             <div className="ui-col-h"><i style={{background:col.c}}/>{col.titulo}<span className="v">{eur(valor)}</span><span className="c">{its.length}</span></div>
-            {its.length?its.map((t:any)=><MiniTarjeta key={t.id} t={t} data={data} onAbrir={setAbiertoId} arrastrable={!verArchivados} onArrastrar={setArrastrando} onSoltar={()=>{setArrastrando(null);setSobre(null);}} arrastrando={arrastrando===t.id}/>):<div className="ui-vac">Suelta aquí un trabajo</div>}
+            {its.length?its.map((t:any)=><MiniTarjeta key={t.id} t={t} data={data} onAbrir={onVer} onAtender={atender} arrastrable={!verArchivados} onArrastrar={setArrastrando} onSoltar={()=>{setArrastrando(null);setSobre(null);}} arrastrando={arrastrando===t.id}/>):<div className="ui-vac">Suelta aquí un trabajo</div>}
           </div>;
         })}
       </div>
     }
 
-    <Cajon abierto={!!sel} onCerrar={()=>setAbiertoId(null)}>
-      {sel&&<PanelTrabajo t={sel} data={data} setData={setData} toast={toast} onVer={abrirFicha}/>}
-    </Cajon>
     {deshacer&&<div className="ui-undo" role="status"><span>Pasado a «{deshacer.nuevo}»</span><button type="button" onClick={deshacerCambio}>Deshacer</button></div>}
   </div>;
 }

@@ -224,6 +224,10 @@ const UI_CSS = `
 .ui-mc .es{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#6B7280;margin-top:5px}
 .ui-mc .es i{width:6px;height:6px;border-radius:50%}
 .ui-mc .dot{position:absolute;right:8px;top:8px;width:9px;height:9px;border-radius:50%;background:var(--or);box-shadow:0 0 0 3px rgba(245,158,11,.25)}
+.ui-mc button.dot{border:0;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;transition:all .12s}
+.ui-mc button.dot svg{display:none}
+.ui-mc button.dot:hover,.ui-mc button.dot:focus-visible{width:20px;height:20px;right:3px;top:3px;outline:none;background:#059669;box-shadow:0 0 0 3px rgba(5,150,105,.25)}
+.ui-mc button.dot:hover svg,.ui-mc button.dot:focus-visible svg{display:block}
 .ui-vac{color:#B9CBE3;font-size:12px;padding:8px 4px}
 .ui-chipb.avs{display:inline-flex;align-items:center;gap:6px}
 .ui-chipb.avs i{width:8px;height:8px;border-radius:50%;background:var(--or)}
