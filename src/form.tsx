@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const TIPOS = ["Fontanería","Electricidad","Albañilería","Carpintería","Pintura","Cerrajería","Climatización","Mantenimiento","Jardinería","Limpieza","Otros"];
 const SUPABASE_URL = 'https://opijkazhbktiikdzbanb.supabase.co';
@@ -22,6 +22,22 @@ export default function FormularioDomia() {
   const [errores, setErrores] = useState<Record<string, string | null>>({});
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  // El aviso de «Solicitud enviada» se cierra solo a los 4 segundos: avisa a la web que lo incrusta
+  // (por si es una ventana emergente) y deja el formulario limpio para una nueva solicitud.
+  useEffect(() => {
+    if (paso !== 3) return;
+    const id = window.setTimeout(() => {
+      try { if (window.parent !== window) window.parent.postMessage({ tipo: "domia-solicitud-enviada" }, "*"); } catch (e) {}
+      setForm({ nombre: "", telefono: "", email: "", direccion: "", tipos: [], descripcion: "" });
+      setFotos([]);
+      setFotosPreview([]);
+      setWeb("");
+      setErrores({});
+      setPaso(1);
+    }, 4000);
+    return () => window.clearTimeout(id);
+  }, [paso]);
 
   const toggleTipo = (t) => {
     setForm(f => ({
@@ -214,6 +230,7 @@ let telLimpio = limpiarTelefono(form.telefono);
         </div>
         <div className="text-sm text-[#1E3A5F] font-semibold">📞 685 917 059</div>
         <div className="text-xs text-gray-400 mt-1">domiaservices.es · Elche</div>
+        <div className="text-xs text-gray-300 mt-4">Este aviso se cerrará solo en unos segundos</div>
       </div>
     </div>
   );
