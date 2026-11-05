@@ -3102,6 +3102,7 @@ const ADMIN_EMAIL = "samuel.sanchez@olcproperties.net";
 const PERMISOS_USUARIO:Record<string,string[]|"todo">={
   "samuel.sanchez@olcproperties.net":"todo",
   "francisco.orts@olcproperties.net":"todo",
+  "francisco.orts.lopez@gmail.com":"todo",
 };
 const PERMISOS_POR_DEFECTO=["nuevas","demandas","clientes","colaboradores","incidencias"];
 const puede=(email:string|null|undefined,clave:string):boolean=>{
