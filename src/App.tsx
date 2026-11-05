@@ -3097,20 +3097,12 @@ function FormIncidencia({data,setData,onClose,toast,trabajoPre}){
   </div>;
 }
 const ADMIN_EMAIL = "samuel.sanchez@olcproperties.net";
-// Permisos por usuario: qué ve cada persona al entrar. "todo" = acceso completo.
-// Claves: nuevas, demandas (Pipeline), clientes, colaboradores, finanzas, incidencias, economico (panel económico de Inicio).
-const PERMISOS_USUARIO:Record<string,string[]|"todo">={
-  "samuel.sanchez@olcproperties.net":"todo",
-  "francisco.orts@olcproperties.net":"todo",
-  "francisco.orts.lopez@gmail.com":"todo",
-};
-const PERMISOS_POR_DEFECTO=["nuevas","demandas","clientes","colaboradores","incidencias"];
-const puede=(email:string|null|undefined,clave:string):boolean=>{
-  if(clave==="home")return true;
-  const p=PERMISOS_USUARIO[(email||"").toLowerCase()];
-  if(p==="todo")return true;
-  return (p||PERMISOS_POR_DEFECTO).includes(clave);
-};
+// Dos mundos separados: el colaborador usa su portal (/portal) y la dirección usa el panel de Domia.
+// Solo estas cuentas (Samuel y Fran) entran al CRM y lo ven todo; cualquier otra cuenta no ve nada.
+// Hoy es una barrera de pantalla: el acceso real a los datos lo da la tabla staff de Supabase.
+const DIRECCION=["samuel.sanchez@olcproperties.net","francisco.orts@olcproperties.net","francisco.orts.lopez@gmail.com"];
+const esDireccion=(email:string|null|undefined):boolean=>DIRECCION.includes((email||"").toLowerCase());
+const puede=(email:string|null|undefined,_clave?:string):boolean=>esDireccion(email);
 function AdminPanel({data}){
   const[tab,setTab]=useState("resumen");
   const[periodo,setPeriodo]=useState("Todo");
@@ -3260,7 +3252,9 @@ const[data,setData]=useState({clientes:[],colaboradores:[],trabajos:[],incidenci
   useEffect(()=>{
     if(!autenticado)return;
     const cargar=async()=>{
-      // Solo el personal autorizado (tabla staff) entra al CRM; si la función aún no existe, se deja pasar.
+      // Solo la dirección entra al CRM: cualquier otra cuenta se corta aquí, antes de pedir ningún dato.
+      if(!esDireccion(emailUsuario)){setNoStaff(true);setCargando(false);return;}
+      // Además, solo el personal autorizado (tabla staff) entra al CRM; si la función aún no existe, se deja pasar.
       const{data:esStaffOk,error:errStaff}=await supabase.rpc('es_staff');
       if(!errStaff&&esStaffOk===false){setNoStaff(true);setCargando(false);return;}
 const[c,col,t,inc]=await Promise.all([supabase.from('clientes').select('*').order('id'),supabase.from('colaboradores').select('*').order('id'),supabase.from('trabajos').select('*').order('id'),supabase.from('incidencias').select('*').order('id',{ascending:false})]);
@@ -3268,7 +3262,7 @@ const[c,col,t,inc]=await Promise.all([supabase.from('clientes').select('*').orde
       setCargando(false);
     };
     cargar();
-  },[autenticado]);
+  },[autenticado,emailUsuario]);
   if(autenticado===null)return<div className="min-h-screen flex items-center justify-center bg-[#F0F2F5]"><div className="text-4xl">⚙️</div></div>;
   if(autenticado&&modoPass)return<CrearPassword onListo={()=>{window.location.hash="";setModoPass(false);}}/>;
   if(!autenticado)return<LoginScreen onLogin={()=>{supabase.auth.getSession().then(({data})=>{setAutenticado(true);setEmailUsuario(data.session?.user?.email||null);});}}/>;
